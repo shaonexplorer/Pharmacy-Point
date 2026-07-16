@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,17 +19,17 @@ model User {
 }
 
 model Product {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
-  sku         String    @unique
-  price       Decimal   @db.Decimal(10, 2)
-  quantity    Int       @default(0)
-  lowStock    Int       @default(10)
+  sku         String   @unique
+  price       Float
+  quantity    Int      @default(0)
+  lowStock    Int      @default(10)
   category    String?
   image       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   orderItems OrderItem[]
 
@@ -38,14 +37,14 @@ model Product {
 }
 
 model Customer {
-  id           String   @id @default(cuid())
-  name         String
-  email        String?  @unique
-  phone        String?
-  address      String?
-  dueAmount    Decimal  @db.Decimal(10, 2) @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  address   String?
+  dueAmount Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   orders Order[]
 
@@ -53,14 +52,14 @@ model Customer {
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  customerId   String?
-  status       OrderStatus @default(PENDING)
-  total        Decimal     @db.Decimal(10, 2)
-  items        OrderItem[]
-  customer     Customer?   @relation(fields: [customerId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  customerId String?
+  status     OrderStatus @default(PENDING)
+  total      Float
+  items      OrderItem[]
+  customer   Customer?   @relation(fields: [customerId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@map("orders")
 }
@@ -70,7 +69,7 @@ model OrderItem {
   orderId   String
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
+  price     Float
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
