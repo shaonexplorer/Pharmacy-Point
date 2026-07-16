@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./frontend/src/*"],
+      "@backend/*": ["./backend/src/*"],
+      "@pharmacy-point/types": ["./packages/types/src/index.ts"],
+      "@pharmacy-point/config": ["./packages/config/src/index.ts"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "frontend/src/**/*.ts",
+    "frontend/src/**/*.tsx",
+    "backend/src/**/*.ts",
+    "packages/*/src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "frontend/.next",
+    "backend/dist",
+    "backend/generated"
+  ]
+}

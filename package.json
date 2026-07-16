@@ -1,0 +1,23 @@
+{
+  "name": "pharmacy-point",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend & npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend && npm run build --workspace=@pharmacy-point/types && npm run build --workspace=@pharmacy-point/config",
+    "lint": "npm run lint --workspace=frontend && npm run lint --workspace=backend",
+    "typecheck": "npm run typecheck --workspace=frontend && npm run typecheck --workspace=backend && npm run typecheck --workspace=@pharmacy-point/types && npm run typecheck --workspace=@pharmacy-point/config"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.6",
+    "typescript": "^5.9.2"
+  }
+}

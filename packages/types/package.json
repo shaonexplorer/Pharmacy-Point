@@ -1,0 +1,11 @@
+{
+  "name": "@pharmacy-point/types",
+  "version": "0.1.0",
+  "main": "dist/index.ts",
+  "types": "dist/index.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  }
+}

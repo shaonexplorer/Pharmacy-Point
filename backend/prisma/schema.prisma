@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  sku         String    @unique
+  price       Decimal   @db.Decimal(10, 2)
+  quantity    Int       @default(0)
+  lowStock    Int       @default(10)
+  category    String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?  @unique
+  phone        String?
+  address      String?
+  dueAmount    Decimal  @db.Decimal(10, 2) @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  customerId   String?
+  status       OrderStatus @default(PENDING)
+  total        Decimal     @db.Decimal(10, 2)
+  items        OrderItem[]
+  customer     Customer?   @relation(fields: [customerId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+enum Role {
+  ADMIN
+  PHARMACIST
+  STAFF
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}

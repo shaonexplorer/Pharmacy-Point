@@ -1,0 +1,9 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "src": true,
+  "tailwind": {
+    "config": "tailwind.config.ts"
+  },
+  "appDir": true,
+  "nextAppDir": true
+}
