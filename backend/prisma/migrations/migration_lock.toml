@@ -1,0 +1,12 @@
+version = 1
+
+[[generators]]
+provider = "prisma-client-js"
+
+[[migrations]]
+checksum = "20260716190509_init"
+sqlPath = "20260716190509_init/migration.sql"
+
+[[migrations]]
+checksum = "20260717000000_add_product_medication_fields"
+sqlPath = "20260717000000_add_product_medication_fields/migration.sql"

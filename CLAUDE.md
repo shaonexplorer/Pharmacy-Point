@@ -4,41 +4,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 ## Project Overview
 
-**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach. The project is currently in **Phase 1 (Project Setup)** with comprehensive documentation in place and the monorepo infrastructure complete.
+**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach.
+
+## Current Status
+
+**Phase 1: Project Setup - COMPLETED ✅**
+
+- Monorepo architecture established with Turborepo
+- Frontend: Next.js 16, Tailwind CSS, shadcn/ui, React Hook Form, Zod
+- Backend: Express.js 5.x, TypeScript, Prisma ORM 7.x
+- Shared configuration and types packages created
+- All TypeScript compilation passes
+- All ESLint/Prettier checks pass
+
+**Phase 1.5: Database Schema & Migrations - COMPLETED ✅**
+
+- Prisma 7.x configured with PostgreSQL adapter
+- Database schema implemented with models:
+  - User (with ADMIN, PHARMACIST, STAFF, CUSTOMER roles)
+  - Company (pharmacy/company information)
+  - Product (medication inventory with batch, brand, generic name, expiry date)
+  - Customer (with due amount tracking)
+  - Order/OrderItem (sales transactions)
+- Initial migration created and applied to Neon PostgreSQL database
+- Database seed script with sample data
+- Health check endpoints implemented
 
 ## Project Structure
 
 ```markdown
 pharmacy-point/
-├── specs/                         # Specification documents (read first)
-│   ├── mission.md                  # Vision, goals, and success metrics
-│   ├── techstack.md                # Technology stack and architecture decisions
-│   ├── roadmap.md                  # Development phases and milestones
-│   └── phase-1-project-setup/
-│       └── plan.md                 # Phase 1 implementation plan (COMPLETED)
+├── specs/                         # Specification documents
 ├── backend/                        # Express.js API server
 │   ├── src/                        # Source code
-│   │   └── index.ts                # Main server entry point
+│   │   └── index.ts                # Main server entry point with Prisma Client
 │   ├── prisma/                     # Prisma schema and migrations
-│   ├── prisma.config.ts            # Prisma configuration
-│   ├── .env                        # Environment variables
+│   │   ├── schema.prisma           # Database schema
+│   │   ├── seed.ts                 # Seed script
+│   │   └── migrations/             # Database migrations
+│   ├── prisma.config.ts            # Prisma configuration (Prisma 7.x)
 │   ├── package.json                # Backend dependencies
 │   └── tsconfig.json               # TypeScript configuration
 ├── frontend/                       # Next.js application
-│   ├── src/
-│   │   └── app/                    # App Router structure
-│   │       ├── layout.tsx          # Root layout
-│   │       └── page.tsx            # Home page
-│   ├── components.json             # shadcn/ui configuration
-│   ├── package.json                # Frontend dependencies
-│   ├── tsconfig.json               # TypeScript configuration
-│   └── eslint.config.mjs           # ESLint configuration
 ├── packages/                       # Shared packages
-│   ├── types/                      # Shared TypeScript types
-│   └── config/                     # Shared configuration
-├── package.json                    # Root package.json with workspaces
-├── turbo.json                      # Turborepo configuration
-└── tsconfig.json                   # Root TypeScript configuration
+└── package.json                    # Root package.json with workspaces
 ```
 
 ## Architecture
@@ -46,41 +55,9 @@ pharmacy-point/
 This project follows a **monorepo architecture** using Turborepo with npm workspaces:
 
 - **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS, shadcn/ui
-- **Backend**: Express.js 5.x with TypeScript, PostgreSQL via Prisma ORM
-- **Database**: PostgreSQL 15+ with Prisma migrations
+- **Backend**: Express.js 5.x with TypeScript, PostgreSQL via Prisma ORM 7.x
+- **Database**: PostgreSQL 15+ (Neon Serverless) with Prisma migrations
 - **Authentication**: NextAuth.js with JWT (planned for Phase 2)
-
-## Key Features (Planned)
-
-- Inventory management with low stock alerts
-- POS system with Stripe integration
-- Customer management and due accounts
-- Analytics dashboard with charts/reports
-- Email notifications for alerts
-
-## Documentation
-
-For up-to-date documentation on any library, framework, or API used in this project, use **Context7**:
-
-```bash
-npx ctx7@latest library "Next.js" "How do I use server components in Next.js 14?"
-npx ctx7@latest library "Prisma" "How do I set up PostgreSQL connection?"
-npx ctx7@latest library "React Hook Form" "How do I integrate with Zod?"
-```
-
-For UI/UX design decisions, use the **`/frontend-design`** skill to get guidance on:
-
-- Visual design direction and aesthetics
-- Typography and color scheme choices
-- Component design best practices
-- Accessibility considerations
-
-For shadcn/ui component management, use the **`/shadcn`** skill to:
-
-- Add new components from the registry
-- Customize existing components
-- Fix component bugs or styling issues
-- Manage component variants and presets
 
 ## Development Workflow
 
@@ -91,11 +68,7 @@ For shadcn/ui component management, use the **`/shadcn`** skill to:
    npm install
    ```
 
-2. **Set up PostgreSQL database** and configure `.env` in `backend/.env`:
-   ```bash
-   cd backend
-   npx prisma migrate dev
-   ```
+2. **Set up PostgreSQL database** and configure `.env` in the backend directory
 
 3. **Start development servers**:
    ```bash
@@ -114,14 +87,6 @@ For shadcn/ui component management, use the **`/shadcn`** skill to:
 - `npm run lint` - Run ESLint on both projects
 - `npm run typecheck` - Run TypeScript type checking
 
-### Available Scripts (Frontend)
-
-- `npm run dev` - Start Next.js dev server (http://localhost:3000)
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
-
 ### Available Scripts (Backend)
 
 - `npm run dev` - Start Express.js dev server with nodemon (http://localhost:5000)
@@ -130,13 +95,14 @@ For shadcn/ui component management, use the **`/shadcn`** skill to:
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run prisma` - Run Prisma CLI commands
+- `npm run seed` - Run database seed script
 
 ## Key Files to Reference
 
-- `specs/mission.md` - Project vision and objectives
-- `specs/techstack.md` - Technology choices and rationale
-- `specs/roadmap.md` - Development phases and feature priorities
-- `specs/phase-1-project-setup/plan.md` - Phase 1 implementation plan (COMPLETED)
+- `backend/prisma/schema.prisma` - Database schema
+- `backend/prisma/seed.ts` - Database seed script
+- `backend/prisma.config.ts` - Prisma 7.x configuration
+- `backend/src/index.ts` - Express server entry point
 
 ## Path Aliases
 
@@ -147,31 +113,22 @@ The following path aliases are configured for monorepo imports:
 - `@pharmacy-point/types` - Shared TypeScript types
 - `@pharmacy-point/config` - Shared configuration
 
-## Development Commands
+## Database Models
 
-**Frontend (Next.js)**:
+### User
+- `id`, `email`, `password`, `name`, `role`, `createdAt`, `updatedAt`
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
+### Company
+- `id`, `name`, `address`, `phone`, `email`, `website`, `licenseNo`, `established`, `createdAt`, `updatedAt`
 
-**Backend (Express.js)**:
+### Product
+- `id`, `name`, `description`, `sku`, `price`, `quantity`, `lowStock`, `category`, `image`, `batchNo`, `brandName`, `genericName`, `expiryDate`, `companyId`, `createdAt`, `updatedAt`
 
-- `npm run dev` - Start development server with nodemon
-- `npm run build` - TypeScript compilation
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
-- `npm run prisma` - Run Prisma CLI commands
+### Customer
+- `id`, `name`, `email`, `phone`, `address`, `dueAmount`, `createdAt`, `updatedAt`
 
-## Current Status
+### Order
+- `id`, `customerId`, `status`, `total`, `items`, `customer`, `createdAt`, `updatedAt`
 
-**Phase 1: Project Setup - COMPLETED ✅**
-
-- Monorepo architecture established with Turborepo
-- Frontend: Next.js 16, Tailwind CSS, shadcn/ui, React Hook Form, Zod
-- Backend: Express.js 5.x, TypeScript, Prisma ORM
-- Shared configuration and types packages created
-- All TypeScript compilation passes
-- All ESLint/Prettier checks pass
+### OrderItem
+- `id`, `orderId`, `productId`, `quantity`, `price`, `order`, `product`
