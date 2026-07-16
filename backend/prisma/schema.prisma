@@ -18,20 +18,43 @@ model User {
   @@map("users")
 }
 
-model Product {
-  id          String   @id @default(cuid())
+model Company {
+  id          String    @id @default(cuid())
   name        String
-  description String?
-  sku         String   @unique
-  price       Float
-  quantity    Int      @default(0)
-  lowStock    Int      @default(10)
-  category    String?
-  image       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  address     String?
+  phone       String?
+  email       String?   @unique
+  website     String?
+  licenseNo   String?   @unique
+  established DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  orderItems OrderItem[]
+  products    Product[]
+
+  @@map("companies")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  sku           String   @unique
+  price         Float
+  quantity      Int      @default(0)
+  lowStock      Int      @default(10)
+  category      String?
+  image         String?
+  batchNo       String?
+  brandName     String?
+  genericName   String?
+  expiryDate    DateTime?
+  companyId     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company      Company?  @relation(fields: [companyId], references: [id])
+  orderItems   OrderItem[]
 
   @@map("products")
 }

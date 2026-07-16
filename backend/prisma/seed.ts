@@ -26,7 +26,7 @@ async function main() {
 
   console.log('Created admin user:', admin.email);
 
-  // Create default products
+  // Create default products with medication details
   const products = [
     {
       name: 'Aspirin 100mg',
@@ -36,6 +36,11 @@ async function main() {
       quantity: 100,
       lowStock: 10,
       category: 'Pain Relief',
+      brandName: 'Bayer',
+      genericName: 'Aspirin',
+      batchNo: 'BATCH-ASP-001',
+      expiryDate: new Date('2025-12-31'),
+      companyName: 'Bayer AG',
     },
     {
       name: 'Ibuprofen 200mg',
@@ -45,6 +50,11 @@ async function main() {
       quantity: 75,
       lowStock: 10,
       category: 'Pain Relief',
+      brandName: 'Advil',
+      genericName: 'Ibuprofen',
+      batchNo: 'BATCH-IBU-002',
+      expiryDate: new Date('2025-06-30'),
+      companyName: 'Novartis',
     },
     {
       name: 'Paracetamol 500mg',
@@ -54,6 +64,11 @@ async function main() {
       quantity: 120,
       lowStock: 10,
       category: 'Pain Relief',
+      brandName: 'Tylenol',
+      genericName: 'Paracetamol',
+      batchNo: 'BATCH-PAR-003',
+      expiryDate: new Date('2025-09-15'),
+      companyName: 'Johnson & Johnson',
     },
     {
       name: 'Cough Syrup 100ml',
@@ -63,6 +78,11 @@ async function main() {
       quantity: 50,
       lowStock: 5,
       category: 'Cough & Cold',
+      brandName: 'Robitussin',
+      genericName: 'Dextromethorphan',
+      batchNo: 'BATCH-COS-004',
+      expiryDate: new Date('2025-03-01'),
+      companyName: 'Reckitt',
     },
     {
       name: 'Vitamin C 1000mg',
@@ -72,6 +92,11 @@ async function main() {
       quantity: 200,
       lowStock: 20,
       category: 'Vitamins',
+      brandName: 'Centrum',
+      genericName: 'Ascorbic Acid',
+      batchNo: 'BATCH-VIT-005',
+      expiryDate: new Date('2026-12-31'),
+      companyName: 'Pfizer',
     },
   ];
 
