@@ -1,13 +1,16 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import productsRouter from './routes/products';
-import categoriesRouter from './routes/categories';
-import companiesRouter from './routes/companies';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize Prisma Client with adapter
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+const prisma = new PrismaClient({ adapter });
 
 // Middleware
 app.use(cors());
@@ -17,19 +20,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (_req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Root endpoint
-app.get('/', (_req, res) => {
+app.get('/', (req, res) => {
   res.json({ message: 'Pharmacy Point API', version: '1.0.0' });
 });
-
-// API routes
-app.use('/api/products', productsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/companies', companiesRouter);
 
 // Start server
 app.listen(PORT, () => {
@@ -37,3 +35,4 @@ app.listen(PORT, () => {
 });
 
 export default app;
+export { prisma };
