@@ -17,6 +17,7 @@ export interface ProductListParams {
   limit?: number;
   search?: string;
   category?: string;
+  companyId?: string;
 }
 
 /**

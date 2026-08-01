@@ -106,3 +106,6 @@ export type CreateProductInput = {
 };
 
 export type UpdateProductInput = Partial<CreateProductInput>;
+
+export type UpdateCompanyInput = Partial<Company>;
+export type CreateCompanyInput = Omit<Company, 'id' | 'createdAt' | 'updatedAt'>;

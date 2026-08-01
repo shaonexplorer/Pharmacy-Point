@@ -9,10 +9,10 @@ import type { Product, Company } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2, Plus, Package, AlertCircle } from 'lucide-react';
-import { ProductCard } from '@/components/products/ProductCard';
+import Link from 'next/link';
+import { ProductTable } from '@/components/products/ProductTable';
 import { ProductSearch } from '@/components/products/ProductSearch';
 import { ProductFilters } from '@/components/products/ProductFilters';
-import Link from 'next/link';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -90,8 +90,6 @@ export default function ProductsPage() {
 
   const hasActiveFilters = !!searchQuery || !!selectedCategory || !!selectedCompany;
 
-  const errorMessage = error instanceof Error ? error.message : 'Failed to load products';
-
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -148,19 +146,25 @@ export default function ProductsPage() {
           </Card>
         )}
 
-        {/* Product Grid */}
-        {isLoading ? (
+        {/* Loading State */}
+        {isLoading && (
           <div className="flex min-h-75 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : error ? (
+        )}
+
+        {/* Error State */}
+        {!isLoading && error && (
           <Card className="border-destructive bg-destructive/5 p-4">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
-              <p>{errorMessage}</p>
+              <p>{error instanceof Error ? error.message : 'Failed to load products'}</p>
             </div>
           </Card>
-        ) : products.length === 0 ? (
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && products.length === 0 && (
           <div className="flex min-h-75 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-8 text-center">
             <Package className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">No products found</h3>
@@ -178,62 +182,18 @@ export default function ProductsPage() {
               </Button>
             )}
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} onDelete={handleDelete} />
-              ))}
-            </div>
+        )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                  if (
-                    pageNum === 1 ||
-                    pageNum === totalPages ||
-                    Math.abs(pageNum - currentPage) <= 1
-                  ) {
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageNum === currentPage ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  }
-                  if (Math.abs(pageNum - currentPage) === 2) {
-                    return (
-                      <span key={pageNum} className="text-muted-foreground">
-                        …
-                      </span>
-                    );
-                  }
-                  return null;
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </>
+        {/* Product Table */}
+        {!isLoading && !error && products.length > 0 && (
+          <ProductTable
+            products={products}
+            totalItems={totalItems}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            onDelete={handleDelete}
+          />
         )}
       </div>
     </div>

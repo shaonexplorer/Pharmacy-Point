@@ -242,7 +242,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           <select
             id="companyId"
             value={formData.companyId ?? ''}
-            onChange={(e) => handleChange('companyId', e.target.value || null)}
+            onChange={(e) => handleChange('companyId', e.target.value || '')}
             className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
           >
             <option value="">Select a company</option>

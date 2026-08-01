@@ -47,8 +47,13 @@ async function request<T>(
 export const api = {
   // Products
   products: {
-    list: (params?: { page?: number; limit?: number; search?: string; category?: string; companyId?: string }) =>
-      request<PaginatedResponse<Product>>('/api/products', { params }),
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      category?: string;
+      companyId?: string;
+    }) => request<PaginatedResponse<Product>>('/api/products', { params }),
 
     get: (id: string) => request<ApiResponse<Product>>(`/api/products/${id}`),
 

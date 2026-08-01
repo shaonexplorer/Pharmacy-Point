@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url = env("DATABASE_URL")
 }
 
 model User {
@@ -98,6 +99,7 @@ model Product {
   brandName     String?
   genericName   String?
   expiryDate    DateTime?
+  deletedAt     DateTime?
   companyId     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -109,22 +111,6 @@ model Product {
   @@index([category])
   @@index([deletedAt])
   @@index([companyId])
-}
-
-model Company {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  email       String?   @unique
-  phone       String?
-  address     String?
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  products    Product[]
-
-  @@map("companies")
 }
 
 model Category {
