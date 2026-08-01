@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  // output   = "../node_modules/@prisma/client"
 }
 
 datasource db {
@@ -95,7 +96,7 @@ model Product {
   lowStock      Int      @default(10)
   category      String?
   image         String?
-  batchNo       String?
+  // batchNo       String?
   brandName     String?
   genericName   String?
   expiryDate    DateTime?

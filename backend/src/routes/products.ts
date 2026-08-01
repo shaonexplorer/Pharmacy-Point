@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { Decimal } from '@prisma/client/runtime/library';
 
 const router = Router();
 
@@ -290,4 +289,4 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export const productRouter = router;

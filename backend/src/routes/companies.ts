@@ -66,9 +66,7 @@ router.post('/', async (req: Request, res: Response) => {
       },
     });
 
-    return res
-      .status(201)
-      .json({ data: company, message: 'Company created successfully' });
+    return res.status(201).json({ data: company, message: 'Company created successfully' });
   } catch (error: unknown) {
     if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return res.status(409).json({ error: 'Company with this email or name already exists' });
@@ -142,4 +140,4 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export const companyRouter = router;
