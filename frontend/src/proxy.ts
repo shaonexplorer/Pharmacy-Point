@@ -5,7 +5,7 @@ export async function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   const { pathname } = request.nextUrl;
 
-  const protectedPaths = ['/dashboard', '/admin', '/profile', '/orders', '/inventory'];
+  const protectedPaths = ['/dashboard', '/admin', '/profile', '/orders', '/inventory', '/products'];
   const authOnlyPaths = ['/login', '/signup', '/forgot-password'];
 
   const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
@@ -29,6 +29,7 @@ export const config = {
     '/profile/:path*',
     '/orders/:path*',
     '/inventory/:path*',
+    '/products/:path*',
     '/login',
     '/signup',
     '/forgot-password',

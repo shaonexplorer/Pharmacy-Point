@@ -1,0 +1,84 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Search, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface ProductSearchProps {
+  onSearch: (query: string) => void;
+  placeholder?: string;
+  delay?: number;
+}
+
+export function ProductSearch({
+  onSearch,
+  placeholder = 'Search products...',
+  delay = 300,
+}: ProductSearchProps) {
+  const [value, setValue] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Debounce search to avoid excessive API calls
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (value.trim() !== '') {
+        setIsSearching(true);
+        onSearch(value.trim());
+        setIsSearching(false);
+      }
+    }, delay);
+
+    // Only call onSearch when value is empty (clear) or after debounce
+    if (value === '') {
+      onSearch('');
+    }
+
+    return () => clearTimeout(handler);
+  }, [value, onSearch, delay]);
+
+  const handleClear = () => {
+    setValue('');
+    onSearch('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const trimmed = value.trim();
+      if (trimmed) {
+        onSearch(trimmed);
+      }
+    }
+  };
+
+  return (
+    <div className="relative w-full max-w-md">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="bg-background border-border pl-10 pr-10"
+      />
+      {value && (
+        <button
+          onClick={handleClear}
+          className={cn(
+            'absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1',
+            'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+          aria-label="Clear search"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+      {isSearching && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
+        </div>
+      )}
+    </div>
+  );
+}

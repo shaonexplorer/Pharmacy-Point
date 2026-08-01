@@ -1,48 +1,68 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: 210 20% 98%;
-  --foreground: 210 12% 15%;
-  --card: 210 20% 98%;
-  --card-foreground: 210 12% 15%;
-  --primary: 217 70% 52%;
-  --primary-foreground: 210 100% 97%;
-  --secondary: 210 12% 70%;
-  --secondary-foreground: 210 12% 15%;
-  --destructive: 354 72% 64%;
-  --destructive-foreground: 210 100% 97%;
-  --muted: 210 12% 75%;
-  --muted-foreground: 210 8% 45%;
-  --border: 210 20% 80%;
-  --input: 210 20% 80%;
-  --ring: 217 70% 52%;
+  --background: hsl(210 20% 98%);
+  --foreground: hsl(210 12% 15%);
+  --card: hsl(210 20% 98%);
+  --card-foreground: hsl(210 12% 15%);
+  --primary: hsl(217 70% 52%);
+  --primary-foreground: hsl(210 100% 97%);
+  --secondary: hsl(210 12% 70%);
+  --secondary-foreground: hsl(210 12% 15%);
+  --destructive: hsl(354 72% 64%);
+  --destructive-foreground: hsl(210 100% 97%);
+  --muted: hsl(210 12% 75%);
+  --muted-foreground: hsl(210 8% 45%);
+  --border: hsl(210 20% 80%);
+  --input: hsl(210 20% 80%);
+  --ring: hsl(217 70% 52%);
   --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 210 10% 10%;
-    --foreground: 0 0% 93%;
-    --card: 210 12% 13%;
-    --card-foreground: 0 0% 93%;
-    --primary: 217 80% 60%;
-    --primary-foreground: 210 100% 97%;
-    --secondary: 210 12% 40%;
-    --secondary-foreground: 0 0% 93%;
-    --destructive: 354 72% 64%;
-    --destructive-foreground: 210 100% 97%;
-    --muted: 210 12% 35%;
-    --muted-foreground: 210 8% 65%;
-    --border: 210 12% 35%;
-    --input: 210 12% 35%;
-    --ring: 217 80% 60%;
+    --background: hsl(210 10% 10%);
+    --foreground: hsl(0 0% 93%);
+    --card: hsl(210 12% 13%);
+    --card-foreground: hsl(0 0% 93%);
+    --primary: hsl(217 80% 60%);
+    --primary-foreground: hsl(210 100% 97%);
+    --secondary: hsl(210 12% 40%);
+    --secondary-foreground: hsl(0 0% 93%);
+    --destructive: hsl(354 72% 64%);
+    --destructive-foreground: hsl(210 100% 97%);
+    --muted: hsl(210 12% 35%);
+    --muted-foreground: hsl(210 8% 65%);
+    --border: hsl(210 12% 35%);
+    --input: hsl(210 12% 35%);
+    --ring: hsl(217 80% 60%);
   }
 }
 
+/* Map CSS variables into Tailwind v4 Theme engine */
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-lg: var(--radius);
+}
+
 body {
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: var(--font-geist-sans);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

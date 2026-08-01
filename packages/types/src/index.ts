@@ -9,16 +9,40 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Company {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  description?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   description?: string | null;
   sku: string;
+  companyId?: string | null;
+  company?: Company | null;
   price: number;
   quantity: number;
   lowStock: number;
-  category?: string | null;
+  category: string;
   image?: string | null;
+  deletedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -56,3 +80,29 @@ export type ApiResponse<T> = {
   error?: string;
   message?: string;
 };
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+};
+
+export type CreateProductInput = {
+  name: string;
+  sku: string;
+  companyId?: string | null;
+  price: number;
+  category: string;
+  quantity?: number;
+  lowStock?: number;
+  description?: string;
+  image?: string;
+};
+
+export type UpdateProductInput = Partial<CreateProductInput>;

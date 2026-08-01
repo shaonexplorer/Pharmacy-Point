@@ -1,12 +1,12 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client";
+import { betterAuth } from 'better-auth';
+import { prismaAdapter } from '@better-auth/prisma-adapter';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
-    provider: "postgresql",
+    provider: 'postgresql',
   }),
   emailAndPassword: {
     enabled: true,
@@ -24,12 +24,12 @@ export const auth = betterAuth({
   },
   cookies: {
     sessionToken: {
-      name: "auth.session.token",
+      name: 'auth.session.token',
       attributes: {
         httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
       },
     },
   },

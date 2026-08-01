@@ -11,12 +11,14 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
+  baseURL:
+    process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
     autoSignIn: true,
-    async sendResetPassword({ user, url, token }) {
+    async sendResetPassword({ user, url }) {
       // Replace with your email provider (e.g., Resend, Nodemailer, Postmark)
       console.log(`Reset password for ${user.email}, URL: ${url}`);
     },
@@ -28,4 +30,5 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: process.env.NODE_ENV === 'production',
   },
+  secret: process.env.BETTER_AUTH_SECRET || 'fallback-secret-key-for-development-only',
 });
