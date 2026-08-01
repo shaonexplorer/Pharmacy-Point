@@ -10,7 +10,7 @@ Establish the core infrastructure and deliver a minimal viable product with esse
 
 - Project setup with Next.js + Express.js monorepo structure
 - PostgreSQL database schema design and migrations
-- Basic authentication system (NextAuth.js)
+- Basic authentication system (betterAuth)
 - User roles and permissions (Admin, Staff)
 - Product catalog management
 - Simple inventory tracking

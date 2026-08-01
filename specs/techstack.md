@@ -36,7 +36,7 @@ A full-stack JavaScript/TypeScript application following the **Next.js App Route
 - **Redis** (planned) - Session storage and caching
 
 ### Authentication & Authorization
-- **NextAuth.js** - Authentication solution for Next.js
+- **betterAuth** - Framework-agnostic authentication library for TypeScript
 - **JWT** - Token-based authentication
 - **bcrypt** - Password hashing
 
