@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProduct } from '@/hooks/useProducts';
@@ -10,11 +10,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Edit, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   const { data: session, isPending: authPending } = useSession();
 
-  const { data: product, isLoading, error } = useProduct(params.id);
+  const { data: product, isLoading, error } = useProduct(id);
 
   // Redirect to login if not authenticated
   useEffect(() => {

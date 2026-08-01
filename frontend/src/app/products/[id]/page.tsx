@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
@@ -20,11 +20,12 @@ import {
 import { formatCurrency } from '@/lib/formatters';
 import Link from 'next/link';
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   const { data: session, isPending: authPending } = useSession();
 
-  const { data: product, isLoading, error } = useProduct(params.id);
+  const { data: product, isLoading, error } = useProduct(id);
   const deleteProductMutation = useDeleteProduct();
 
   // Redirect to login if not authenticated
