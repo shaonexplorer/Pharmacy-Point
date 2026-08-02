@@ -12,11 +12,8 @@ export interface User {
 export interface Company {
   id: string;
   name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
   description?: string | null;
-  isActive: boolean;
+  image?: string | null;
   createdAt: string;
   updatedAt: string;
 }

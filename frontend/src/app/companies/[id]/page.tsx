@@ -1,0 +1,178 @@
+'use client';
+
+import { useEffect, use } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from '@/lib/auth-client';
+import { useCompany, useDeleteCompany } from '@/hooks/useCompanies';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Loader2,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  Store,
+  Calendar,
+  AlertCircle,
+} from 'lucide-react';
+import Link from 'next/link';
+import type { ApiResponse } from '@pharmacy-point/types';
+
+export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const { id } = use(params);
+  const { data: session, isPending: authPending } = useSession();
+
+  const { data: response, isLoading, error } = useCompany(id);
+  const deleteCompanyMutation = useDeleteCompany();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authPending && !session) {
+      router.push('/login');
+    }
+  }, [session, authPending, router]);
+
+  const company = response?.data;
+  const handleDelete = async () => {
+    if (!company || !window.confirm(`Are you sure you want to delete "${company.name}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteCompanyMutation.mutateAsync(company.id);
+      router.push('/companies');
+    } catch {
+      // Error handled by mutation
+    }
+  };
+
+  const errorMessage = error instanceof Error ? error.message : 'Failed to load company';
+
+  if (authPending || isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="mx-auto max-w-4xl">
+          <Card className="border-destructive bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="h-4 w-4" />
+                <p>{errorMessage}</p>
+              </div>
+              <Button asChild className="mt-4" variant="outline">
+                <Link href="/companies">← Back to Companies</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!company) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="mx-auto max-w-4xl">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-muted-foreground">Company not found.</p>
+              <Button asChild className="mt-4" variant="outline">
+                <Link href="/companies">← Back to Companies</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="mx-auto max-w-4xl">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/companies">
+                <ArrowLeft className="h-4 w-4" />
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground">{company.name}</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href={`/companies/${company.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDelete}
+              disabled={deleteCompanyMutation.isPending}
+              className="border-destructive text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleteCompanyMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Company Details */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground">Company Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Logo/Image */}
+              {company.image && (
+                <div className="mb-4">
+                  <div className="relative h-48 w-full max-w-md overflow-hidden rounded-md bg-muted">
+                    <img
+                      src={company.image}
+                      alt={company.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Basic Info */}
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">{company.name}</h2>
+                  {company.description && (
+                    <p className="mt-1 text-muted-foreground whitespace-pre-wrap">
+                      {company.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Metadata */}
+                <div className="border-t border-border pt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Created: {new Date(company.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>Updated: {new Date(company.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

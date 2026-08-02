@@ -1,0 +1,159 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from '@/lib/auth-client';
+import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
+import { CompanyTable } from '@/components/companies/CompanyTable';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loader2, Plus, Store, AlertCircle, Search } from 'lucide-react';
+import Link from 'next/link';
+import { Input } from '@/components/ui/input';
+import { PaginatedResponse } from '@pharmacy-point/types';
+
+export default function CompaniesPage() {
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useCompanies({ page: currentPage });
+
+  const deleteCompanyMutation = useDeleteCompany();
+
+  const companies = response?.data ?? [];
+  const totalItems = response?.pagination.total ?? 0;
+  const totalPages = response?.pagination.totalPages ?? 1;
+
+  const handleDelete = async (company: { id: string; name: string }) => {
+    if (!window.confirm(`Are you sure you want to delete "${company.name}"?`)) return;
+
+    try {
+      await deleteCompanyMutation.mutateAsync(company.id);
+    } catch {
+      // Error is handled by the mutation
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push('/login');
+    }
+  }, [session, isPending, router]);
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // Will redirect to login
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <Store className="h-6 w-6" />
+              Companies
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your pharmacy company profiles
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/companies/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Company
+            </Link>
+          </Button>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search companies..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-10 bg-background border-border"
+            />
+          </div>
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <Card className="border-destructive bg-destructive/5 p-4 mb-4">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              <p>{error instanceof Error ? error.message : 'Failed to load companies'}</p>
+            </div>
+          </Card>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex min-h-75 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && companies.length === 0 && (
+          <div className="flex min-h-75 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-8 text-center">
+            <Store className="h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mt-4 text-lg font-semibold text-foreground">No companies found</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {searchQuery
+                ? 'Try adjusting your search query.'
+                : 'Get started by adding your first company.'}
+            </p>
+            {!searchQuery && (
+              <Button asChild className="mt-4">
+                <Link href="/companies/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Company
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Company Table */}
+        {!isLoading && !error && companies.length > 0 && (
+          <CompanyTable
+            companies={companies}
+            totalItems={totalItems}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            onDelete={handleDelete}
+          />
+        )}
+      </div>
+    </div>
+  );
+}

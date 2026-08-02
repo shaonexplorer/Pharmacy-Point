@@ -1,23 +1,22 @@
 generator client {
   provider = "prisma-client-js"
-  // output   = "../node_modules/@prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
-  emailVerified Boolean   @default(false)
-  name          String?
   password      String?
-  role          Role      @default(CUSTOMER)
-  image         String?
+  name          String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(CUSTOMER)
   accounts      Account[]
   sessions      Session[]
 
@@ -43,7 +42,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -53,6 +51,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("accounts")
 }
@@ -72,46 +71,38 @@ model Company {
   id          String    @id @default(cuid())
   name        String
   description String?
-  sku         String    @unique
-  price       Decimal   @db.Decimal(10, 2)
-  quantity    Int       @default(0)
-  lowStock    Int       @default(10)
-  category    String?
   image       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
   products    Product[]
 
   @@map("companies")
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  sku           String   @unique
-  price         Float
-  quantity      Int      @default(0)
-  lowStock      Int      @default(10)
-  category      String?
-  image         String?
-  // batchNo       String?
-  brandName     String?
-  genericName   String?
-  expiryDate    DateTime?
-  deletedAt     DateTime?
-  companyId     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  sku         String      @unique
+  price       Float
+  quantity    Int         @default(0)
+  lowStock    Int         @default(10)
+  category    String?
+  image       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  brandName   String?
+  genericName String?
+  expiryDate  DateTime?
+  companyId   String?
+  deletedAt   DateTime?
+  orderItems  OrderItem[]
+  company     Company?    @relation(fields: [companyId], references: [id])
 
-  company      Company?  @relation(fields: [companyId], references: [id])
-  orderItems   OrderItem[]
-
-  @@map("products")
   @@index([category])
   @@index([deletedAt])
   @@index([companyId])
+  @@map("products")
 }
 
 model Category {
@@ -126,29 +117,28 @@ model Category {
 }
 
 model Customer {
-  id           String   @id @default(cuid())
-  name         String
-  email        String?  @unique
-  phone        String?
-  address      String?
-  dueAmount    Decimal  @db.Decimal(10, 2) @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  orders Order[]
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  address   String?
+  dueAmount Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
 
   @@map("customers")
 }
 
 model Order {
-  id           String      @id @default(cuid())
-  customerId   String?
-  status       OrderStatus @default(PENDING)
-  total        Decimal     @db.Decimal(10, 2)
-  items        OrderItem[]
-  customer     Customer?   @relation(fields: [customerId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  customerId String?
+  total      Decimal     @db.Decimal(10, 2)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  status     OrderStatus @default(PENDING)
+  items      OrderItem[]
+  customer   Customer?   @relation(fields: [customerId], references: [id])
 
   @@map("orders")
 }
@@ -158,10 +148,9 @@ model OrderItem {
   orderId   String
   productId String
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
-
-  order   Order   @relation(fields: [orderId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }

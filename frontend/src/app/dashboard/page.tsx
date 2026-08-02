@@ -3,7 +3,7 @@
 import { useSession, signOut } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, LogOut, Package } from 'lucide-react';
+import { Loader2, LogOut, Package, Store } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -57,12 +57,20 @@ export default function DashboardPage() {
               <p className="text-foreground">{session.user.name}</p>
             </div>
           )}
-          <Button asChild className="w-full">
-            <Link href="/products">
-              <Package className="mr-2 h-4 w-4" />
-              Manage Products
-            </Link>
-          </Button>
+          <div className="grid grid-cols-1 gap-2">
+            <Button asChild className="w-full">
+              <Link href="/products">
+                <Package className="mr-2 h-4 w-4" />
+                Manage Products
+              </Link>
+            </Button>
+            <Button asChild className="w-full" variant="outline">
+              <Link href="/companies">
+                <Store className="mr-2 h-4 w-4" />
+                Manage Companies
+              </Link>
+            </Button>
+          </div>
           <Button variant="outline" className="w-full" onClick={() => signOut()}>
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out

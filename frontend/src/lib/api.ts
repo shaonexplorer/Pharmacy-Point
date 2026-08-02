@@ -82,7 +82,11 @@ export const api = {
 
   // Companies
   companies: {
-    list: () => request<ApiResponse<Company[]>>('/api/companies'),
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    }) => request<PaginatedResponse<Company>>('/api/companies', { params }),
     get: (id: string) => request<ApiResponse<Company>>(`/api/companies/${id}`),
     create: (data: Partial<Company>) =>
       request<ApiResponse<Company>>('/api/companies', {

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { Company, ApiResponse, UpdateCompanyInput } from '@pharmacy-point/types';
+import type { Company, ApiResponse } from '@pharmacy-point/types';
 
 // Query keys
 export const companyKeys = {
@@ -11,12 +11,12 @@ export const companyKeys = {
 };
 
 /**
- * Fetch all companies.
+ * Fetch all companies (with pagination).
  */
-export function useCompanies() {
-  return useQuery<ApiResponse<Company[]>>({
-    queryKey: companyKeys.lists(),
-    queryFn: () => api.companies.list(),
+export function useCompanies(params?: { page?: number; limit?: number; search?: string }) {
+  return useQuery({
+    queryKey: [...companyKeys.lists(), params],
+    queryFn: () => api.companies.list(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
@@ -54,7 +54,7 @@ export function useUpdateCompany() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateCompanyInput }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Company> }) =>
       api.companies.update(id, data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: companyKeys.detail(variables.id) });
@@ -64,7 +64,7 @@ export function useUpdateCompany() {
 }
 
 /**
- * Delete (soft delete) a company.
+ * Delete a company.
  */
 export function useDeleteCompany() {
   const queryClient = useQueryClient();

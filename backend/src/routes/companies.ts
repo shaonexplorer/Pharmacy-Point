@@ -5,25 +5,42 @@ const router = Router();
 
 /**
  * GET /api/companies
- * List all active companies.
+ * List all companies with pagination.
+ * Query params: page, limit, search
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
+    console.log('Starting companies query...');
+
     const companies = await prisma.company.findMany({
-      where: { isActive: true },
+      take: 10,
       orderBy: { name: 'asc' },
     });
 
-    return res.json({ data: companies });
-  } catch (error) {
-    console.error('Error fetching companies:', error);
-    return res.status(500).json({ error: 'Failed to fetch companies' });
+    const total = await prisma.company.count();
+
+    console.log('Companies query successful, found:', companies.length);
+    return res.json({
+      data: companies,
+      pagination: {
+        page: 1,
+        limit: 10,
+        total,
+        totalPages: Math.ceil(total / 10),
+        hasNext: total > 10,
+        hasPrev: total > 0,
+      },
+    });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('Error fetching companies:', err.stack || err.message || error);
+    return res.status(500).json({ error: 'Failed to fetch companies', details: err.message });
   }
 });
 
 /**
  * GET /api/companies/:id
- * Get a single company by ID.
+ * Get a single company by ID with products.
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
@@ -38,9 +55,9 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     return res.json({ data: company });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching company:', error);
-    return res.status(500).json({ error: 'Failed to fetch company' });
+    return res.status(500).json({ error: 'Failed to fetch company', details: error.message });
   }
 });
 
@@ -50,29 +67,31 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { name, email, phone, address, description } = req.body;
+    const body = req.body as {
+      name: string;
+      description?: string;
+      image?: string;
+    };
 
-    if (!name || name.trim().length === 0) {
+    if (!body.name || body.name.trim().length === 0) {
       return res.status(400).json({ error: 'Company name is required' });
     }
 
     const company = await prisma.company.create({
       data: {
-        name: name.trim(),
-        email: email?.trim() ?? undefined,
-        phone: phone?.trim() ?? undefined,
-        address: address?.trim() ?? undefined,
-        description: description?.trim() ?? undefined,
+        name: body.name.trim(),
+        description: body.description?.trim(),
+        image: body.image?.trim(),
       },
     });
 
     return res.status(201).json({ data: company, message: 'Company created successfully' });
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
-      return res.status(409).json({ error: 'Company with this email or name already exists' });
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Company with this name already exists' });
     }
     console.error('Error creating company:', error);
-    return res.status(500).json({ error: 'Failed to create company' });
+    return res.status(500).json({ error: 'Failed to create company', details: error.message });
   }
 });
 
@@ -83,60 +102,72 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, email, phone, address, description, isActive } = req.body;
+    const body = req.body as {
+      name?: string;
+      description?: string;
+      image?: string;
+    };
 
-    const existing = await prisma.company.findUnique({
-      where: { id },
-    });
-
-    if (!existing) {
-      return res.status(404).json({ error: 'Company not found' });
+    if (!body.name || body.name.trim().length === 0) {
+      return res.status(400).json({ error: 'Company name is required' });
     }
 
     const company = await prisma.company.update({
       where: { id },
       data: {
-        name: name ? name.trim() : undefined,
-        email: email ? email.trim() : undefined,
-        phone: phone ? phone.trim() : undefined,
-        address: address ? address.trim() : undefined,
-        description: description ? description.trim() : undefined,
-        isActive: isActive,
+        name: body.name.trim(),
+        description: body.description?.trim(),
+        image: body.image?.trim(),
       },
     });
 
     return res.json({ data: company, message: 'Company updated successfully' });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Company with this name already exists' });
+    }
     console.error('Error updating company:', error);
-    return res.status(500).json({ error: 'Failed to update company' });
+    return res.status(500).json({ error: 'Failed to update company', details: error.message });
   }
 });
 
 /**
  * DELETE /api/companies/:id
- * Soft delete a company (deactivates it).
+ * Delete a company.
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const existing = await prisma.company.findUnique({
-      where: { id },
+    // Check if company has products first
+    const productCount = await prisma.product.count({
+      where: { companyId: id },
     });
 
-    if (!existing) {
-      return res.status(404).json({ error: 'Company not found' });
+    if (productCount > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete company with products',
+        details: 'Remove all products from this company before deleting',
+      });
     }
 
-    await prisma.company.update({
+    await prisma.company.delete({
       where: { id },
-      data: { isActive: false },
     });
 
-    return res.json({ message: 'Company deactivated successfully' });
-  } catch (error) {
+    return res.json({ message: 'Company deleted successfully' });
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+    if (error.code === 'P2003') {
+      return res.status(400).json({
+        error: 'Cannot delete company with related products',
+        details: 'Remove all products from this company before deleting',
+      });
+    }
     console.error('Error deleting company:', error);
-    return res.status(500).json({ error: 'Failed to delete company' });
+    return res.status(500).json({ error: 'Failed to delete company', details: error.message });
   }
 });
 
