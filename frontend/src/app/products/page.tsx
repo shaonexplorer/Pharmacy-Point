@@ -113,12 +113,15 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Products</h1>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" />
+              Products
+            </h1>
             <p className="text-muted-foreground">
               {totalItems} products{' '}
               {totalPages > 1 && `(page ${currentPage} of ${totalPages})`}{' '}
@@ -134,7 +137,7 @@ export default function ProductsPage() {
 
         {/* Search & Filters */}
         <div className="mb-6 space-y-4">
-          <ProductSearch onSearch={handleSearch} placeholder="Search by name or Batch..." />
+          <ProductSearch onSearch={handleSearch} placeholder="Search by name or SKU..." />
           <ProductFilters
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
@@ -175,7 +178,7 @@ export default function ProductsPage() {
 
         {/* Empty State */}
         {!isLoading && !error && products.length === 0 && (
-          <div className="flex min-h-75 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-8 text-center">
+          <div className="flex min-h-75 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
             <Package className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">No products found</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -216,6 +219,7 @@ export default function ProductsPage() {
               ? `Are you sure you want to delete "${productToDelete.name}"? This action cannot be undone.`
               : ''
           }
+          confirmText="Delete"
           onConfirm={handleConfirmDelete}
           loading={deleteProductMutation.isPending}
         />

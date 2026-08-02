@@ -53,23 +53,24 @@ export function ProductSearch({
 
   return (
     <div className="relative w-full max-w-md">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="bg-background border-border pl-10 pr-10"
+        className="bg-background border-border pl-10 pr-10 transition-colors duration-200 hover:border-muted"
       />
       {value && (
         <button
           onClick={handleClear}
           className={cn(
             'absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1',
-            'text-muted-foreground hover:bg-muted hover:text-foreground'
+            'text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200'
           )}
           aria-label="Clear search"
+          type="button"
         >
           <X className="h-3 w-3" />
         </button>

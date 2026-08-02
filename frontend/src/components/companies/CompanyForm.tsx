@@ -113,14 +113,16 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {apiError && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{apiError}</div>
+        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+          {apiError}
+        </div>
       )}
 
       <div className="grid grid-cols-1 gap-6">
         {/* Company Name */}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-foreground">
-            Company Name *
+            Company Name <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"
@@ -128,7 +130,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
             placeholder="e.g., Pharmacy Plus"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            className="bg-background border-border"
+            className={errors.name ? 'border-destructive' : ''}
           />
           {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
         </div>
@@ -143,7 +145,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
             placeholder="Company description..."
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            className="bg-background border-border min-h-[100px]"
+            className={errors.description ? 'border-destructive' : ''}
           />
           {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
         </div>
@@ -159,7 +161,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
             placeholder="https://example.com/logo.png"
             value={formData.image}
             onChange={(e) => handleChange('image', e.target.value)}
-            className="bg-background border-border"
+            className={errors.image ? 'border-destructive' : ''}
           />
           {errors.image && <p className="text-sm text-destructive">{errors.image}</p>}
         </div>

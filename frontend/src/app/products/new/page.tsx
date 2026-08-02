@@ -32,7 +32,7 @@ export default function CreateProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -45,7 +45,7 @@ export default function CreateProductPage() {
         </div>
 
         {/* Form */}
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
             <Plus className="h-4 w-4" />
             <span>Fill in the product details below</span>

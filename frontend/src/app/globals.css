@@ -1,38 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: hsl(210 20% 98%);
-  --foreground: hsl(210 12% 15%);
-  --card: hsl(210 20% 98%);
-  --card-foreground: hsl(210 12% 15%);
-  --primary: hsl(217 70% 52%);
-  --primary-foreground: hsl(210 100% 97%);
-  --secondary: hsl(210 12% 70%);
-  --secondary-foreground: hsl(210 12% 15%);
-  --destructive: hsl(354 72% 64%);
-  --destructive-foreground: hsl(210 100% 97%);
-  --muted: hsl(210 12% 75%);
-  --muted-foreground: hsl(210 8% 45%);
-  --border: hsl(210 20% 80%);
-  --input: hsl(210 20% 80%);
-  --ring: hsl(217 70% 52%);
-  --radius: 0.5rem;
+  /* Background Colors */
+  --background: hsl(210 40% 98%);
+  --foreground: hsl(220 15% 10%);
+
+  /* Card Colors */
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(220 15% 10%);
+
+  /* Primary - Blue Pharmacy Theme */
+  --primary: hsl(217 80% 50%);
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-gradient: linear-gradient(90deg, hsl(217 80% 50%) 0%, hsl(222 84% 70%) 100%);
+
+  /* Secondary Accent */
+  --secondary: hsl(217 80% 55%);
+  --secondary-foreground: hsl(0 0% 100%);
+
+  /* Success - For stock levels, completed actions */
+  --success: hsl(142 76% 36%);
+  --success-foreground: hsl(0 0% 100%);
+
+  /* Warning - For low stock, warnings */
+  --warning: hsl(38 90% 54%);
+  --warning-foreground: hsl(220 15% 10%);
+
+  /* Destructive - For errors, delete actions */
+  --destructive: hsl(0 72% 65%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  /* Muted Colors - Secondary text, borders */
+  --muted: hsl(210 10% 85%);
+  --muted-foreground: hsl(220 10% 40%);
+
+  /* Borders & Inputs */
+  --border: hsl(210 20% 90%);
+  --input: hsl(210 20% 90%);
+  --ring: hsl(217 80% 50%);
+
+  /* Border Radius */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: hsl(210 10% 10%);
+    /* Background Colors */
+    --background: hsl(210 12% 10%);
     --foreground: hsl(0 0% 93%);
+
+    /* Card Colors */
     --card: hsl(210 12% 13%);
     --card-foreground: hsl(0 0% 93%);
+
+    /* Primary - Lighter blue in dark mode */
     --primary: hsl(217 80% 60%);
     --primary-foreground: hsl(210 100% 97%);
-    --secondary: hsl(210 12% 40%);
+    --primary-gradient: linear-gradient(90deg, hsl(217 80% 60%) 0%, hsl(222 90% 75%) 100%);
+
+    /* Secondary Accent */
+    --secondary: hsl(217 80% 65%);
     --secondary-foreground: hsl(0 0% 93%);
-    --destructive: hsl(354 72% 64%);
+
+    /* Success */
+    --success: hsl(142 76% 65%);
+    --success-foreground: hsl(220 8% 20%);
+
+    /* Warning */
+    --warning: hsl(38 90% 65%);
+    --warning-foreground: hsl(220 15% 10%);
+
+    /* Destructive */
+    --destructive: hsl(354 72% 65%);
     --destructive-foreground: hsl(210 100% 97%);
+
+    /* Muted Colors */
     --muted: hsl(210 12% 35%);
-    --muted-foreground: hsl(210 8% 65%);
+    --muted-foreground: hsl(210 10% 65%);
+
+    /* Borders & Inputs */
     --border: hsl(210 12% 35%);
     --input: hsl(210 12% 35%);
     --ring: hsl(217 80% 60%);
@@ -53,6 +101,10 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-muted: var(--muted);
@@ -62,7 +114,9 @@
   --color-ring: var(--ring);
 
   /* Border radius */
-  --radius-lg: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius: var(--radius);
+  --radius-lg: var(--radius-lg);
 }
 
 body {
@@ -72,4 +126,79 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Design System Utilities */
+
+/* Prescription border - signature element */
+.prescription-border-l {
+  border-left: 4px solid var(--primary);
+}
+
+/* Elegant card shadow */
+.card-elevated {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transition-property: box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.card-elevated:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Smooth transitions for interactive elements */
+.transition-smooth {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Focus ring styling */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Loading spinner animation */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.spin-slow {
+  animation: spin-slow 1s linear infinite;
+}
+
+/* Gradient text for headings */
+.gradient-text {
+  background-clip: text;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Custom scrollbar for dark mode */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+  }
 }

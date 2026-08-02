@@ -6,7 +6,7 @@ import { useSession } from '@/lib/auth-client';
 import { useCompany, useDeleteCompany } from '@/hooks/useCompanies';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Edit, Trash2, ArrowLeft, Store, Calendar, AlertCircle } from 'lucide-react';
+import { Loader2, Edit, Trash2, ArrowLeft, Calendar, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { ApiResponse } from '@pharmacy-point/types';
 import { ConfirmDialog } from '@/components/common';
@@ -56,7 +56,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="mx-auto max-w-4xl">
           <Card className="border-destructive bg-destructive/5">
             <CardContent className="pt-6">
@@ -76,7 +76,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="mx-auto max-w-4xl">
           <Card>
             <CardContent className="pt-6">
@@ -92,15 +92,13 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
-              <Link href="/companies">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
+              <Link href="/companies">← Back</Link>
             </Button>
             <h1 className="text-2xl font-bold text-foreground">{company.name}</h1>
           </div>
@@ -133,7 +131,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
               {/* Logo/Image */}
               {company.image && (
                 <div className="mb-4">
-                  <div className="relative h-48 w-full max-w-md overflow-hidden rounded-md bg-muted">
+                  <div className="relative h-48 w-full max-w-md overflow-hidden rounded-xl bg-muted shadow-sm">
                     <img
                       src={company.image}
                       alt={company.name}
@@ -146,7 +144,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
               {/* Basic Info */}
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">{company.name}</h2>
+                  <h2 className="text-xl font-bold text-foreground">{company.name}</h2>
                   {company.description && (
                     <p className="mt-1 text-muted-foreground whitespace-pre-wrap">
                       {company.description}
@@ -176,6 +174,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           onOpenChange={setDeleteDialogOpen}
           title="Delete Company"
           description={`Are you sure you want to delete "${company.name}"? This action cannot be undone.`}
+          confirmText="Delete"
           onConfirm={handleConfirmDelete}
           loading={deleteCompanyMutation.isPending}
         />

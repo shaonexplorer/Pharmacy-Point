@@ -13,7 +13,6 @@ import {
 } from '@tanstack/react-table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product } from '@pharmacy-point/types';
@@ -56,7 +55,7 @@ export function ProductTable({
         accessorKey: 'name',
         header: 'Product Name',
         cell: ({ row }) => (
-          <div className="font-medium">
+          <div className="font-medium text-foreground">
             {row.original.name}
             {row.original.sku && (
               <div className="text-sm text-muted-foreground">SKU: {row.original.sku}</div>
@@ -67,16 +66,12 @@ export function ProductTable({
       {
         accessorKey: 'category',
         header: 'Category',
-        cell: ({ row }) => (
-          <Badge variant="secondary" className="text-xs">
-            {row.original.category}
-          </Badge>
-        ),
+        cell: ({ row }) => row.original.category,
       },
       {
         accessorKey: 'price',
         header: 'Price',
-        cell: ({ row }) => formatCurrency(row.original.price),
+        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.price)}</span>,
       },
       {
         accessorKey: 'quantity',
@@ -87,12 +82,10 @@ export function ProductTable({
           const isLowStock = quantity <= lowStock;
 
           return (
-            <div className="flex items-center gap-2">
-              <span>{quantity}</span>
+            <div className="flex flex-col">
+              <span className="font-medium">{quantity}</span>
               {isLowStock && (
-                <Badge variant="destructive" className="text-xs">
-                  Low Stock
-                </Badge>
+                <span className="text-xs text-destructive font-medium">Low Stock</span>
               )}
             </div>
           );
@@ -101,7 +94,7 @@ export function ProductTable({
       {
         accessorKey: 'company',
         header: 'Company',
-        cell: ({ row }) => row.original.company?.name ?? 'N/A',
+        cell: ({ row }) => row.original.company?.name ?? '—',
       },
       {
         id: 'actions',
@@ -109,23 +102,24 @@ export function ProductTable({
         cell: ({ row }) => {
           const product = row.original;
           return (
-            <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href={`/products/${product.id}`}>
+            <div className="flex items-center gap-1">
+              <Button asChild variant="ghostIcon" size="sm">
+                <Link href={`/products/${product.id}`} aria-label="View product">
                   <Edit className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="ghost" size="sm">
-                <Link href={`/products/${product.id}/edit`}>
+              <Button asChild variant="ghostIcon" size="sm">
+                <Link href={`/products/${product.id}/edit`} aria-label="Edit product">
                   <Edit className="h-4 w-4" />
                 </Link>
               </Button>
               {onDelete && (
                 <Button
-                  variant="ghost"
+                  variant="ghostIcon"
                   size="sm"
-                  className="text-destructive hover:bg-destructive/10"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onDelete(product)}
+                  aria-label="Delete product"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -195,7 +189,7 @@ export function ProductTable({
   return (
     <>
       {/* TanStack Table */}
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -237,11 +231,11 @@ export function ProductTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Showing {products.length} of {totalItems} products
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="sm"
@@ -249,7 +243,7 @@ export function ProductTable({
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              <span className="sr-only">Previous page</span>
             </Button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum = i + 1;
@@ -268,13 +262,16 @@ export function ProductTable({
                   variant={pageNum === currentPage ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
+                  aria-current={pageNum === currentPage ? 'page' : undefined}
                 >
                   {pageNum}
                 </Button>
               );
             })}
             {totalPages > 5 && currentPage > 3 && currentPage < totalPages - 2 && (
-              <span className="text-muted-foreground">...</span>
+              <span className="text-muted-foreground" aria-hidden="true">
+                ...
+              </span>
             )}
             <Button
               variant="outline"
@@ -282,8 +279,8 @@ export function ProductTable({
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
-              Next
               <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">Next page</span>
             </Button>
           </div>
         </div>

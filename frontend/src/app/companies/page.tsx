@@ -75,13 +75,13 @@ export default function CompaniesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Store className="h-6 w-6" />
+              <Store className="h-6 w-6 text-primary" />
               Companies
             </h1>
             <p className="text-muted-foreground">Manage your pharmacy company profiles</p>
@@ -96,7 +96,7 @@ export default function CompaniesPage() {
 
         {/* Search */}
         <div className="mb-6">
-          <div className="relative">
+          <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
@@ -127,7 +127,7 @@ export default function CompaniesPage() {
 
         {/* Empty State */}
         {!isLoading && !error && companies.length === 0 && (
-          <div className="flex min-h-75 flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card p-8 text-center">
+          <div className="flex min-h-75 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
             <Store className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="mt-4 text-lg font-semibold text-foreground">No companies found</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -168,6 +168,7 @@ export default function CompaniesPage() {
               ? `Are you sure you want to delete "${companyToDelete.name}"? This action cannot be undone.`
               : ''
           }
+          confirmText="Delete"
           onConfirm={handleConfirmDelete}
           loading={deleteCompanyMutation.isPending}
         />

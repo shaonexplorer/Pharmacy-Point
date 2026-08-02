@@ -30,7 +30,7 @@ const productSchema = z.object({
 type FormData = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  product?: Product;
+  product?: Product | null;
   mode: 'create' | 'edit';
 }
 
@@ -159,14 +159,16 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {apiError && (
-        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{apiError}</div>
+        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+          {apiError}
+        </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Product Name */}
         <div className="space-y-2">
           <Label htmlFor="name" className="text-foreground">
-            Product Name *
+            Product Name <span className="text-destructive">*</span>
           </Label>
           <Input
             id="name"
@@ -174,7 +176,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="e.g., Paracetamol 500mg"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            className="bg-background border-border"
+            className={errors.name ? 'border-destructive' : ''}
           />
           {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
         </div>
@@ -182,7 +184,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         {/* SKU */}
         <div className="space-y-2">
           <Label htmlFor="sku" className="text-foreground">
-            SKU *
+            SKU <span className="text-destructive">*</span>
           </Label>
           <Input
             id="sku"
@@ -190,7 +192,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="e.g., PARA-500-001"
             value={formData.sku}
             onChange={(e) => handleChange('sku', e.target.value)}
-            className="bg-background border-border"
+            className={errors.sku ? 'border-destructive' : ''}
           />
           {errors.sku && <p className="text-sm text-destructive">{errors.sku}</p>}
         </div>
@@ -198,7 +200,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         {/* Price */}
         <div className="space-y-2">
           <Label htmlFor="price" className="text-foreground">
-            Price *
+            Price <span className="text-destructive">*</span>
           </Label>
           <Input
             id="price"
@@ -208,7 +210,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             step="0.01"
             value={formData.price}
             onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-            className="bg-background border-border"
+            className={errors.price ? 'border-destructive' : ''}
           />
           {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
         </div>
@@ -216,13 +218,18 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         {/* Category */}
         <div className="space-y-2">
           <Label htmlFor="category" className="text-foreground">
-            Category *
+            Category <span className="text-destructive">*</span>
           </Label>
           <select
             id="category"
             value={formData.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+            className={cn(
+              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
+              'transition-colors duration-200 focus-within:outline-none focus-within:ring-2',
+              'focus-within:ring-primary focus-within:ring-offset-2 disabled:cursor-not-allowed',
+              errors.category ? 'border-destructive' : ''
+            )}
           >
             <option value="">Select a category</option>
             {PRODUCT_CATEGORIES.map((cat) => (
@@ -243,7 +250,12 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             id="companyId"
             value={formData.companyId ?? ''}
             onChange={(e) => handleChange('companyId', e.target.value || '')}
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+            className={cn(
+              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
+              'transition-colors duration-200 focus-within:outline-none focus-within:ring-2',
+              'focus-within:ring-primary focus-within:ring-offset-2 disabled:cursor-not-allowed',
+              errors.companyId ? 'border-destructive' : ''
+            )}
           >
             <option value="">Select a company</option>
             {companies.map((company) => (
@@ -258,7 +270,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         {/* Quantity */}
         <div className="space-y-2">
           <Label htmlFor="quantity" className="text-foreground">
-            Stock Quantity *
+            Stock Quantity <span className="text-destructive">*</span>
           </Label>
           <Input
             id="quantity"
@@ -267,7 +279,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             min="0"
             value={formData.quantity}
             onChange={(e) => handleChange('quantity', parseInt(e.target.value) || 0)}
-            className="bg-background border-border"
+            className={errors.quantity ? 'border-destructive' : ''}
           />
           {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
         </div>
@@ -275,7 +287,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         {/* Low Stock Threshold */}
         <div className="space-y-2">
           <Label htmlFor="lowStock" className="text-foreground">
-            Low Stock Threshold *
+            Low Stock Threshold <span className="text-destructive">*</span>
           </Label>
           <Input
             id="lowStock"
@@ -284,7 +296,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             min="0"
             value={formData.lowStock ?? 10}
             onChange={(e) => handleChange('lowStock', parseInt(e.target.value) || 0)}
-            className="bg-background border-border"
+            className={errors.lowStock ? 'border-destructive' : ''}
           />
           {errors.lowStock && <p className="text-sm text-destructive">{errors.lowStock}</p>}
         </div>
@@ -300,7 +312,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="https://example.com/image.png"
             value={formData.image}
             onChange={(e) => handleChange('image', e.target.value)}
-            className="bg-background border-border"
+            className={errors.image ? 'border-destructive' : ''}
           />
           {errors.image && <p className="text-sm text-destructive">{errors.image}</p>}
         </div>
@@ -315,7 +327,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="Enter product description..."
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            className="bg-background border-border min-h-75"
+            className={errors.description ? 'border-destructive' : ''}
           />
           {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
         </div>
@@ -360,3 +372,6 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     </form>
   );
 }
+
+// Import cn helper
+import { cn } from '@/lib/utils';
