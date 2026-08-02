@@ -16,10 +16,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - All TypeScript compilation passes
 - All ESLint/Prettier checks pass
 
-**Phase 2: Product Catalog - PARTIALLY COMPLETED**
+**Phase 2: Product Catalog - COMPLETED ✅**
 - Product CRUD API fully implemented and tested
 - Product frontend pages created (list, view, create, edit)
-- Company model simplified (removed incorrect fields from initial schema)
+
+**Phase 3: Company Management - IN PROGRESS**
+- Backend API CRUD endpoints implemented
+- Frontend pages and components created:
+  - `/frontend/src/app/companies/page.tsx` - List with TanStack Table
+  - `/frontend/src/app/companies/new/page.tsx` - Create form
+  - `/frontend/src/app/companies/[id]/page.tsx` - View details
+  - `/frontend/src/app/companies/[id]/edit/page.tsx` - Edit form
+  - `/frontend/src/components/companies/CompanyTable.tsx` - TanStack Table v8
+  - `/frontend/src/components/companies/CompanyForm.tsx` - Zod-validated form
+  - `/frontend/src/hooks/useCompanies.ts` - React Query hooks
 
 **Phase 3: Company Management - IN PROGRESS**
 - Backend API CRUD endpoints implemented
