@@ -4,41 +4,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 ## Project Overview
 
-**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach. The project is currently in **Phase 1 (Project Setup)** with comprehensive documentation in place and the monorepo infrastructure complete.
+**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach. 
+
+## Current Status
+
+**Phase 1: Project Setup - COMPLETED ✅**
+- Monorepo architecture established with Turborepo
+- Frontend: Next.js 16, Tailwind CSS, shadcn/ui, React Hook Form, Zod
+- Backend: Express.js 5.x, TypeScript, Prisma ORM
+- Shared configuration and types packages created
+- All TypeScript compilation passes
+- All ESLint/Prettier checks pass
+
+**Phase 2: Product Catalog - PARTIALLY COMPLETED**
+- Product CRUD API fully implemented and tested
+- Product frontend pages created (list, view, create, edit)
+- Company model simplified (removed incorrect fields from initial schema)
+
+**Phase 3: Company Management - IN PROGRESS**
+- Backend API CRUD endpoints implemented
+- Frontend pages and components created:
+  - `/frontend/src/app/companies/page.tsx` - List with TanStack Table
+  - `/frontend/src/app/companies/new/page.tsx` - Create form
+  - `/frontend/src/app/companies/[id]/page.tsx` - View details
+  - `/frontend/src/app/companies/[id]/edit/page.tsx` - Edit form
+  - `/frontend/src/components/companies/CompanyTable.tsx` - TanStack Table v8
+  - `/frontend/src/components/companies/CompanyForm.tsx` - Zod-validated form
+  - `/frontend/src/hooks/useCompanies.ts` - React Query hooks
 
 ## Project Structure
 
 ```markdown
 pharmacy-point/
-├── specs/ # Specification documents (read first)
+├── specs/ # Specification documents
 │ ├── mission.md # Vision, goals, and success metrics
 │ ├── techstack.md # Technology stack and architecture decisions
 │ ├── roadmap.md # Development phases and milestones
 │ └── phase-1-project-setup/
-│ └── plan.md # Phase 1 implementation plan (COMPLETED)
+│   └── plan.md # Phase 1 implementation plan (COMPLETED)
 ├── backend/ # Express.js API server
-│ ├── src/ # Source code
-│ │ └── index.ts # Main server entry point
-│ ├── prisma/ # Prisma schema and migrations
-│ ├── prisma.config.ts # Prisma configuration
-│ ├── .env # Environment variables
-│ ├── package.json # Backend dependencies
-│ └── tsconfig.json # TypeScript configuration
+│   ├── src/ # Source code
+│   │   └── routes/ # API route handlers
+│   │       ├── products.ts # Product CRUD with TanStack Table patterns
+│   │       └── companies.ts # Company CRUD endpoints
+│   ├── prisma/ # Prisma schema and migrations
+│   ├── prisma.config.ts # Prisma configuration
+│   ├── .env # Environment variables
+│   └── package.json # Backend dependencies
 ├── frontend/ # Next.js application
-│ ├── src/
-│ │ └── app/ # App Router structure
-│ │ ├── layout.tsx # Root layout
-│ │ └── page.tsx # Home page
-│ ├── components.json # shadcn/ui configuration
-│ ├── package.json # Frontend dependencies
-│ ├── tsconfig.json # TypeScript configuration
-│ └── eslint.config.mjs # ESLint configuration
+│   ├── src/
+│   │   └── app/ # App Router structure
+│   │       ├── layout.tsx # Root layout
+│   │       ├── page.tsx # Home page
+│   │       ├── dashboard/page.tsx # Dashboard with navigation
+│   │       ├── products/ # Product pages
+│   │       └── companies/ # Company pages (new)
+│   │       └── components/companies/ # Company components
+│   │           ├── CompanyTable.tsx # TanStack Table component
+│   │           └── CompanyForm.tsx # Form component
+│   ├── components.json # shadcn/ui configuration
+│   └── package.json # Frontend dependencies
 ├── packages/ # Shared packages
-│ ├── types/ # Shared TypeScript types
-│ └── config/ # Shared configuration
+│   ├── types/ # Shared TypeScript types
+│   └── config/ # Shared configuration
 ├── package.json # Root package.json with workspaces
 ├── turbo.json # Turborepo configuration
-└── tsconfig.json # Root TypeScript configuration
+└── CLAUDE.md # This file
 ```
 
 ## Architecture
@@ -48,52 +79,49 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 - **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS, shadcn/ui
 - **Backend**: Express.js 5.x with TypeScript, PostgreSQL via Prisma ORM
 - **Database**: PostgreSQL 15+ with Prisma migrations
-- **Authentication**: NextAuth.js with JWT (planned for Phase 2)
+- **State Management**: React Query (TanStack Query) for server state
+- **Validation**: Zod for form validation
 
-## Key Features (Planned)
+## Company Model
 
-- Inventory management with low stock alerts
-- POS system with Stripe integration
-- Customer management and due accounts
-- Analytics dashboard with charts/reports
-- Email notifications for alerts
-
-## Documentation
-
-For up-to-date documentation on any library, framework, or API used in this project, use **Context7**:
-
-```bash
-npx ctx7@latest library "Next.js" "How do I use server components in Next.js 14?"
-npx ctx7@latest library "Prisma" "How do I set up PostgreSQL connection?"
-npx ctx7@latest library "React Hook Form" "How do I integrate with Zod?"
+**Schema** (`backend/prisma/schema.prisma`):
+```prisma
+model Company {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
 ```
 
-For UI/UX design decisions, use the **`/frontend-design`** skill to get guidance on:
+## API Endpoints
 
-- Visual design direction and aesthetics
-- Typography and color scheme choices
-- Component design best practices
-- Accessibility considerations
+### Companies API (`http://localhost:5000/api/companies`)
+- `GET /api/companies` - List with pagination (page, limit)
+- `GET /api/companies/:id` - Get single company
+- `POST /api/companies` - Create company
+- `PUT /api/companies/:id` - Update company
+- `DELETE /api/companies/:id` - Delete company
 
-For shadcn/ui component management, use the **`/shadcn`** skill to:
-
-- Add new components from the registry
-- Customize existing components
-- Fix component bugs or styling issues
-- Manage component variants and presets
+### Products API (`http://localhost:5000/api/products`)
+- `GET /api/products` - List with pagination and filters (page, limit, search, category, companyId)
+- `GET /api/products/:id` - Get single product
+- `POST /api/products` - Create product
+- `PUT /api/products/:id` - Update product
+- `DELETE /api/products/:id` - Soft delete product
 
 ## Development Workflow
 
 ### Initial Setup
-
 1. **Install dependencies** from the root directory:
-
    ```bash
    npm install
    ```
 
 2. **Set up PostgreSQL database** and configure `.env` in `backend/.env`:
-
    ```bash
    cd backend
    npx prisma migrate dev
@@ -109,23 +137,20 @@ For shadcn/ui component management, use the **`/shadcn`** skill to:
    npm run dev --workspace=backend   # http://localhost:5000
    ```
 
-### Available Scripts (Root)
-
+## Available Scripts (Root)
 - `npm run dev` - Start both frontend and backend development servers
 - `npm run build` - Build both applications
 - `npm run lint` - Run ESLint on both projects
 - `npm run typecheck` - Run TypeScript type checking
 
-### Available Scripts (Frontend)
-
+## Available Scripts (Frontend)
 - `npm run dev` - Start Next.js dev server (http://localhost:3000)
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
 
-### Available Scripts (Backend)
-
+## Available Scripts (Backend)
 - `npm run dev` - Start Express.js dev server with nodemon (http://localhost:5000)
 - `npm run build` - TypeScript compilation
 - `npm run start` - Start production server
@@ -134,46 +159,28 @@ For shadcn/ui component management, use the **`/shadcn`** skill to:
 - `npm run prisma` - Run Prisma CLI commands
 
 ## Key Files to Reference
-
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
 - `specs/phase-1-project-setup/plan.md` - Phase 1 implementation plan (COMPLETED)
 
 ## Path Aliases
-
 The following path aliases are configured for monorepo imports:
-
 - `@/*` - Frontend source files (`frontend/src/*`)
 - `@backend/*` - Backend source files (`backend/src/*`)
 - `@pharmacy-point/types` - Shared TypeScript types
 - `@pharmacy-point/config` - Shared configuration
 
-## Development Commands
+## Notes
 
-**Frontend (Next.js)**:
+### Company Model Field Updates
+The Company model was simplified - the initial migration included fields (email, phone, address, isActive) that were removed to match a cleaner business domain model. Only essential fields remain:
+- id, name, description, image, createdAt, updatedAt
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
+### Product Price Field
+Products use `Float` for the price field (not Decimal). When creating/updating products, pass the price as a number directly.
 
-**Backend (Express.js)**:
-
-- `npm run dev` - Start development server with nodemon
-- `npm run build` - TypeScript compilation
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
-- `npm run prisma` - Run Prisma CLI commands
-
-## Current Status
-
-**Phase 1: Project Setup - COMPLETED ✅**
-
-- Monorepo architecture established with Turborepo
-- Frontend: Next.js 16, Tailwind CSS, shadcn/ui, React Hook Form, Zod
-- Backend: Express.js 5.x, TypeScript, Prisma ORM
-- Shared configuration and types packages created
-- All TypeScript compilation passes
-- All ESLint/Prettier checks pass
+### Frontend Notes
+- Companies use TanStack Table v8 with shadcn/ui Table components
+- Forms use Zod for validation
+- API errors are displayed inline with appropriate styling

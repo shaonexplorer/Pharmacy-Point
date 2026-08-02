@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma';
 const router = Router();
 
 /**
- * Serialize a Prisma Product for API responses (converts Decimal to number).
+ * Serialize a Prisma Product for API responses.
  */
 function serializeProduct(product: Record<string, unknown>) {
   return {
@@ -12,7 +12,7 @@ function serializeProduct(product: Record<string, unknown>) {
     name: product.name as string,
     description: product.description as string | null,
     sku: product.sku as string,
-    price: product.price instanceof Decimal ? product.price.toNumber() : Number(product.price),
+    price: Number(product.price),
     quantity: product.quantity as number,
     lowStock: product.lowStock as number,
     category: product.category as string,
@@ -184,7 +184,7 @@ router.post('/', async (req: Request, res: Response) => {
         description: req.body.description ?? undefined,
         sku: req.body.sku,
         companyId: req.body.companyId ?? undefined,
-        price: new Decimal(req.body.price),
+        price: req.body.price,
         quantity: req.body.quantity ?? 0,
         lowStock: req.body.lowStock ?? 10,
         category: req.body.category,
@@ -245,7 +245,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         description: req.body.description ?? undefined,
         sku: req.body.sku,
         companyId: req.body.companyId ?? undefined,
-        price: new Decimal(req.body.price),
+        price: req.body.price,
         quantity: req.body.quantity,
         lowStock: req.body.lowStock,
         category: req.body.category,
