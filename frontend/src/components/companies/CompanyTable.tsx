@@ -48,63 +48,64 @@ export function CompanyTable({
 }: CompanyTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columns = useMemo<ColumnDef<Company>[]>(() => [
-    {
-      accessorKey: 'name',
-      header: 'Company Name',
-      cell: ({ row }) => (
-        <div className="font-medium">{row.original.name}</div>
-      ),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => (
-        <span className="text-muted-foreground line-clamp-2 max-w-xs">
-          {row.original.description || '—'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created',
-      cell: ({ row }) => {
-        const date = new Date(row.original.createdAt);
-        return <span className="text-muted-foreground">{date.toLocaleDateString()}</span>;
+  const columns = useMemo<ColumnDef<Company>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Company Name',
+        cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
       },
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => {
-        const company = row.original;
-        return (
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/companies/${company.id}`}>
-                <Edit className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/companies/${company.id}/edit`}>
-                <Edit className="h-4 w-4" />
-              </Link>
-            </Button>
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10"
-                onClick={() => onDelete(company)}
-              >
-                <Trash2 className="h-4 w-4" />
+      {
+        accessorKey: 'description',
+        header: 'Description',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground line-clamp-2 max-w-xs">
+            {row.original.description || '—'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => {
+          const date = new Date(row.original.createdAt);
+          return <span className="text-muted-foreground">{date.toLocaleDateString()}</span>;
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const company = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/companies/${company.id}`}>
+                  <Edit className="h-4 w-4" />
+                </Link>
               </Button>
-            )}
-          </div>
-        );
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/companies/${company.id}/edit`}>
+                  <Edit className="h-4 w-4" />
+                </Link>
+              </Button>
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={() => onDelete(company)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        },
       },
-    },
-  ], [onDelete]);
+    ],
+    [onDelete]
+  );
 
   const table = useReactTable({
     data: companies,

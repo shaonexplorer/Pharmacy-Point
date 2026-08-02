@@ -50,92 +50,93 @@ export function ProductTable({
 }: ProductTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columns = useMemo<ColumnDef<Product>[]>(() => [
-    {
-      accessorKey: 'name',
-      header: 'Product Name',
-      cell: ({ row }) => (
-        <div className="font-medium">
-          {row.original.name}
-          {row.original.sku && (
-            <div className="text-sm text-muted-foreground">
-              SKU: {row.original.sku}
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'category',
-      header: 'Category',
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="text-xs">
-          {row.original.category}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'price',
-      header: 'Price',
-      cell: ({ row }) => formatCurrency(row.original.price),
-    },
-    {
-      accessorKey: 'quantity',
-      header: 'Stock',
-      cell: ({ row }) => {
-        const quantity = row.original.quantity;
-        const lowStock = row.original.lowStock;
-        const isLowStock = quantity <= lowStock;
+  const columns = useMemo<ColumnDef<Product>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Product Name',
+        cell: ({ row }) => (
+          <div className="font-medium">
+            {row.original.name}
+            {row.original.sku && (
+              <div className="text-sm text-muted-foreground">SKU: {row.original.sku}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'category',
+        header: 'Category',
+        cell: ({ row }) => (
+          <Badge variant="secondary" className="text-xs">
+            {row.original.category}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: 'price',
+        header: 'Price',
+        cell: ({ row }) => formatCurrency(row.original.price),
+      },
+      {
+        accessorKey: 'quantity',
+        header: 'Stock',
+        cell: ({ row }) => {
+          const quantity = row.original.quantity;
+          const lowStock = row.original.lowStock;
+          const isLowStock = quantity <= lowStock;
 
-        return (
-          <div className="flex items-center gap-2">
-            <span>{quantity}</span>
-            {isLowStock && (
-              <Badge variant="destructive" className="text-xs">
-                Low Stock
-              </Badge>
-            )}
-          </div>
-        );
+          return (
+            <div className="flex items-center gap-2">
+              <span>{quantity}</span>
+              {isLowStock && (
+                <Badge variant="destructive" className="text-xs">
+                  Low Stock
+                </Badge>
+              )}
+            </div>
+          );
+        },
       },
-    },
-    {
-      accessorKey: 'company',
-      header: 'Company',
-      cell: ({ row }) => row.original.company?.name ?? 'N/A',
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => {
-        const product = row.original;
-        return (
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/products/${product.id}`}>
-                <Edit className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href={`/products/${product.id}/edit`}>
-                <Edit className="h-4 w-4" />
-              </Link>
-            </Button>
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10"
-                onClick={() => onDelete(product)}
-              >
-                <Trash2 className="h-4 w-4" />
+      {
+        accessorKey: 'company',
+        header: 'Company',
+        cell: ({ row }) => row.original.company?.name ?? 'N/A',
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const product = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/products/${product.id}`}>
+                  <Edit className="h-4 w-4" />
+                </Link>
               </Button>
-            )}
-          </div>
-        );
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/products/${product.id}/edit`}>
+                  <Edit className="h-4 w-4" />
+                </Link>
+              </Button>
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={() => onDelete(product)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          );
+        },
       },
-    },
-  ], [onDelete]);
+    ],
+    [onDelete]
+  );
 
   const table = useReactTable({
     data: products,

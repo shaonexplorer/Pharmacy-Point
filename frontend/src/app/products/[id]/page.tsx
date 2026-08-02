@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, use } from 'react';
+import { useEffect, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import Link from 'next/link';
+import { ConfirmDialog } from '@/components/common';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const { data: product, isLoading, error } = useProduct(id);
   const deleteProductMutation = useDeleteProduct();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteProductName, setDeleteProductName] = useState('');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -35,10 +38,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
   }, [session, authPending, router]);
 
-  const handleDelete = async () => {
-    if (!product || !window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
-      return;
+  const handleDeleteClick = () => {
+    if (product) {
+      setDeleteProductName(product.name);
+      setDeleteDialogOpen(true);
     }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!product) return;
 
     try {
       await deleteProductMutation.mutateAsync(product.id);
@@ -120,7 +128,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </Button>
             <Button
               variant="outline"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={deleteProductMutation.isPending}
               className="border-destructive text-destructive hover:bg-destructive/10"
             >
@@ -232,6 +240,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           </div>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Product"
+          description={`Are you sure you want to delete "${deleteProductName}"? This action cannot be undone.`}
+          onConfirm={handleConfirmDelete}
+          loading={deleteProductMutation.isPending}
+        />
       </div>
     </div>
   );

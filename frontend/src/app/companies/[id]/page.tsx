@@ -1,22 +1,15 @@
 'use client';
 
-import { useEffect, use } from 'react';
+import { useEffect, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useCompany, useDeleteCompany } from '@/hooks/useCompanies';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Loader2,
-  Edit,
-  Trash2,
-  ArrowLeft,
-  Store,
-  Calendar,
-  AlertCircle,
-} from 'lucide-react';
+import { Loader2, Edit, Trash2, ArrowLeft, Store, Calendar, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { ApiResponse } from '@pharmacy-point/types';
+import { ConfirmDialog } from '@/components/common';
 
 export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -34,10 +27,14 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   }, [session, authPending, router]);
 
   const company = response?.data;
-  const handleDelete = async () => {
-    if (!company || !window.confirm(`Are you sure you want to delete "${company.name}"?`)) {
-      return;
-    }
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!company) return;
 
     try {
       await deleteCompanyMutation.mutateAsync(company.id);
@@ -116,7 +113,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
             </Button>
             <Button
               variant="outline"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               disabled={deleteCompanyMutation.isPending}
               className="border-destructive text-destructive hover:bg-destructive/10"
             >
@@ -172,6 +169,16 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Company"
+          description={`Are you sure you want to delete "${company.name}"? This action cannot be undone.`}
+          onConfirm={handleConfirmDelete}
+          loading={deleteCompanyMutation.isPending}
+        />
       </div>
     </div>
   );

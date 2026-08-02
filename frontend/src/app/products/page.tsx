@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { ProductTable } from '@/components/products/ProductTable';
 import { ProductSearch } from '@/components/products/ProductSearch';
 import { ProductFilters } from '@/components/products/ProductFilters';
+import { ConfirmDialog } from '@/components/common';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -50,11 +53,18 @@ export default function ProductsPage() {
   const totalPages = productsData?.pagination.totalPages ?? 1;
   const totalItems = productsData?.pagination.total ?? 0;
 
-  const handleDelete = async (product: Product) => {
-    if (!window.confirm(`Are you sure you want to delete "${product.name}"?`)) return;
+  const handleDeleteClick = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
 
     try {
-      await deleteProductMutation.mutateAsync(product.id);
+      await deleteProductMutation.mutateAsync(productToDelete.id);
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
     } catch {
       // Error is handled by the mutation
     }
@@ -192,9 +202,23 @@ export default function ProductsPage() {
             totalPages={totalPages}
             currentPage={currentPage}
             onPageChange={handlePageChange}
-            onDelete={handleDelete}
+            onDelete={handleDeleteClick}
           />
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Product"
+          description={
+            productToDelete
+              ? `Are you sure you want to delete "${productToDelete.name}"? This action cannot be undone.`
+              : ''
+          }
+          onConfirm={handleConfirmDelete}
+          loading={deleteProductMutation.isPending}
+        />
       </div>
     </div>
   );

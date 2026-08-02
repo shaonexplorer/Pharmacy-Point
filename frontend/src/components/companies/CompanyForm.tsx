@@ -39,12 +39,8 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
   const createMutation = useCreateCompany();
   const updateMutation = useUpdateCompany();
 
-  const isSubmitting =
-    createMutation.isPending || updateMutation.isPending;
-  const apiError =
-    createMutation.error?.message ||
-    updateMutation.error?.message ||
-    null;
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const apiError = createMutation.error?.message || updateMutation.error?.message || null;
 
   useEffect(() => {
     if (company) {

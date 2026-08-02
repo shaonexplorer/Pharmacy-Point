@@ -38,9 +38,7 @@ export default function CreateCompanyPage() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
-              <Link href="/companies">
-                ← Companies
-              </Link>
+              <Link href="/companies">← Companies</Link>
             </Button>
             <h1 className="text-2xl font-bold text-foreground">Add New Company</h1>
           </div>

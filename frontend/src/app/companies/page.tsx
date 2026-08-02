@@ -11,18 +11,17 @@ import { Loader2, Plus, Store, AlertCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { PaginatedResponse } from '@pharmacy-point/types';
+import { ConfirmDialog } from '@/components/common';
 
 export default function CompaniesPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [companyToDelete, setCompanyToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const {
-    data: response,
-    isLoading,
-    error,
-  } = useCompanies({ page: currentPage });
+  const { data: response, isLoading, error } = useCompanies({ page: currentPage });
 
   const deleteCompanyMutation = useDeleteCompany();
 
@@ -30,11 +29,18 @@ export default function CompaniesPage() {
   const totalItems = response?.pagination.total ?? 0;
   const totalPages = response?.pagination.totalPages ?? 1;
 
-  const handleDelete = async (company: { id: string; name: string }) => {
-    if (!window.confirm(`Are you sure you want to delete "${company.name}"?`)) return;
+  const handleDeleteClick = (company: { id: string; name: string }) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
 
     try {
-      await deleteCompanyMutation.mutateAsync(company.id);
+      await deleteCompanyMutation.mutateAsync(companyToDelete.id);
+      setDeleteDialogOpen(false);
+      setCompanyToDelete(null);
     } catch {
       // Error is handled by the mutation
     }
@@ -78,9 +84,7 @@ export default function CompaniesPage() {
               <Store className="h-6 w-6" />
               Companies
             </h1>
-            <p className="text-muted-foreground">
-              Manage your pharmacy company profiles
-            </p>
+            <p className="text-muted-foreground">Manage your pharmacy company profiles</p>
           </div>
           <Button asChild>
             <Link href="/companies/new">
@@ -150,9 +154,23 @@ export default function CompaniesPage() {
             totalPages={totalPages}
             currentPage={currentPage}
             onPageChange={handlePageChange}
-            onDelete={handleDelete}
+            onDelete={handleDeleteClick}
           />
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Company"
+          description={
+            companyToDelete
+              ? `Are you sure you want to delete "${companyToDelete.name}"? This action cannot be undone.`
+              : ''
+          }
+          onConfirm={handleConfirmDelete}
+          loading={deleteCompanyMutation.isPending}
+        />
       </div>
     </div>
   );
