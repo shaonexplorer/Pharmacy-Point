@@ -3,11 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
-import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
-import { useCompanies } from '@/hooks/useCompanies';
-import type { Product, Company } from '@pharmacy-point/types';
+import { useInventory } from '@/hooks/useInventory';
+import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
+import type { InventoryItem } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, RefreshCw, Edit, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  X,
+  AlertTriangle,
+} from 'lucide-react';
 import Link from 'next/link';
 
 const CATEGORIES = ['All Categories', 'Antibiotics', 'Analgesics', 'Antivirals', 'Cardiovascular'];
@@ -16,29 +25,30 @@ const MANUFACTURERS = ['All Manufacturers', 'Pfizer', 'Novartis', 'Roche', 'Astr
 export default function InventoryPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const { data: companiesResponse } = useCompanies();
-  const companies: Company[] = companiesResponse?.data ?? [];
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
+  const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+
   const {
-    data: productsData,
+    data: inventoryData,
     isLoading,
-    error,
-  } = useProducts({
+  } = useInventory({
     page: currentPage,
     limit: 20,
     search: searchQuery || undefined,
-    category: selectedCategory || undefined,
+    lowStock: showLowStockOnly || undefined,
     companyId: selectedCompany || undefined,
   });
 
-  const products = productsData?.data ?? [];
-  const totalPages = productsData?.pagination?.totalPages ?? 1;
-  const totalItems = productsData?.pagination?.total ?? 0;
+  const products = inventoryData?.data ?? [];
+  const totalPages = inventoryData?.pagination?.totalPages ?? 1;
+  const totalItems = inventoryData?.pagination?.total ?? 0;
+
+  const lowStockCount = products.filter((p) => p.quantity <= p.lowStock).length;
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -61,6 +71,7 @@ export default function InventoryPage() {
     setSelectedCategory('');
     setSelectedCompany('');
     setSearchQuery('');
+    setShowLowStockOnly(false);
     setCurrentPage(1);
   };
 
@@ -213,6 +224,26 @@ export default function InventoryPage() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between pt-2">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showLowStockOnly}
+                  onChange={(e) => {
+                    setShowLowStockOnly(e.target.checked);
+                    setCurrentPage(1);
+                  }}
+                  className="rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-foreground">Show only low stock items</span>
+              </label>
+              {lowStockCount > 0 && !showLowStockOnly && (
+                <span className="text-xs text-muted-foreground">
+                  {lowStockCount} item{lowStockCount !== 1 ? 's' : ''} below threshold
+                </span>
+              )}
+            </div>
+
             {(selectedCategory || selectedCompany || searchQuery) && (
               <div className="pt-2">
                 <Button
@@ -284,13 +315,21 @@ export default function InventoryPage() {
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-2">
-                          <button
-                            type="button"
-                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                            title="Refresh"
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </button>
+                          <StockAdjustmentModal
+                            product={product}
+                            trigger={
+                              <button
+                                type="button"
+                                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                title="Adjust Stock"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </button>
+                            }
+                          />
+                          {isLowStock && (
+                            <AlertTriangle className="h-4 w-4 text-destructive" />
+                          )}
                           <button
                             type="button"
                             className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"

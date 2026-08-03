@@ -18,49 +18,57 @@ router.get('/', async (req: Request, res: Response) => {
     // Get total companies count
     const totalCompanies = await prisma.company.count();
 
-    // Get low stock items count (quantity <= lowStock threshold, excluding soft-deleted)
-    const lowStockItems = await prisma.product.count({
-      where: {
-        deletedAt: null,
-        quantity: { lte: prisma.product.fields.lowStock },
-      },
-    });
+    // Get total inventory transactions count
+    const totalTransactions = await prisma.inventoryTransaction.count();
 
-    // Get total value of inventory
-    const productsWithPrice = await prisma.product.findMany({
+    // Get low stock items - fetch and filter in JavaScript since Prisma
+    // cannot compare two columns (quantity <= lowStock) in where clause
+    const allProducts = await prisma.product.findMany({
       where: { deletedAt: null },
       select: {
-        price: true,
         quantity: true,
+        lowStock: true,
+        price: true,
       },
     });
 
-    const totalInventoryValue = productsWithPrice.reduce(
-      (sum, product) => sum + (Number(product.price) * product.quantity),
+    const lowStockItems = allProducts.filter((p) => p.quantity <= p.lowStock).length;
+
+    // Get total value of inventory
+    const totalInventoryValue = allProducts.reduce(
+      (sum, product) => sum + Number(product.price) * product.quantity,
       0
     );
 
-    // Get products added this month
+    // Get stock-in transactions this month
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const productsThisMonth = await prisma.product.count({
+    const stockInThisMonth = await prisma.inventoryTransaction.count({
       where: {
-        deletedAt: null,
+        type: 'STOCK_IN',
         createdAt: { gte: startOfMonth },
       },
     });
 
-    // Get sales this month (we'll estimate based on moved products)
-    const salesThisMonth = productsThisMonth;
+    // Get stock-out transactions this month (sales)
+    const stockOutThisMonth = await prisma.inventoryTransaction.count({
+      where: {
+        type: 'STOCK_OUT',
+        createdAt: { gte: startOfMonth },
+      },
+    });
 
     const stats = {
       totalProducts,
       totalCompanies,
+      totalTransactions,
       lowStockItems,
       totalInventoryValue: Math.round(totalInventoryValue * 100) / 100,
-      salesThisMonth,
+      stockInThisMonth,
+      stockOutThisMonth,
+      salesThisMonth: stockOutThisMonth,
     };
 
     return res.json(stats);

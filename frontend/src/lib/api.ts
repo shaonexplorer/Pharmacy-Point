@@ -7,6 +7,11 @@ import type {
   ApiResponse,
   CreateProductInput,
   UpdateProductInput,
+  InventoryItem,
+  InventoryTransaction,
+  StockInInput,
+  StockOutInput,
+  StockAdjustInput,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -98,6 +103,42 @@ export const api = {
     delete: (id: string) =>
       request<ApiResponse<never>>(`/api/companies/${id}`, {
         method: 'DELETE',
+      }),
+  },
+
+  // Inventory
+  inventory: {
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      lowStock?: boolean;
+      companyId?: string;
+    }) => request<PaginatedResponse<InventoryItem>>('/api/inventory', { params }),
+
+    transactions: (params?: {
+      page?: number;
+      limit?: number;
+      productId?: string;
+      type?: string;
+    }) => request<PaginatedResponse<InventoryTransaction>>('/api/inventory/transactions', { params }),
+
+    stockIn: (data: StockInInput) =>
+      request<ApiResponse<unknown>>('/api/inventory/stock-in', {
+        method: 'POST',
+        data,
+      }),
+
+    stockOut: (data: StockOutInput) =>
+      request<ApiResponse<unknown>>('/api/inventory/stock-out', {
+        method: 'POST',
+        data,
+      }),
+
+    adjust: (productId: string, data: StockAdjustInput) =>
+      request<ApiResponse<unknown>>(`/api/inventory/${productId}/adjust`, {
+        method: 'PATCH',
+        data,
       }),
   },
 };

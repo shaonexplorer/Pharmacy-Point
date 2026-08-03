@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { productRouter } from './routes/products';
 import { companyRouter } from './routes/companies';
+import { inventoryRouter } from './routes/inventory';
 import { statsRouter } from './routes/stats';
 
 const app: Application = express();
@@ -26,9 +27,10 @@ app.get('/', (req, res) => {
   res.json({ message: 'Pharmacy Point API', version: '1.0.0' });
 });
 
-// Products API routes
+// API routes
 app.use('/api/products', productRouter);
 app.use('/api/companies', companyRouter);
+app.use('/api/inventory', inventoryRouter);
 app.use('/api/stats', statsRouter);
 
 // Start server

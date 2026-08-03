@@ -107,3 +107,40 @@ export type UpdateProductInput = Partial<CreateProductInput>;
 
 export type UpdateCompanyInput = Partial<Company>;
 export type CreateCompanyInput = Omit<Company, 'id' | 'createdAt' | 'updatedAt'>;
+
+export type TransactionType = 'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT';
+
+export interface InventoryTransaction {
+  id: string;
+  productId: string;
+  product?: Product;
+  type: TransactionType;
+  quantity: number;
+  notes?: string | null;
+  referenceId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InventoryItem extends Product {
+  isLowStock: boolean;
+}
+
+export interface StockInInput {
+  productId: string;
+  quantity: number;
+  notes?: string;
+  referenceId?: string;
+}
+
+export interface StockOutInput {
+  productId: string;
+  quantity: number;
+  notes?: string;
+  referenceId?: string;
+}
+
+export interface StockAdjustInput {
+  quantity: number;
+  notes?: string;
+}

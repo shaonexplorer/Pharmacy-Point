@@ -31,6 +31,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - `/frontend/src/components/companies/CompanyForm.tsx` - Zod-validated form
   - `/frontend/src/hooks/useCompanies.ts` - React Query hooks
 
+**Phase 1: Inventory Tracking - COMPLETED ✅**
+- Added `InventoryTransaction` model with `STOCK_IN`, `STOCK_OUT`, `ADJUSTMENT` transaction types
+- Stock management endpoints:
+  - `GET /api/inventory` - List with low stock filter
+  - `GET /api/inventory/transactions` - Transaction history
+  - `POST /api/inventory/stock-in` - Record purchase receipt (increments quantity)
+  - `POST /api/inventory/stock-out` - Record sale (decrements quantity, checks sufficient stock)
+  - `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment
+- All stock operations use Prisma transactions for data consistency
+- Updated stats API to include transaction counts and sales metrics
+- Frontend: `useInventory` hooks, `StockAdjustmentModal` component, low stock filter UI
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system updated to match "Clinical Precision" theme from Stitch
 - Dashboard Overview with KPI cards and quick actions
@@ -48,11 +60,14 @@ pharmacy-point/
 │ ├── roadmap.md # Development phases and milestones
 │ └── phase-1-project-setup/
 │   └── plan.md # Phase 1 implementation plan (COMPLETED)
+│ └── phase-1-inventory-tracking/
+│   └── plan.md # Phase 1 inventory tracking plan (COMPLETED)
 ├── backend/ # Express.js API server
 │   ├── src/ # Source code
 │   │   └── routes/ # API route handlers
 │   │       ├── products.ts # Product CRUD with TanStack Table patterns
 │   │       ├── companies.ts # Company CRUD endpoints
+│   │       ├── inventory.ts # Inventory tracking & stock management
 │   │       └── stats.ts # Statistics aggregation endpoint
 │   ├── prisma/ # Prisma schema and migrations
 │   ├── prisma.config.ts # Prisma configuration
@@ -71,7 +86,8 @@ pharmacy-point/
 │   │       └── components/ # UI components
 │   │           ├── navigation/index.tsx # Responsive sidebar navigation
 │   │           ├── companies/ # Company components
-│   │           └── products/ # Product components
+│   │           ├── products/ # Product components
+│   │           └── inventory/ # Inventory components (StockAdjustmentModal)
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
 ├── packages/ # Shared packages
@@ -92,9 +108,10 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 - **State Management**: React Query (TanStack Query) for server state
 - **Validation**: Zod for form validation
 
-## Company Model
+## Data Models
 
 **Schema** (`backend/prisma/schema.prisma`):
+
 ```prisma
 model Company {
   id          String    @id @default(cuid())
@@ -104,6 +121,24 @@ model Company {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   products    Product[]
+}
+
+model InventoryTransaction {
+  id            String          @id @default(cuid())
+  productId     String
+  type          TransactionType
+  quantity      Int
+  notes         String?
+  referenceId   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  product       Product         @relation(fields: [productId], references: [id])
+}
+
+enum TransactionType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
 }
 ```
 
@@ -122,6 +157,13 @@ model Company {
 - `POST /api/products` - Create product
 - `PUT /api/products/:id` - Update product
 - `DELETE /api/products/:id` - Soft delete product
+
+### Inventory API (`/api/inventory`) [NEW]
+- `GET /api/inventory` - List inventory with pagination, search, low stock filter
+- `GET /api/inventory/transactions` - List transaction history
+- `POST /api/inventory/stock-in` - Record stock in (purchase receipt)
+- `POST /api/inventory/stock-out` - Record stock out (sale)
+- `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment
 
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard

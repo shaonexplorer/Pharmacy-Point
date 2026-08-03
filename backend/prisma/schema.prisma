@@ -95,9 +95,10 @@ model Product {
   genericName String?
   expiryDate  DateTime?
   companyId   String?
-  deletedAt   DateTime?
-  orderItems  OrderItem[]
-  company     Company?    @relation(fields: [companyId], references: [id])
+  deletedAt            DateTime?
+  orderItems           OrderItem[]
+  inventoryTransactions InventoryTransaction[]
+  company              Company?    @relation(fields: [companyId], references: [id])
 
   @@index([category])
   @@index([deletedAt])
@@ -155,6 +156,23 @@ model OrderItem {
   @@map("order_items")
 }
 
+model InventoryTransaction {
+  id           String              @id @default(cuid())
+  productId    String
+  type         TransactionType
+  quantity     Int
+  notes        String?
+  referenceId  String?             // e.g. order id, purchase order id
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  product      Product             @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("inventory_transactions")
+}
+
 enum Role {
   ADMIN
   PHARMACIST
@@ -166,4 +184,10 @@ enum OrderStatus {
   PENDING
   COMPLETED
   CANCELLED
+}
+
+enum TransactionType {
+  STOCK_IN     // purchase receipt
+  STOCK_OUT    // sale
+  ADJUSTMENT   // manual correction
 }
