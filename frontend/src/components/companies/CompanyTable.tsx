@@ -12,14 +12,7 @@ import {
 } from '@tanstack/react-table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Loader2,
-  AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  Edit,
-  Trash2,
-} from 'lucide-react';
+import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Company } from '@pharmacy-point/types';
 import {

@@ -8,15 +8,21 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md focus-visible:ring-primary',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md focus-visible:ring-destructive',
-        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:shadow-sm focus-visible:ring-primary',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm focus-visible:ring-secondary',
+        default:
+          'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md focus-visible:ring-primary',
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-md focus-visible:ring-destructive',
+        outline:
+          'border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:shadow-sm focus-visible:ring-primary',
+        secondary:
+          'bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-sm focus-visible:ring-secondary',
         ghost: 'hover:bg-accent hover:text-accent-foreground focus-visible:ring-primary',
         link: 'underline-offset-4 hover:underline text-primary focus-visible:ring-primary',
         // Dashboard-specific variants
-        ghostIcon: 'hover:bg-accent hover:text-accent-foreground p-1.5 rounded-md focus-visible:ring-primary',
-        danger: 'bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/15 focus-visible:ring-destructive',
+        ghostIcon:
+          'hover:bg-accent hover:text-accent-foreground p-1.5 rounded-md focus-visible:ring-primary',
+        danger:
+          'bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/15 focus-visible:ring-destructive',
       },
       size: {
         default: 'h-10 px-4 py-2',
@@ -36,8 +42,7 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 

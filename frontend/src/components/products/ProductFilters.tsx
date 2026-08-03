@@ -85,7 +85,12 @@ export function ProductFilters({
 
       {hasActiveFilters ? (
         <div className="flex items-center justify-end">
-          <Button variant="outline" size="sm" onClick={onClearFilters} className="transition-colors duration-200 hover:bg-muted">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClearFilters}
+            className="transition-colors duration-200 hover:bg-muted"
+          >
             <X className="mr-2 h-4 w-4" />
             Clear Filters
           </Button>

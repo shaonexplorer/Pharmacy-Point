@@ -21,11 +21,12 @@ interface CustomAlertDialogHeaderProps {
   children?: React.ReactNode;
 }
 
-const CustomAlertDialogHeader = ({ className, children, ...props }: CustomAlertDialogHeaderProps) => (
-  <div
-    className={cn('flex flex-col space-y-2 text-center sm:text-left', className)}
-    {...props}
-  >
+const CustomAlertDialogHeader = ({
+  className,
+  children,
+  ...props
+}: CustomAlertDialogHeaderProps) => (
+  <div className={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...props}>
     {children}
   </div>
 );
@@ -35,7 +36,11 @@ interface CustomAlertDialogFooterProps {
   children?: React.ReactNode;
 }
 
-const CustomAlertDialogFooter = ({ className, children, ...props }: CustomAlertDialogFooterProps) => (
+const CustomAlertDialogFooter = ({
+  className,
+  children,
+  ...props
+}: CustomAlertDialogFooterProps) => (
   <div
     className={cn(
       'flex flex-col space-y-2 sm:space-y-0 sm:justify-end sm:flex-row sm:gap-3',
@@ -149,23 +154,22 @@ const Label = React.forwardRef<HTMLLabelElement, LabelProps>(({ className, ...pr
 Label.displayName = 'Label';
 
 // Textarea component
-const Textarea = React.forwardRef<
-  HTMLTextAreaElement,
-  React.ComponentPropsWithoutRef<'textarea'>
->(({ className, ...props }, ref) => (
-  <textarea
-    ref={ref}
-    className={cn(
-      'flex min-h-[60px] w-full rounded-md border border-input bg-background',
-      'px-3 py-2 text-sm transition-colors duration-200 placeholder:text-muted-foreground',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-      'focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50',
-      'hover:border-muted',
-      className
-    )}
-    {...props}
-  />
-));
+const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentPropsWithoutRef<'textarea'>>(
+  ({ className, ...props }, ref) => (
+    <textarea
+      ref={ref}
+      className={cn(
+        'flex min-h-[60px] w-full rounded-md border border-input bg-background',
+        'px-3 py-2 text-sm transition-colors duration-200 placeholder:text-muted-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50',
+        'hover:border-muted',
+        className
+      )}
+      {...props}
+    />
+  )
+);
 Textarea.displayName = 'Textarea';
 
 export {

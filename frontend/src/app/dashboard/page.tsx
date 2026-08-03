@@ -2,20 +2,8 @@
 
 import { useSession, signOut } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  AlertCircle,
-  LogOut,
-  Loader2,
-  Package,
-  Store,
-} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, LogOut, Loader2, Package, Store } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {

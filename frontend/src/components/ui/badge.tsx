@@ -8,8 +8,10 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        secondary:
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        destructive:
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90',
         success: 'border-transparent bg-success text-success-foreground hover:bg-success/80',
         warning: 'border-transparent bg-warning text-warning-foreground hover:bg-warning/80',
         outline: 'text-foreground border border-input bg-background hover:bg-muted',
@@ -27,18 +29,13 @@ const badgeVariants = cva(
   }
 );
 
-type BadgeProps = React.ComponentPropsWithoutRef<'div'> &
-  VariantProps<typeof badgeVariants>;
+type BadgeProps = React.ComponentPropsWithoutRef<'div'> & VariantProps<typeof badgeVariants>;
 
-const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(({ className, variant, size, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn(badgeVariants({ variant, size }), className)}
-      {...props}
-    />
-  );
-});
+const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return <div ref={ref} className={cn(badgeVariants({ variant, size }), className)} {...props} />;
+  }
+);
 Badge.displayName = 'Badge';
 
 export { Badge, badgeVariants };

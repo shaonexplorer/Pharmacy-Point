@@ -29,7 +29,9 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
             </div>
           )}
         </div>
-        <CardTitle className="text-card-foreground text-lg mt-2 line-clamp-1">{product.name}</CardTitle>
+        <CardTitle className="text-card-foreground text-lg mt-2 line-clamp-1">
+          {product.name}
+        </CardTitle>
         {product.company && (
           <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{product.company.name}</p>
         )}
@@ -40,14 +42,11 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
           <p className="text-2xl font-bold text-primary">{formatCurrency(product.price)}</p>
           <p className="text-sm text-muted-foreground font-mono">SKU: {product.sku}</p>
           <p className="text-sm">
-            Category:{' '}
-            <span className="text-foreground font-medium">{product.category}</span>
+            Category: <span className="text-foreground font-medium">{product.category}</span>
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
-                Stock: {product.quantity}
-              </span>
+              <span className="text-sm text-muted-foreground">Stock: {product.quantity}</span>
               {isLowStock && (
                 <Badge variant="destructive" className="text-xs">
                   Low Stock

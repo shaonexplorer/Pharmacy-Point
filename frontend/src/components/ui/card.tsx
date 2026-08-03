@@ -26,10 +26,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.ComponentPropsWit
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn(
-        'text-2xl font-bold leading-none tracking-tight text-foreground',
-        className
-      )}
+      className={cn('text-2xl font-bold leading-none tracking-tight text-foreground', className)}
       {...props}
     />
   )
