@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 ## Project Overview
 
-**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach. 
+**Pharmacy Point** is a full-stack pharmacy management application being built using a spec-driven development approach.
 
 ## Current Status
 
 **Phase 1: Project Setup - COMPLETED ✅**
 - Monorepo architecture established with Turborepo
 - Frontend: Next.js 16, Tailwind CSS, shadcn/ui, React Hook Form, Zod
-- Backend: Express.js 5.x, TypeScript, Prisma ORM
+- Backend: Express.js 5.x, TypeScript, PostgreSQL via Prisma ORM
 - Shared configuration and types packages created
 - All TypeScript compilation passes
 - All ESLint/Prettier checks pass
@@ -20,27 +20,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Product CRUD API fully implemented and tested
 - Product frontend pages created (list, view, create, edit)
 
-**Phase 3: Company Management - IN PROGRESS**
+**Phase 3: Company Management - COMPLETED ✅**
 - Backend API CRUD endpoints implemented
 - Frontend pages and components created:
   - `/frontend/src/app/companies/page.tsx` - List with TanStack Table
   - `/frontend/src/app/companies/new/page.tsx` - Create form
   - `/frontend/src/app/companies/[id]/page.tsx` - View details
   - `/frontend/src/app/companies/[id]/edit/page.tsx` - Edit form
-  - `/frontend/src/components/companies/CompanyTable.tsx` - TanStack Table v8
+  - `/frontend/src/components/companies/CompanyTable.tsx` - TanStack Table component
   - `/frontend/src/components/companies/CompanyForm.tsx` - Zod-validated form
   - `/frontend/src/hooks/useCompanies.ts` - React Query hooks
 
-**Phase 3: Company Management - IN PROGRESS**
-- Backend API CRUD endpoints implemented
-- Frontend pages and components created:
-  - `/frontend/src/app/companies/page.tsx` - List with TanStack Table
-  - `/frontend/src/app/companies/new/page.tsx` - Create form
-  - `/frontend/src/app/companies/[id]/page.tsx` - View details
-  - `/frontend/src/app/companies/[id]/edit/page.tsx` - Edit form
-  - `/frontend/src/components/companies/CompanyTable.tsx` - TanStack Table v8
-  - `/frontend/src/components/companies/CompanyForm.tsx` - Zod-validated form
-  - `/frontend/src/hooks/useCompanies.ts` - React Query hooks
+**Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
+- Design system updated to match "Clinical Precision" theme from Stitch
+- Dashboard Overview with KPI cards and quick actions
+- Inventory Management page with product listing and filters
+- Analytics/Reports page with sales insights and charts
+- Navigation component with responsive sidebar
 
 ## Project Structure
 
@@ -56,22 +52,26 @@ pharmacy-point/
 │   ├── src/ # Source code
 │   │   └── routes/ # API route handlers
 │   │       ├── products.ts # Product CRUD with TanStack Table patterns
-│   │       └── companies.ts # Company CRUD endpoints
+│   │       ├── companies.ts # Company CRUD endpoints
+│   │       └── stats.ts # Statistics aggregation endpoint
 │   ├── prisma/ # Prisma schema and migrations
 │   ├── prisma.config.ts # Prisma configuration
 │   ├── .env # Environment variables
 │   └── package.json # Backend dependencies
 ├── frontend/ # Next.js application
-│   ├── src/
+│   ├── src/ # Source code
 │   │   └── app/ # App Router structure
-│   │       ├── layout.tsx # Root layout
-│   │       ├── page.tsx # Home page
-│   │       ├── dashboard/page.tsx # Dashboard with navigation
+│   │       ├── layout.tsx # Root layout with Navigation
+│       │   ├── page.tsx # Home page
+│       │   ├── dashboard/page.tsx # Dashboard with KPI cards
+│       │   ├── inventory/page.tsx # Inventory management
+│       │   ├── analytics/page.tsx # Analytics & reports
 │   │       ├── products/ # Product pages
-│   │       └── companies/ # Company pages (new)
-│   │       └── components/companies/ # Company components
-│   │           ├── CompanyTable.tsx # TanStack Table component
-│   │           └── CompanyForm.tsx # Form component
+│   │       └── companies/ # Company pages
+│   │       └── components/ # UI components
+│   │           ├── navigation/index.tsx # Responsive sidebar navigation
+│   │           ├── companies/ # Company components
+│   │           └── products/ # Product components
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
 ├── packages/ # Shared packages
@@ -123,6 +123,9 @@ model Company {
 - `PUT /api/products/:id` - Update product
 - `DELETE /api/products/:id` - Soft delete product
 
+### Stats API (`/api/stats`) [NEW]
+- `GET /api/stats` - Get aggregated statistics for dashboard
+
 ## Development Workflow
 
 ### Initial Setup
@@ -172,7 +175,6 @@ model Company {
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
-- `specs/phase-1-project-setup/plan.md` - Phase 1 implementation plan (COMPLETED)
 
 ## Path Aliases
 The following path aliases are configured for monorepo imports:
@@ -181,16 +183,30 @@ The following path aliases are configured for monorepo imports:
 - `@pharmacy-point/types` - Shared TypeScript types
 - `@pharmacy-point/config` - Shared configuration
 
-## Notes
+## Design System
 
-### Company Model Field Updates
-The Company model was simplified - the initial migration included fields (email, phone, address, isActive) that were removed to match a cleaner business domain model. Only essential fields remain:
-- id, name, description, image, createdAt, updatedAt
+### Clinical Precision Theme (from Stitch)
+- **Primary**: Pharma Teal (#00685f) - for primary actions and brand-critical elements
+- **Secondary**: Medi-Blue (#006398) - for informational callouts and secondary actions
+- **Tertiary**: Safety Green (#006b2c) - for success states (In Stock, Verified)
+- **Typography**: Inter font family with JetBrains Mono for numerical data
+- **Spacing**: 8px base rhythm
+- **Shapes**: Rounded corners (0.5rem base, 1rem for containers)
 
-### Product Price Field
-Products use `Float` for the price field (not Decimal). When creating/updating products, pass the price as a number directly.
+## Navigation Structure
 
-### Frontend Notes
-- Companies use TanStack Table v8 with shadcn/ui Table components
-- Forms use Zod for validation
-- API errors are displayed inline with appropriate styling
+```
+/ (protected)
+├── dashboard/ - KPI cards, quick actions, recent activity
+├── products/ - Product list with search and filters
+├── products/new/ - Add product form
+├── products/[id]/ - View product details
+├── products/[id]/edit/ - Edit product form
+├── inventory/ - Product inventory with stock levels
+├── analytics/ - Sales reports and insights
+├── companies/ - Company list with TanStack Table
+├── companies/new/ - Add company form
+├── companies/[id]/ - View company details
+├── companies/[id]/edit/ - Edit company form
+└── (auth)/login - Authentication page
+```
