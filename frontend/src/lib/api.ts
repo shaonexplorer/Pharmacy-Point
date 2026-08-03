@@ -5,6 +5,9 @@ import type {
   Company,
   Customer,
   CustomerWithOrders,
+  Order,
+  OrderWithItems,
+  CreateOrderInput,
   PaginatedResponse,
   ApiResponse,
   CreateProductInput,
@@ -79,6 +82,31 @@ export const api = {
     delete: (id: string) =>
       request<ApiResponse<never>>(`/api/products/${id}`, {
         method: 'DELETE',
+      }),
+  },
+
+  // Orders
+  orders: {
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      customerId?: string;
+      staffId?: string;
+    }) => request<PaginatedResponse<Order>>('/api/orders', { params }),
+
+    get: (id: string) => request<ApiResponse<OrderWithItems>>(`/api/orders/${id}`),
+
+    create: (data: CreateOrderInput) =>
+      request<ApiResponse<OrderWithItems>>('/api/orders', {
+        method: 'POST',
+        data,
+      }),
+
+    updateStatus: (id: string, status: string) =>
+      request<ApiResponse<Order>>(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        data: { status },
       }),
   },
 

@@ -3,28 +3,28 @@
 ## Acceptance Criteria
 
 ### AC-1: Product Selection
-- [ ] Products can be searched by name
-- [ ] Product details (name, price, image) display correctly
-- [ ] Products can be added to cart
-- [ ] Stock availability is shown
+- [x] Products can be searched by name
+- [x] Product details (name, price, image) display correctly
+- [x] Products can be added to cart
+- [x] Stock availability is shown
 
 ### AC-2: Cart Management
-- [ ] Items can be added to cart
-- [ ] Item quantities can be updated
-- [ ] Items can be removed from cart
-- [ ] Cart total calculates correctly
+- [x] Items can be added to cart
+- [x] Item quantities can be updated
+- [x] Items can be removed from cart
+- [x] Cart total calculates correctly
 
 ### AC-3: Checkout Process
-- [ ] Checkout button processes the sale
-- [ ] Order is created in database
-- [ ] Inventory is updated
-- [ ] Customer can be associated (optional)
+- [x] Checkout button processes the sale
+- [x] Order is created in database
+- [x] Inventory is updated
+- [x] Customer can be associated (optional)
 
 ### AC-4: Receipt Generation
-- [ ] Receipt displays after successful sale
-- [ ] Receipt shows all items, prices, totals
-- [ ] Receipt can be printed
-- [ ] Sale is linked to staff member
+- [x] Receipt displays after successful sale
+- [x] Receipt shows all items, prices, totals
+- [x] Receipt can be printed
+- [x] Sale is linked to staff member
 
 ## Test Cases
 
@@ -49,14 +49,14 @@
 **Then** Maximum quantity allowed is 2
 
 ## Validation Checklist
-- [ ] Product search component
-- [ ] Product grid/list view
-- [ ] Cart component with item management
-- [ ] Quantity validation (not negative, not exceeding stock)
-- [ ] Price calculation (subtotal, tax, total)
-- [ ] Checkout process
-- [ ] Order creation API
-- [ ] Inventory update on sale
-- [ ] Receipt generation
-- [ ] Staff attribution on orders
-- [ ] Customer association (optional)
+- [x] Product search component
+- [x] Product grid/list view
+- [x] Cart component with item management
+- [x] Quantity validation (not negative, not exceeding stock)
+- [x] Price calculation (subtotal, tax, total)
+- [x] Checkout process
+- [x] Order creation API
+- [x] Inventory update on sale
+- [x] Receipt generation
+- [x] Staff attribution on orders
+- [x] Customer association (optional)

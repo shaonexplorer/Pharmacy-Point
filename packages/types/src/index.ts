@@ -56,11 +56,20 @@ export interface Customer {
   updatedAt: string;
 }
 
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+
+export type PaymentMethod = 'cash' | 'card';
+
 export interface Order {
   id: string;
   customerId?: string | null;
-  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+  status: OrderStatus;
   total: number;
+  subtotal: number;
+  tax: number;
+  taxRate: number;
+  paymentMethod?: PaymentMethod | null;
+  staffId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,6 +80,33 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
+}
+
+export interface OrderItemWithProduct extends OrderItem {
+  product?: Product | null;
+}
+
+export interface OrderWithItems extends Order {
+  items: OrderItemWithProduct[];
+  customer?: Customer | null;
+  user?: User | null;
+}
+
+export interface CreateOrderItemInput {
+  productId: string;
+  quantity: number;
+  price: number;
+}
+
+export interface CreateOrderInput {
+  customerId?: string | null;
+  items: CreateOrderItemInput[];
+  subtotal: number;
+  tax: number;
+  taxRate: number;
+  total: number;
+  paymentMethod: PaymentMethod;
+  staffId?: string | null;
 }
 
 export type ApiResponse<T> = {

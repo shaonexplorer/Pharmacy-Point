@@ -70,6 +70,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Analytics/Reports page with sales insights and charts
 - Navigation component with responsive sidebar
 
+**Phase 5: Basic POS Interface - COMPLETED ✅**
+- Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
+- Backend `orders` router (`/backend/src/routes/orders.ts`):
+  - `GET /api/orders` - List with pagination, status/customer/staff filters
+  - `GET /api/orders/:id` - Get order with items and product details
+  - `POST /api/orders` - Create order (Prisma transaction: create order + items + decrement stock + STOCK_OUT transactions)
+  - `PATCH /api/orders/:id/status` - Update order status
+- Frontend POS implementation:
+  - `/frontend/src/app/pos/page.tsx` - Main POS interface with auth guard
+  - `/frontend/src/context/PosContext.tsx` - Cart state management (React Context + useReducer)
+  - `/frontend/src/hooks/useOrders.ts` - React Query hooks for orders
+  - Components: `ProductSearch`, `ProductGrid`, `Cart`, `CartItem`, `Checkout`, `Receipt`
+  - Cart with stock validation, quantity controls, tax calculation (8.5% default)
+  - Receipt with print support (clean print window)
+  - Staff attribution via session user
+- Added `POS` entry to navigation sidebar
+- Shared types extended: `OrderWithItems`, `OrderItemWithProduct`, `CreateOrderInput`, `CreateOrderItemInput`, `PaymentMethod`, `OrderStatus`
+
 ## Project Structure
 
 ```markdown
@@ -91,6 +109,7 @@ pharmacy-point/
 │   │       ├── companies.ts # Company CRUD endpoints
 │   │       ├── customers.ts # Customer CRUD endpoints
 │   │       ├── inventory.ts # Inventory tracking & stock management
+│   │       ├── orders.ts # Order processing & stock-out transactions
 │   │       └── stats.ts # Statistics aggregation endpoint
 │   ├── prisma/ # Prisma schema and migrations
 │   ├── prisma.config.ts # Prisma configuration
@@ -107,12 +126,16 @@ pharmacy-point/
 │   │       ├── products/ # Product pages
 │   │       ├── companies/ # Company pages
 │   │       └── customers/ # Customer pages
+│   │       ├── inventory/ # Inventory management
+│   │       ├── analytics/ # Analytics & reports
+│   │       ├── pos/ # Point of Sale interface
 │   │       └── components/ # UI components
 │   │           ├── navigation/index.tsx # Responsive sidebar navigation
 │   │           ├── companies/ # Company components
 │   │           ├── products/ # Product components
 │   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
-│   │           └── inventory/ # Inventory components (StockAdjustmentModal)
+│   │           ├── inventory/ # Inventory components (StockAdjustmentModal)
+│   │           └── pos/ # POS components (ProductSearch, ProductGrid, Cart, Checkout, Receipt)
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
 ├── packages/ # Shared packages
@@ -167,6 +190,43 @@ enum TransactionType {
 }
 ```
 
+**Models** (partial — see `backend/prisma/schema.prisma` for full schema):
+
+```prisma
+model Order {
+  id            String      @id @default(cuid())
+  customerId    String?
+  total         Decimal     @db.Decimal(10, 2)
+  subtotal      Decimal     @db.Decimal(10, 2) @default(0)
+  tax           Decimal     @db.Decimal(10, 2) @default(0)
+  taxRate       Float       @default(0.085)
+  paymentMethod String?     @default("cash")
+  staffId       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  status        OrderStatus @default(PENDING)
+  items         OrderItem[]
+  customer      Customer?   @relation(fields: [customerId], references: [id])
+  user          User?       @relation(fields: [staffId], references: [id])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+```
+
 ## API Endpoints
 
 ### Companies API (`http://localhost:5000/api/companies`)
@@ -196,6 +256,12 @@ enum TransactionType {
 - `POST /api/customers` - Create customer
 - `PUT /api/customers/:id` - Update customer
 - `DELETE /api/customers/:id` - Delete customer (guarded against customers with orders)
+
+### Orders API (`/api/orders`) [NEW]
+- `GET /api/orders` - List with pagination and filters (page, limit, status, customerId, staffId)
+- `GET /api/orders/:id` - Get order with items, product details, customer, and staff
+- `POST /api/orders` - Create order (transactional: order + items + stock decrement + STOCK_OUT transactions)
+- `PATCH /api/orders/:id/status` - Update order status
 
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard
@@ -276,6 +342,7 @@ The following path aliases are configured for monorepo imports:
 ├── products/new/ - Add product form
 ├── products/[id]/ - View product details
 ├── products/[id]/edit/ - Edit product form
+├── pos/ - Point of Sale interface with cart and checkout
 ├── inventory/ - Product inventory with stock levels
 ├── analytics/ - Sales reports and insights
 ├── companies/ - Company list with TanStack Table

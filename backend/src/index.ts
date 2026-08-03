@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -6,6 +6,7 @@ import { productRouter } from './routes/products';
 import { companyRouter } from './routes/companies';
 import { inventoryRouter } from './routes/inventory';
 import { customerRouter } from './routes/customers';
+import { orderRouter } from './routes/orders';
 import { statsRouter } from './routes/stats';
 
 const app: Application = express();
@@ -33,6 +34,7 @@ app.use('/api/products', productRouter);
 app.use('/api/companies', companyRouter);
 app.use('/api/customers', customerRouter);
 app.use('/api/inventory', inventoryRouter);
+app.use('/api/orders', orderRouter);
 app.use('/api/stats', statsRouter);
 
 // Start server
