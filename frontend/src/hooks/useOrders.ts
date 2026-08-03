@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { productKeys } from '@/hooks/useProducts';
+import { inventoryKeys } from '@/hooks/useInventory';
 import type {
   Order,
   OrderWithItems,
@@ -57,7 +59,13 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: (data: CreateOrderInput) => api.orders.create(data),
     onSuccess: () => {
+      // A sale decrements stock and creates STOCK_OUT transactions,
+      // so refresh inventory, transactions, product lists, and stats
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
     },
   });
 }
