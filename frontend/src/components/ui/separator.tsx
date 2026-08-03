@@ -3,6 +3,14 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
+/**
+ * Clinical Precision — Separator Component
+ *
+ * Design spec (DESIGN.md → Borders):
+ *  - Color: outline (#6d7a77) — subtle separator
+ *  - Used as a divider between sections and table rows
+ */
+
 function Separator({
   className,
   orientation = 'horizontal',

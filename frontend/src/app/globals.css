@@ -1,185 +1,251 @@
 @import "tailwindcss";
 
+/* ===========================================================================
+ * Clinical Precision Design System
+ * ===========================================================================
+ *
+ * Design tokens derived from the DESIGN.md specification (Clinical Precision
+ * theme).  All colours, typography, spacing, and shape values are defined here
+ * as CSS custom properties so that every component consumes the same source of
+ * truth.
+ *
+ * Primary:   Pharma Teal  (#00685f) — brand-critical actions, active nav
+ * Secondary: Medi-Blue    (#006398) — informational callouts, secondary actions
+ * Tertiary:  Safety Green (#006b2c) — "In Stock", "Verified", success states
+ * =========================================================================== */
+
+/* ────────────────────────── Color Tokens ────────────────────────── */
+
 :root {
-  /* Background Colors - Clinical Precision */
-  --background: hsl(210 40% 98%);
-  --foreground: hsl(220 15% 10%);
+  /* ── Semantic Palette ──────────────────────────────────────────── */
 
-  /* Card Colors */
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(220 15% 10%);
+  /* Primary — Pharma Teal */
+  --primary: #00685f;
+  --on-primary: #ffffff;
+  --primary-container: #008378;
+  --on-primary-container: #f4fffc;
 
-  /* Primary - Pharma Teal (Clinical Precision) */
-  --primary: hsl(199 59% 33%);
-  --primary-foreground: hsl(0 0% 100%);
-  --primary-container: hsl(199 59% 51%);
-  --on-primary-container: hsl(210% 15% 10%);
+  /* Secondary — Medi-Blue */
+  --secondary: #006398;
+  --on-secondary: #ffffff;
+  --secondary-container: #5bb8fe;
+  --on-secondary-container: #00476e;
 
-  /* Secondary - Medi-Blue */
-  --secondary: hsl(217 80% 50%);
-  --secondary-foreground: hsl(0 0% 100%);
-  --secondary-container: hsl(217 80% 70%);
-  --on-secondary-container: hsl(217 80% 15%);
+  /* Tertiary — Safety Green */
+  --tertiary: #006b2c;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #00873a;
+  --on-tertiary-container: #f7fff2;
 
-  /* Tertiary - Safety Green */
-  --tertiary: hsl(153 51% 43%);
-  --tertiary-foreground: hsl(0 0% 100%);
-  --tertiary-container: hsl(153 51% 69%);
-  --on-tertiary-container: hsl(210% 15% 10%);
+  /* Error */
+  --error: #ba1a1a;
+  --on-error: #ffffff;
 
-  /* Success - In Stock States */
-  --success: hsl(142 76% 36%);
-  --success-foreground: hsl(0 0% 100%);
+  /* ── Surface Palette (Light Mode) ──────────────────────────────── */
 
-  /* Warning - Low Stock */
-  --warning: hsl(38 90% 54%);
-  --warning-foreground: hsl(220 15% 10%);
+  --background: #f8f9ff;
+  --on-background: #0b1c30;
 
-  /* Destructive - For errors, delete actions */
-  --destructive: hsl(0 72% 65%);
-  --destructive-foreground: hsl(0 0% 100%);
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #eff4ff;
+  --surface-container: #e5eeff;
+  --surface-container-high: #dce9ff;
+  --surface-container-highest: #d3e4fe;
+  --surface-dim: #cbdbf5;
+  --surface-bright: #f8f9ff;
 
-  /* Muted Colors - Secondary text, borders */
-  --muted: hsl(210 10% 85%);
-  --muted-foreground: hsl(220 10% 40%);
+  --surface: #f8f9ff;
+  --on-surface: #0b1c30;
+  --on-surface-variant: #3d4947;
 
-  /* Borders & Inputs - Cool slates */
-  --border: hsl(210 20% 90%);
-  --input: hsl(210 20% 90%);
-  --ring: hsl(199 59% 50%);
+  --outline: #6d7a77;
+  --outline-variant: #bcc9c6;
+  --surface-tint: #006a61;
+  --surface-variant: #d3e4fe;
 
-  /* Surface variants */
-  --surface: hsl(217 54% 97%);
-  --surface-foreground: hsl(220 15% 10%);
-  --surface-container: hsl(217 54% 98%);
-  --surface-container-high: hsl(217 54% 99%);
-  --surface-container-low: hsl(217 54% 95%);
-  --surface-container-lowest: hsl(0 0% 100%);
-  --surface-variant: hsl(217 54% 96%);
-  --on-surface-variant: hsl(220 10% 20%);
+  /* ── Fixed Color Tokens ────────────────────────────────────────── */
 
-  /* Border Radius */
-  --radius: 0.5rem;
-  --radius-sm: 0.25rem;
-  --radius-lg: 1rem;
-  --radius-full: 9999px;
+  --primary-fixed: #89f5e7;
+  --primary-fixed-dim: #6bd8cb;
+  --on-primary-fixed: #00201d;
+  --on-primary-fixed-variant: #005049;
 
-  /* Spacing - 8px base rhythm */
-  --spacing-unit: 0.5rem;
+  --secondary-fixed: #cce5ff;
+  --secondary-fixed-dim: #93ccff;
+  --on-secondary-fixed: #001d31;
+  --on-secondary-fixed-variant: #004b73;
+
+  --tertiary-fixed: #7ffc97;
+  --tertiary-fixed-dim: #62df7d;
+  --on-tertiary-fixed: #002109;
+  --on-tertiary-fixed-variant: #005320;
+
+  /* ── Derived Semantic Tokens ───────────────────────────────────── */
+  --foreground: var(--on-background);
+  --card: var(--surface-container-lowest);
+  --card-foreground: var(--on-surface);
+  --accent: var(--surface-container-low);
+  --accent-foreground: var(--on-surface);
+  --muted: var(--surface-container-low);
+  --muted-foreground: var(--on-surface-variant);
+  --border: var(--outline);
+  --input: var(--outline-variant);
+  --ring: var(--primary);
+
+  /* ── Border Radius (Shape) ─────────────────────────────────────── */
+
+  --radius-sm: 0.25rem;   /* 4px — small elements, compact UI        */
+  --radius: 0.5rem;       /* 8px — base: buttons, input fields       */
+  --radius-md: 0.75rem;   /* 12px — medium-radius containers          */
+  --radius-lg: 1rem;      /* 16px — KPI cards, modals, containers     */
+  --radius-xl: 1.5rem;    /* 24px — large containers, section headers */
+  --radius-full: 9999px;  /* pills — status chips                     */
+
+  /* ── Spacing (8px base rhythm) ─────────────────────────────────── */
+
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2.5rem;   /* 40px */
+  --spacing-base: 0.25rem; /* 4px base unit */
+  --spacing-container-max: 90rem; /* 1440px */
+  --spacing-gutter: 1.25rem;     /* 20px */
+  --spacing-margin-desktop: 2.5rem; /* 40px */
+
+  /* ── Elevation / Shadows ───────────────────────────────────────── */
+
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 6px 16px rgba(0, 0, 0, 0.06);
+  --shadow-popover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --backdrop-blur-modal: blur(8px);
 }
+
+/* ─────────────────────── Dark Mode Overrides ─────────────────────── */
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Background Colors - Deep Navy Foundation */
-    --background: hsl(210 12% 10%);
-    --foreground: hsl(0 0% 93%);
+    --background: #0b1c30;
+    --on-background: #eaf1ff;
 
-    /* Card Colors */
-    --card: hsl(210 12% 13%);
-    --card-foreground: hsl(0 0% 93%);
+    --surface-container-lowest: #17253d;
+    --surface-container-low: #1c2f4a;
+    --surface-container: #213145;
+    --surface-container-high: #2a3f5f;
+    --surface-container-highest: #344e6b;
+    --surface-dim: #17253d;
+    --surface-bright: #1e2e4a;
 
-    /* Primary - Lighter Pharma Teal in dark mode */
-    --primary: hsl(199 59% 60%);
-    --primary-foreground: hsl(210 100% 97%);
-    --primary-container: hsl(199 59% 70%);
-    --on-primary-container: hsl(210% 15% 10%);
+    --surface: #0b1c30;
+    --on-surface: #eaf1ff;
+    --on-surface-variant: #a3c2b0;
 
-    /* Secondary - Lighter Medi-Blue */
-    --secondary: hsl(217 80% 65%);
-    --secondary-foreground: hsl(0 0% 93%);
-    --secondary-container: hsl(217 80% 75%);
-    --on-secondary-container: hsl(217 80% 15%);
+    --outline: #8a9896;
+    --outline-variant: #4a5a58;
 
-    /* Tertiary - Safety Green */
-    --tertiary: hsl(153 51% 65%);
-    --tertiary-foreground: hsl(220 8% 20%);
-    --tertiary-container: hsl(153 51% 75%);
-    --on-tertiary-container: hsl(210% 15% 10%);
+    --card: var(--surface-container-lowest);
+    --card-foreground: var(--on-surface);
+    --muted: var(--surface-container-low);
+    --muted-foreground: var(--on-surface-variant);
+    --border: var(--outline);
+    --input: var(--outline-variant);
 
-    /* Success */
-    --success: hsl(142 76% 65%);
-    --success-foreground: hsl(220 8% 20%);
+    /* Primary (lighter in dark mode per Material 3 inverse-primary) */
+    --primary: #6bd8cb;
+    --on-primary: #00362f;
+    --primary-container: #008378;
+    --on-primary-container: #00201d;
 
-    /* Warning */
-    --warning: hsl(38 90% 65%);
-    --warning-foreground: hsl(220 15% 10%);
+    /* Secondary (lighter in dark mode) */
+    --secondary: #93ccff;
+    --on-secondary: #00284c;
+    --secondary-container: #006398;
+    --on-secondary-container: #001d31;
 
-    /* Destructive */
-    --destructive: hsl(354 72% 65%);
-    --destructive-foreground: hsl(210 100% 97%);
+    /* Tertiary (lighter in dark mode) */
+    --tertiary: #62df7d;
+    --on-tertiary: #003816;
+    --tertiary-container: #00873a;
+    --on-tertiary-container: #002109;
 
-    /* Muted Colors */
-    --muted: hsl(210 12% 35%);
-    --muted-foreground: hsl(210 10% 65%);
+    /* Error */
+    --error: #ff6b6b;
+    --on-error: #00362f;
 
-    /* Borders & Inputs */
-    --border: hsl(210 12% 35%);
-    --input: hsl(210 12% 35%);
-    --ring: hsl(199 59% 60%);
-
-    /* Surface variants - Deep Navy */
-    --surface: hsl(210 12% 13%);
-    --surface-foreground: hsl(0 0% 93%);
-    --surface-container: hsl(210 12% 17%);
-    --surface-container-high: hsl(210 12% 23%);
-    --surface-container-low: hsl(210 12% 13%);
-    --surface-container-lowest: hsl(210 12% 10%);
-    --surface-variant: hsl(210 12% 19%);
-    --on-surface-variant: hsl(220 10% 70%);
+    /* Fixed color tokens dark mode */
+    --on-primary-fixed: #00201d;
+    --on-secondary-fixed: #001d31;
+    --on-tertiary-fixed: #002109;
   }
 }
 
-/* Map CSS variables into Tailwind v4 Theme engine */
-@theme {
-  /* Font configuration - Inter for clinical precision, JetBrains Mono for data */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+/* ────────────────────────── Typography ────────────────────────────── */
 
-  /* Color mappings */
+/*
+ * Inter  — foundational typeface for all text
+ * JetBrains Mono — numerical / data display (SKUs, quantities, prices)
+ *
+ * Loaded via next/font in layout.tsx → --font-inter / --font-mono variables.
+ * Below we map the @theme tokens so Tailwind's font utilities pick them up.
+ */
+
+@theme {
+  /* Fonts */
+  --font-sans: var(--font-inter, 'Inter', system-ui, sans-serif);
+  --font-mono: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+
+  /* Semantic color aliases (mapped to CSS variables) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-foreground: var(--on-primary);
   --color-primary-container: var(--primary-container);
   --color-on-primary-container: var(--on-primary-container);
   --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-foreground: var(--on-secondary);
   --color-secondary-container: var(--secondary-container);
   --color-on-secondary-container: var(--on-secondary-container);
   --color-tertiary: var(--tertiary);
-  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-tertiary-foreground: var(--on-tertiary);
   --color-tertiary-container: var(--tertiary-container);
   --color-on-tertiary-container: var(--on-tertiary-container);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--tertiary);
+  --color-success-foreground: var(--on-tertiary);
+  --color-warning: var(--secondary);
+  --color-warning-foreground: var(--on-secondary);
+  --color-destructive: var(--error);
+  --color-destructive-foreground: var(--on-error);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* Surface colors */
+  /* Surface tokens */
   --color-surface: var(--surface);
-  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-foreground: var(--on-surface);
   --color-surface-container: var(--surface-container);
-  --color-surface-container-high: var(--surface-container-high);
   --color-surface-container-low: var(--surface-container-low);
   --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
   --color-surface-variant: var(--surface-variant);
   --color-on-surface-variant: var(--on-surface-variant);
 
   /* Border radius */
   --radius-sm: var(--radius-sm);
   --radius: var(--radius);
+  --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
   --radius-full: var(--radius-full);
 }
+
+/* ── Base body styles ──────────────────────────────────────────────── */
 
 body {
   background: var(--background);
@@ -190,26 +256,89 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Design System Utilities */
+/* ── Typography Utility Classes (from DESIGN.md) ───────────────────── */
 
-/* Prescription border - signature element */
+/* display-lg — 36px, 700 weight, 44px line-height */
+.text-display-lg {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 2.75rem;
+  letter-spacing: -0.02em;
+  font-family: var(--font-sans);
+}
+
+/* headline-lg — 28px, 600 weight, 36px line-height */
+.text-headline-lg {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 2.25rem;
+  letter-spacing: -0.01em;
+  font-family: var(--font-sans);
+}
+
+/* headline-md — 20px, 600 weight, 28px line-height */
+.text-headline-md {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.75rem;
+  font-family: var(--font-sans);
+}
+
+/* body-lg — 16px, 400 weight, 24px line-height */
+.text-body-lg {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  font-family: var(--font-sans);
+}
+
+/* body-md — 14px, 400 weight, 20px line-height */
+.text-body-md {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  font-family: var(--font-sans);
+}
+
+/* label-md — 12px, 600 weight, 16px line-height, 0.05em tracking */
+.text-label-md {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+}
+
+/* data-mono — JetBrains Mono, 14px, 500 weight, 20px line-height */
+.text-data-mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+/* ── Design System Utilities ───────────────────────────────────────── */
+
+/* Prescription border — signature element */
 .prescription-border-l {
   border-left: 4px solid var(--primary);
 }
 
-/* Elegant card shadow - soft, diffused */
+/* Elegant card shadow — soft, diffused (Blur: 12px, Y: 4px, Opacity: 4-6%) */
 .card-elevated {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-card);
   transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
 
 .card-elevated:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
 }
 
-/* Interactive depth - subtle lift */
+/* Interactive depth — subtle lift (Y: -2px) */
 .card-interactive {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 150ms ease, box-shadow 150ms ease;
@@ -217,7 +346,7 @@ body {
 
 .card-interactive:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* Smooth transitions for interactive elements */
@@ -225,6 +354,11 @@ body {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* Glassmorphism backdrop blur for modals / overlays */
+.backdrop-blur-glass {
+  backdrop-filter: var(--backdrop-blur-modal);
 }
 
 /* Focus ring styling */
@@ -235,7 +369,9 @@ body {
 
 /* Loading spinner animation */
 @keyframes spin-slow {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .spin-slow {
   animation: spin-slow 1s linear infinite;
@@ -244,57 +380,56 @@ body {
 /* Gradient text for headings */
 .gradient-text {
   background-clip: text;
-  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Scrollbar styling */
+/* ── Scrollbar styling ─────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--background);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: var(--radius);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+  background: var(--muted-foreground);
 }
 
-/* Custom scrollbar for dark mode */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1e293b;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #334155;
-  }
-}
+/* ── Status Chip Styles (from DESIGN.md) ───────────────────────────── */
 
-/* Status chip styles */
 .status-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 9999px; /* full pill shape */
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1rem;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-/* Dark mode scrollbar */
-.dark-mode::-webkit-scrollbar-track {
-  background: #0f172a;
+/* Container max-width (1440px) for consistent layout */
+.container-max {
+  max-width: var(--spacing-container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-margin-desktop);
+  padding-right: var(--spacing-margin-desktop);
 }
-.dark-mode::-webkit-scrollbar-thumb {
-  background: #334155;
-}
-.dark-mode::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+
+/* Desktop outer margins (40px) */
+.margin-desktop {
+  margin-left: var(--spacing-margin-desktop);
+  margin-right: var(--spacing-margin-desktop);
 }
