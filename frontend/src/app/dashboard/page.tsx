@@ -3,7 +3,16 @@
 import { useSession, signOut } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, LogOut, Loader2, Package, Store, BarChart3, TrendingUp, Users } from 'lucide-react';
+import {
+  AlertCircle,
+  LogOut,
+  Loader2,
+  Package,
+  Store,
+  BarChart3,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useProducts } from '@/hooks/useProducts';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -54,61 +63,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Section */}
-      <div className="border-b border-border">
-        <div className="px-4 sm:px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-bold text-foreground">MediFlow Pro</h1>
-          </div>
-          <div className="text-sm text-muted-foreground">Downtown Branch</div>
-        </div>
-
-        {/* Station Info */}
-        <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm">
-          <div className="flex items-center space-x-2">
-            <span>Downtown Pharmacy STATION 04</span>
-            {/* Status indicators would go here */}
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-1 rounded hover:bg-muted">Settings</button>
-            <button className="p-1 rounded hover:bg-muted">Support</button>
-            <input
-              type="text"
-              placeholder="Search"
-              className="border border-input bg-background px-3 py-1 rounded text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="px-4 sm:px-6 py-2 border-t border-border overflow-x-auto space-x-2">
-          <Button variant="default" size="icon-only" asChild>
-            <Link href="#">Dashboard</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">POS</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Inventory</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Prescriptions</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Customers</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Reports</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Settings</Link>
-          </Button>
-          <Button variant="outline" size="icon-only" asChild>
-            <Link href="#">Support</Link>
-          </Button>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 p-4 sm:p-6">
         <div className="mx-auto max-w-7xl">
@@ -133,9 +87,7 @@ export default function DashboardPage() {
                     <h2 className="font-semibold text-foreground">Daily Sales</h2>
                     <p className="text-sm text-success">▲ 12.5%</p>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    $4,280.50
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">$4,280.50</div>
                 </div>
               </CardContent>
             </Card>
@@ -148,9 +100,7 @@ export default function DashboardPage() {
                     <h2 className="font-semibold text-foreground">Pending Rx</h2>
                     <p className="text-sm text-muted-foreground">! </p>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    24
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">24</div>
                 </div>
                 <p className="text-sm text-muted-foreground">8 awaiting verification</p>
               </CardContent>
@@ -164,9 +114,7 @@ export default function DashboardPage() {
                     <h2 className="font-semibold text-foreground">Inventory</h2>
                     <p className="text-sm text-muted-foreground">Active</p>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    12
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">12</div>
                 </div>
                 <p className="text-sm text-muted-foreground">3 critical items</p>
               </CardContent>
@@ -180,9 +128,7 @@ export default function DashboardPage() {
                     <h2 className="font-semibold text-foreground">Active Patients</h2>
                     <p className="text-sm text-success">▲ 4%</p>
                   </div>
-                  <div className="text-2xl font-bold text-foreground">
-                    1,842
-                  </div>
+                  <div className="text-2xl font-bold text-foreground">1,842</div>
                 </div>
                 <p className="text-sm text-muted-foreground">12 new today</p>
               </CardContent>
@@ -312,24 +258,36 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-foreground mb-2">Amoxicillin 500mg</h3>
                 <p className="text-sm text-muted-foreground">8 units remaining</p>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" size="sm">Restock</Button>
-                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                  <Button variant="outline" size="sm">
+                    Restock
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">
+                    Dismiss
+                  </Button>
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-semibold text-foreground mb-2">Lisinopril 10mg</h3>
                 <p className="text-sm text-muted-foreground">15 units remaining</p>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" size="sm">Restock</Button>
-                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                  <Button variant="outline" size="sm">
+                    Restock
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">
+                    Dismiss
+                  </Button>
                 </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <h3 className="font-semibold text-foreground mb-2">Metformin 850mg</h3>
                 <p className="text-sm text-muted-foreground">22 units remaining</p>
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" size="sm">Restock</Button>
-                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                  <Button variant="outline" size="sm">
+                    Restock
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">
+                    Dismiss
+                  </Button>
                 </div>
               </div>
             </div>
@@ -337,9 +295,7 @@ export default function DashboardPage() {
 
           {/* Manage Inventory Button */}
           <div className="mt-6 flex justify-end">
-            <Button variant="default">
-              Manage Inventory
-            </Button>
+            <Button variant="default">Manage Inventory</Button>
           </div>
         </div>
       </div>

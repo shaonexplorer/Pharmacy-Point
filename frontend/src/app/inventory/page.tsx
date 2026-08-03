@@ -32,11 +32,7 @@ export default function InventoryPage() {
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-
-  const {
-    data: inventoryData,
-    isLoading,
-  } = useInventory({
+  const { data: inventoryData, isLoading } = useInventory({
     page: currentPage,
     limit: 20,
     search: searchQuery || undefined,
@@ -95,54 +91,6 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header Section */}
-      <div className="border-b border-border">
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-bold text-foreground">MediFlow Pro</h1>
-          </div>
-          <div className="text-sm text-muted-foreground">Inventory Management</div>
-        </div>
-
-        {/* Branch Info */}
-        <div className="flex items-center space-x-4 px-4 py-2 text-sm sm:px-6">
-          <div className="flex items-center space-x-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
-              🏥
-            </div>
-            <div>
-              <p className="font-medium text-foreground">MediFlow Pro</p>
-              <p className="text-xs text-muted-foreground">Downtown Branch</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex space-x-2 overflow-x-auto border-t border-border px-4 py-2 sm:px-6">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/pos">POS</Link>
-          </Button>
-          <Button variant="default" size="sm" asChild>
-            <Link href="/inventory">Inventory</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/prescriptions">Prescriptions</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/customers">Customers</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/reports">Reports</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/settings">Settings</Link>
-          </Button>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 p-4 sm:p-6">
         <div className="mx-auto max-w-7xl">
@@ -327,9 +275,7 @@ export default function InventoryPage() {
                               </button>
                             }
                           />
-                          {isLowStock && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
-                          )}
+                          {isLowStock && <AlertTriangle className="h-4 w-4 text-destructive" />}
                           <button
                             type="button"
                             className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"

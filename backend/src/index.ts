@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { productRouter } from './routes/products';
 import { companyRouter } from './routes/companies';
 import { inventoryRouter } from './routes/inventory';
+import { customerRouter } from './routes/customers';
 import { statsRouter } from './routes/stats';
 
 const app: Application = express();
@@ -30,6 +31,7 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/products', productRouter);
 app.use('/api/companies', companyRouter);
+app.use('/api/customers', customerRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/stats', statsRouter);
 

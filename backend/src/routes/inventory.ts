@@ -164,7 +164,12 @@ router.get('/transactions', async (req: Request, res: Response) => {
  */
 router.post('/stock-in', async (req: Request, res: Response) => {
   try {
-    const { productId, quantity: rawQuantity, notes, referenceId } = req.body as {
+    const {
+      productId,
+      quantity: rawQuantity,
+      notes,
+      referenceId,
+    } = req.body as {
       productId: string;
       quantity?: string | number;
       notes?: string;
@@ -249,7 +254,12 @@ router.post('/stock-in', async (req: Request, res: Response) => {
  */
 router.post('/stock-out', async (req: Request, res: Response) => {
   try {
-    const { productId, quantity: rawQuantity, notes, referenceId } = req.body as {
+    const {
+      productId,
+      quantity: rawQuantity,
+      notes,
+      referenceId,
+    } = req.body as {
       productId: string;
       quantity?: string | number;
       notes?: string;
@@ -411,7 +421,10 @@ router.patch('/:productId/adjust', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error adjusting stock:', error);
-    return res.status(500).json({ error: 'Failed to adjust stock', details: error instanceof Error ? error.message : String(error) });
+    return res.status(500).json({
+      error: 'Failed to adjust stock',
+      details: error instanceof Error ? error.message : String(error),
+    });
   }
 });
 

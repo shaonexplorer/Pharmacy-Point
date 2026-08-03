@@ -43,6 +43,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Updated stats API to include transaction counts and sales metrics
 - Frontend: `useInventory` hooks, `StockAdjustmentModal` component, low stock filter UI
 
+**Phase 2: Customer Management - COMPLETED ✅**
+- Customer and Order models already present in Prisma schema
+  - `Customer` with fields: name, email, phone, address, dueAmount
+  - `Order` linked to customer for purchase history
+- Backend API CRUD endpoints implemented:
+  - `GET /api/customers` - List with pagination and search (by name, email, phone)
+  - `GET /api/customers/:id` - Get customer with order history
+  - `POST /api/customers` - Create customer (with email uniqueness check)
+  - `PUT /api/customers/:id` - Update customer
+  - `DELETE /api/customers/:id` - Delete customer (guarded against customers with orders)
+- Frontend pages and components created:
+  - `/frontend/src/app/customers/page.tsx` - Customer list with search and TanStack Table
+  - `/frontend/src/app/customers/new/page.tsx` - Create form
+  - `/frontend/src/app/customers/[id]/page.tsx` - View details with order history
+  - `/frontend/src/app/customers/[id]/edit/page.tsx` - Edit form
+  - `/frontend/src/components/customers/CustomerTable.tsx` - TanStack Table component
+  - `/frontend/src/components/customers/CustomerForm.tsx` - Zod-validated form
+  - `/frontend/src/hooks/useCustomers.ts` - React Query hooks
+- Shared types added: `CreateCustomerInput`, `UpdateCustomerInput`, `CustomerWithOrders`
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system updated to match "Clinical Precision" theme from Stitch
 - Dashboard Overview with KPI cards and quick actions
@@ -62,11 +82,14 @@ pharmacy-point/
 │   └── plan.md # Phase 1 implementation plan (COMPLETED)
 │ └── phase-1-inventory-tracking/
 │   └── plan.md # Phase 1 inventory tracking plan (COMPLETED)
+│ └── phase-1-customer-management/
+│   └── plan.md # Phase 1 customer management plan (COMPLETED)
 ├── backend/ # Express.js API server
 │   ├── src/ # Source code
 │   │   └── routes/ # API route handlers
 │   │       ├── products.ts # Product CRUD with TanStack Table patterns
 │   │       ├── companies.ts # Company CRUD endpoints
+│   │       ├── customers.ts # Customer CRUD endpoints
 │   │       ├── inventory.ts # Inventory tracking & stock management
 │   │       └── stats.ts # Statistics aggregation endpoint
 │   ├── prisma/ # Prisma schema and migrations
@@ -82,11 +105,13 @@ pharmacy-point/
 │       │   ├── inventory/page.tsx # Inventory management
 │       │   ├── analytics/page.tsx # Analytics & reports
 │   │       ├── products/ # Product pages
-│   │       └── companies/ # Company pages
+│   │       ├── companies/ # Company pages
+│   │       └── customers/ # Customer pages
 │   │       └── components/ # UI components
 │   │           ├── navigation/index.tsx # Responsive sidebar navigation
 │   │           ├── companies/ # Company components
 │   │           ├── products/ # Product components
+│   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
 │   │           └── inventory/ # Inventory components (StockAdjustmentModal)
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
@@ -164,6 +189,13 @@ enum TransactionType {
 - `POST /api/inventory/stock-in` - Record stock in (purchase receipt)
 - `POST /api/inventory/stock-out` - Record stock out (sale)
 - `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment
+
+### Customers API (`/api/customers`) [NEW]
+- `GET /api/customers` - List with pagination and search (page, limit, search)
+- `GET /api/customers/:id` - Get customer with order history
+- `POST /api/customers` - Create customer
+- `PUT /api/customers/:id` - Update customer
+- `DELETE /api/customers/:id` - Delete customer (guarded against customers with orders)
 
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard
@@ -250,5 +282,9 @@ The following path aliases are configured for monorepo imports:
 ├── companies/new/ - Add company form
 ├── companies/[id]/ - View company details
 ├── companies/[id]/edit/ - Edit company form
+├── customers/ - Customer list with search and TanStack Table
+├── customers/new/ - Add customer form
+├── customers/[id]/ - View customer details with order history
+├── customers/[id]/edit/ - Edit customer form
 └── (auth)/login - Authentication page
 ```

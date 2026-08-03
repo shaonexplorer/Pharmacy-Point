@@ -107,6 +107,9 @@ export type UpdateProductInput = Partial<CreateProductInput>;
 
 export type UpdateCompanyInput = Partial<Company>;
 export type CreateCompanyInput = Omit<Company, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateCustomerInput = Partial<Customer>;
+export type CreateCustomerInput = Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'dueAmount'>;
+export type CustomerWithOrders = Customer & { orders?: Order[] };
 
 export type TransactionType = 'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT';
 

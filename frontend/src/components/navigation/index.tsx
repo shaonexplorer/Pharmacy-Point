@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Package, Store, BarChart3, LogOut, Menu } from 'lucide-react';
+import { Loader2, Home, Package, Store, BarChart3, LogOut, Menu, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -13,6 +13,7 @@ const navigation = [
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Companies', href: '/companies', icon: Store },
+  { name: 'Customers', href: '/customers', icon: User },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 

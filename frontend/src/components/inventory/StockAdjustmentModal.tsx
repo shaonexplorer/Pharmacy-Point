@@ -25,7 +25,9 @@ interface StockAdjustmentModalProps {
 
 export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalProps) {
   const [open, setOpen] = useState(false);
-  const [adjustmentType, setAdjustmentType] = useState<'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT'>('ADJUSTMENT');
+  const [adjustmentType, setAdjustmentType] = useState<'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT'>(
+    'ADJUSTMENT'
+  );
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -33,7 +35,8 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   const stockOutMutation = useStockOut();
   const adjustMutation = useStockAdjust();
 
-  const isPending = stockInMutation.isPending || stockOutMutation.isPending || adjustMutation.isPending;
+  const isPending =
+    stockInMutation.isPending || stockOutMutation.isPending || adjustMutation.isPending;
 
   const resetForm = () => {
     setQuantity('');
@@ -80,9 +83,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        {trigger ?? <button>Adjust</button>}
-      </AlertDialogTrigger>
+      <AlertDialogTrigger asChild>{trigger ?? <button>Adjust</button>}</AlertDialogTrigger>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Adjust Stock - {product.name}</AlertDialogTitle>
@@ -91,7 +92,13 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="current-stock">Current Stock</Label>
-            <Input id="current-stock" type="number" value={product.quantity} readOnly className="bg-muted" />
+            <Input
+              id="current-stock"
+              type="number"
+              value={product.quantity}
+              readOnly
+              className="bg-muted"
+            />
           </div>
 
           <div className="space-y-2">
@@ -145,10 +152,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleSubmit}
-            disabled={isPending || !quantity}
-          >
+          <AlertDialogAction onClick={handleSubmit} disabled={isPending || !quantity}>
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

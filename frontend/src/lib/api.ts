@@ -3,6 +3,8 @@ import type {
   Product,
   Category,
   Company,
+  Customer,
+  CustomerWithOrders,
   PaginatedResponse,
   ApiResponse,
   CreateProductInput,
@@ -106,6 +108,27 @@ export const api = {
       }),
   },
 
+  // Customers
+  customers: {
+    list: (params?: { page?: number; limit?: number; search?: string }) =>
+      request<PaginatedResponse<Customer>>('/api/customers', { params }),
+    get: (id: string) => request<ApiResponse<CustomerWithOrders>>(`/api/customers/${id}`),
+    create: (data: Partial<Customer>) =>
+      request<ApiResponse<Customer>>('/api/customers', {
+        method: 'POST',
+        data,
+      }),
+    update: (id: string, data: Partial<Customer>) =>
+      request<ApiResponse<Customer>>(`/api/customers/${id}`, {
+        method: 'PUT',
+        data,
+      }),
+    delete: (id: string) =>
+      request<ApiResponse<never>>(`/api/customers/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
   // Inventory
   inventory: {
     list: (params?: {
@@ -116,12 +139,8 @@ export const api = {
       companyId?: string;
     }) => request<PaginatedResponse<InventoryItem>>('/api/inventory', { params }),
 
-    transactions: (params?: {
-      page?: number;
-      limit?: number;
-      productId?: string;
-      type?: string;
-    }) => request<PaginatedResponse<InventoryTransaction>>('/api/inventory/transactions', { params }),
+    transactions: (params?: { page?: number; limit?: number; productId?: string; type?: string }) =>
+      request<PaginatedResponse<InventoryTransaction>>('/api/inventory/transactions', { params }),
 
     stockIn: (data: StockInInput) =>
       request<ApiResponse<unknown>>('/api/inventory/stock-in', {
