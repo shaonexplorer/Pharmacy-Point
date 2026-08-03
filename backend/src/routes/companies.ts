@@ -5,30 +5,54 @@ const router = Router();
 
 /**
  * GET /api/companies
- * List all companies with pagination.
+ * List all companies with pagination and optional search.
  * Query params: page, limit, search
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Starting companies query...');
 
+    const page = parseInt((req.query.page as string) || '1', 10);
+    const limit = parseInt((req.query.limit as string) || '10', 10);
+    const search = (req.query.search as string) || '';
+
+    const skip = (page - 1) * limit;
+
     const companies = await prisma.company.findMany({
-      take: 10,
+      skip,
+      take: limit,
       orderBy: { name: 'asc' },
+      where: search
+        ? {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          }
+        : {},
     });
 
-    const total = await prisma.company.count();
+    const total = await prisma.company.count({
+      where: search
+        ? {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          }
+        : {},
+    });
 
     console.log('Companies query successful, found:', companies.length);
     return res.json({
       data: companies,
       pagination: {
-        page: 1,
-        limit: 10,
+        page,
+        limit,
         total,
-        totalPages: Math.ceil(total / 10),
-        hasNext: total > 10,
-        hasPrev: total > 0,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1,
       },
     });
   } catch (error: unknown) {
@@ -48,6 +72,16 @@ router.get('/:id', async (req: Request, res: Response) => {
 
     const company = await prisma.company.findUnique({
       where: { id },
+      include: {
+        products: {
+          where: {
+            deletedAt: null,
+          },
+          orderBy: {
+            name: 'asc',
+          },
+        },
+      },
     });
 
     if (!company) {

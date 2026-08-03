@@ -10,7 +10,6 @@ import { Card } from '@/components/ui/card';
 import { Loader2, Plus, Store, AlertCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { PaginatedResponse } from '@pharmacy-point/types';
 import { ConfirmDialog } from '@/components/common';
 
 export default function CompaniesPage() {
@@ -21,7 +20,11 @@ export default function CompaniesPage() {
   const [companyToDelete, setCompanyToDelete] = useState<{ id: string; name: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data: response, isLoading, error } = useCompanies({ page: currentPage });
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useCompanies({ page: currentPage, search: searchQuery || undefined });
 
   const deleteCompanyMutation = useDeleteCompany();
 

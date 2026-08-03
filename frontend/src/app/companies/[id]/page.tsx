@@ -6,9 +6,8 @@ import { useSession } from '@/lib/auth-client';
 import { useCompany, useDeleteCompany } from '@/hooks/useCompanies';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Edit, Trash2, ArrowLeft, Calendar, AlertCircle } from 'lucide-react';
+import { Loader2, Edit, Trash2, Calendar, AlertCircle, Package } from 'lucide-react';
 import Link from 'next/link';
-import type { ApiResponse } from '@pharmacy-point/types';
 import { ConfirmDialog } from '@/components/common';
 
 export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -122,7 +121,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Company Details */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border mb-6">
           <CardHeader>
             <CardTitle className="text-card-foreground">Company Information</CardTitle>
           </CardHeader>
@@ -165,6 +164,44 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Products Section */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Products ({company.products?.length ?? 0})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {company.products && company.products.length > 0 ? (
+              <div className="space-y-4">
+                {company.products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="space-y-1">
+                      <h3 className="font-medium text-foreground">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        SKU: {product.sku} • Price: ${product.price.toFixed(2)} • Stock:{' '}
+                        {product.quantity}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>No products found for this company.</p>
+                <Button asChild className="mt-4">
+                  <Link href="/products">View All Products</Link>
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 

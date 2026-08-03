@@ -16,6 +16,7 @@ export interface Company {
   image?: string | null;
   createdAt: string;
   updatedAt: string;
+  products?: Product[];
 }
 
 export interface Product {
