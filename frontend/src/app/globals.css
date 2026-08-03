@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Background Colors */
+  /* Background Colors - Clinical Precision */
   --background: hsl(210 40% 98%);
   --foreground: hsl(220 15% 10%);
 
@@ -9,20 +9,29 @@
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(220 15% 10%);
 
-  /* Primary - Blue Pharmacy Theme */
-  --primary: hsl(217 80% 50%);
+  /* Primary - Pharma Teal (Clinical Precision) */
+  --primary: hsl(199 59% 33%);
   --primary-foreground: hsl(0 0% 100%);
-  --primary-gradient: linear-gradient(90deg, hsl(217 80% 50%) 0%, hsl(222 84% 70%) 100%);
+  --primary-container: hsl(199 59% 51%);
+  --on-primary-container: hsl(210% 15% 10%);
 
-  /* Secondary Accent */
-  --secondary: hsl(217 80% 55%);
+  /* Secondary - Medi-Blue */
+  --secondary: hsl(217 80% 50%);
   --secondary-foreground: hsl(0 0% 100%);
+  --secondary-container: hsl(217 80% 70%);
+  --on-secondary-container: hsl(217 80% 15%);
 
-  /* Success - For stock levels, completed actions */
+  /* Tertiary - Safety Green */
+  --tertiary: hsl(153 51% 43%);
+  --tertiary-foreground: hsl(0 0% 100%);
+  --tertiary-container: hsl(153 51% 69%);
+  --on-tertiary-container: hsl(210% 15% 10%);
+
+  /* Success - In Stock States */
   --success: hsl(142 76% 36%);
   --success-foreground: hsl(0 0% 100%);
 
-  /* Warning - For low stock, warnings */
+  /* Warning - Low Stock */
   --warning: hsl(38 90% 54%);
   --warning-foreground: hsl(220 15% 10%);
 
@@ -34,20 +43,34 @@
   --muted: hsl(210 10% 85%);
   --muted-foreground: hsl(220 10% 40%);
 
-  /* Borders & Inputs */
+  /* Borders & Inputs - Cool slates */
   --border: hsl(210 20% 90%);
   --input: hsl(210 20% 90%);
-  --ring: hsl(217 80% 50%);
+  --ring: hsl(199 59% 50%);
+
+  /* Surface variants */
+  --surface: hsl(217 54% 97%);
+  --surface-foreground: hsl(220 15% 10%);
+  --surface-container: hsl(217 54% 98%);
+  --surface-container-high: hsl(217 54% 99%);
+  --surface-container-low: hsl(217 54% 95%);
+  --surface-container-lowest: hsl(0 0% 100%);
+  --surface-variant: hsl(217 54% 96%);
+  --on-surface-variant: hsl(220 10% 20%);
 
   /* Border Radius */
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
   --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  /* Spacing - 8px base rhythm */
+  --spacing-unit: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Background Colors */
+    /* Background Colors - Deep Navy Foundation */
     --background: hsl(210 12% 10%);
     --foreground: hsl(0 0% 93%);
 
@@ -55,14 +78,23 @@
     --card: hsl(210 12% 13%);
     --card-foreground: hsl(0 0% 93%);
 
-    /* Primary - Lighter blue in dark mode */
-    --primary: hsl(217 80% 60%);
+    /* Primary - Lighter Pharma Teal in dark mode */
+    --primary: hsl(199 59% 60%);
     --primary-foreground: hsl(210 100% 97%);
-    --primary-gradient: linear-gradient(90deg, hsl(217 80% 60%) 0%, hsl(222 90% 75%) 100%);
+    --primary-container: hsl(199 59% 70%);
+    --on-primary-container: hsl(210% 15% 10%);
 
-    /* Secondary Accent */
+    /* Secondary - Lighter Medi-Blue */
     --secondary: hsl(217 80% 65%);
     --secondary-foreground: hsl(0 0% 93%);
+    --secondary-container: hsl(217 80% 75%);
+    --on-secondary-container: hsl(217 80% 15%);
+
+    /* Tertiary - Safety Green */
+    --tertiary: hsl(153 51% 65%);
+    --tertiary-foreground: hsl(220 8% 20%);
+    --tertiary-container: hsl(153 51% 75%);
+    --on-tertiary-container: hsl(210% 15% 10%);
 
     /* Success */
     --success: hsl(142 76% 65%);
@@ -83,14 +115,24 @@
     /* Borders & Inputs */
     --border: hsl(210 12% 35%);
     --input: hsl(210 12% 35%);
-    --ring: hsl(217 80% 60%);
+    --ring: hsl(199 59% 60%);
+
+    /* Surface variants - Deep Navy */
+    --surface: hsl(210 12% 13%);
+    --surface-foreground: hsl(0 0% 93%);
+    --surface-container: hsl(210 12% 17%);
+    --surface-container-high: hsl(210 12% 23%);
+    --surface-container-low: hsl(210 12% 13%);
+    --surface-container-lowest: hsl(210 12% 10%);
+    --surface-variant: hsl(210 12% 19%);
+    --on-surface-variant: hsl(220 10% 70%);
   }
 }
 
 /* Map CSS variables into Tailwind v4 Theme engine */
 @theme {
-  /* Font configuration */
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  /* Font configuration - Inter for clinical precision */
+  --font-sans: 'Inter', system-ui, sans-serif;
 
   /* Color mappings */
   --color-background: var(--background);
@@ -99,8 +141,16 @@
   --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -113,10 +163,21 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Surface colors */
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+
   /* Border radius */
   --radius-sm: var(--radius-sm);
   --radius: var(--radius);
   --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
 }
 
 body {
@@ -135,16 +196,27 @@ body {
   border-left: 4px solid var(--primary);
 }
 
-/* Elegant card shadow */
+/* Elegant card shadow - soft, diffused */
 .card-elevated {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
   transition-property: box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
 
 .card-elevated:hover {
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Interactive depth - subtle lift */
+.card-interactive {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Smooth transitions for interactive elements */
@@ -157,7 +229,6 @@ body {
 /* Focus ring styling */
 :focus-visible {
   outline: 2px solid var(--ring);
-  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -201,4 +272,28 @@ body {
   ::-webkit-scrollbar-thumb {
     background: #334155;
   }
+}
+
+/* Status chip styles */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.05em;
+}
+
+/* Dark mode scrollbar */
+.dark-mode::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark-mode::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+.dark-mode::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

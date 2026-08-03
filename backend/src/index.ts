@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { productRouter } from './routes/products';
 import { companyRouter } from './routes/companies';
+import { statsRouter } from './routes/stats';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 // Products API routes
 app.use('/api/products', productRouter);
 app.use('/api/companies', companyRouter);
+app.use('/api/stats', statsRouter);
 
 // Start server
 app.listen(PORT, () => {

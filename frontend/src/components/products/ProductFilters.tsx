@@ -15,6 +15,7 @@ interface ProductFiltersProps {
   onClearFilters: () => void;
   hasActiveFilters: boolean;
   companies?: Company[];
+  availableCategories?: string[];
 }
 
 export function ProductFilters({
@@ -25,7 +26,11 @@ export function ProductFilters({
   onClearFilters,
   hasActiveFilters,
   companies = [],
+  availableCategories,
 }: ProductFiltersProps) {
+  // Use provided categories or fall back to default constants
+  const categories = availableCategories || PRODUCT_CATEGORIES;
+
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-sm">
       <div className="flex items-center gap-3">
@@ -50,7 +55,7 @@ export function ProductFilters({
             )}
           >
             <option value="">All Categories</option>
-            {PRODUCT_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>

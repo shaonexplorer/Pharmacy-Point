@@ -15,16 +15,17 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onDelete }: ProductCardProps) {
   const isLowStock = product.quantity <= product.lowStock;
+  const isOutOfStock = product.quantity === 0;
 
   return (
-    <Card className="bg-card border-border transition-shadow duration-200 hover:shadow-md">
+    <Card className="bg-card border-border transition-all duration-200 hover:shadow-md hover:-translate-y-1">
       <CardHeader className="pb-3">
-        <div className="aspect-video relative overflow-hidden rounded-md bg-muted">
+        <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
           {product.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground/50">
               <ExternalLink className="h-8 w-8" />
             </div>
           )}
@@ -40,15 +41,22 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
       <CardContent className="pb-3">
         <div className="space-y-2">
           <p className="text-2xl font-bold text-primary">{formatCurrency(product.price)}</p>
-          <p className="text-sm text-muted-foreground font-mono">SKU: {product.sku}</p>
-          <p className="text-sm">
+          <p className="text-sm text-muted-foreground font-mono tracking-wider">
+            SKU: {product.sku}
+          </p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">
             Category: <span className="text-foreground font-medium">{product.category}</span>
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Stock: {product.quantity}</span>
-              {isLowStock && (
-                <Badge variant="destructive" className="text-xs">
+              {isOutOfStock && (
+                <Badge variant="destructive" className="text-xs font-medium">
+                  Out of Stock
+                </Badge>
+              )}
+              {isLowStock && !isOutOfStock && (
+                <Badge className="text-xs font-medium bg-warning/10 text-warning border-border">
                   Low Stock
                 </Badge>
               )}
@@ -61,13 +69,23 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
       </CardContent>
 
       <CardFooter className="flex justify-between pt-3 border-t border-border">
-        <Button asChild variant="ghost" size="sm">
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-foreground"
+        >
           <Link href={`/products/${product.id}`}>
             <ExternalLink className="h-4 w-4" />
           </Link>
         </Button>
         <div className="flex gap-1">
-          <Button asChild variant="ghost" size="sm">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+          >
             <Link href={`/products/${product.id}/edit`}>
               <Edit className="h-4 w-4" />
             </Link>
@@ -77,7 +95,7 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
               variant="ghost"
               size="sm"
               onClick={() => onDelete(product)}
-              className="text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
