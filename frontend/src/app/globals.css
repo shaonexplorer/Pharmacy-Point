@@ -131,8 +131,9 @@
 
 /* Map CSS variables into Tailwind v4 Theme engine */
 @theme {
-  /* Font configuration - Inter for clinical precision */
+  /* Font configuration - Inter for clinical precision, JetBrains Mono for data */
   --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Color mappings */
   --color-background: var(--background);

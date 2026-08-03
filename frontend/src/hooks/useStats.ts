@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 
-interface Stats {
+export interface Stats {
   totalProducts: number;
   totalCompanies: number;
   lowStockItems: number;
   totalSales: number;
   salesThisMonth: number;
   totalInventoryValue?: number;
+  totalTransactions?: number;
+  stockInThisMonth?: number;
+  stockOutThisMonth?: number;
 }
 
 async function fetchStats(): Promise<Stats> {
