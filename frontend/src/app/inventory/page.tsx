@@ -7,15 +7,11 @@ import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
 import { useCompanies } from '@/hooks/useCompanies';
 import type { Product, Company } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2, Plus, Package, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, RefreshCw, Edit, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import Link from 'next/link';
 
-// Re-export ProductTable for use in inventory page
-import { ProductTable } from '@/components/products/ProductTable';
-import { ProductSearch } from '@/components/products/ProductSearch';
-import { ProductFilters } from '@/components/products/ProductFilters';
-import { ConfirmDialog } from '@/components/common';
+const CATEGORIES = ['All Categories', 'Antibiotics', 'Analgesics', 'Antivirals', 'Cardiovascular'];
+const MANUFACTURERS = ['All Manufacturers', 'Pfizer', 'Novartis', 'Roche', 'AstraZeneca'];
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -27,8 +23,6 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const {
     data: productsData,
@@ -42,49 +36,24 @@ export default function InventoryPage() {
     companyId: selectedCompany || undefined,
   });
 
-  const deleteProductMutation = useDeleteProduct();
-
   const products = productsData?.data ?? [];
   const totalPages = productsData?.pagination?.totalPages ?? 1;
   const totalItems = productsData?.pagination?.total ?? 0;
-  const lowStockCount = products.filter((p) => p.quantity <= (p.lowStock || 10)).length;
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isPending && !session) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, isPending, router]);
 
-  const handleDeleteClick = (product: Product) => {
-    setProductToDelete(product);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!productToDelete) return;
-
-    try {
-      await deleteProductMutation.mutateAsync(productToDelete.id);
-      setDeleteDialogOpen(false);
-      setProductToDelete(null);
-    } catch {
-      // Error is handled by the mutation
-    }
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
-
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
+    setSelectedCategory(category === 'All Categories' ? '' : category);
     setCurrentPage(1);
   };
 
   const handleCompanyChange = (company: string) => {
-    setSelectedCompany(company);
+    setSelectedCompany(company === 'All Manufacturers' ? '' : company);
     setCurrentPage(1);
   };
 
@@ -101,11 +70,7 @@ export default function InventoryPage() {
     }
   };
 
-  const hasActiveFilters = !!searchQuery || !!selectedCategory || !!selectedCompany;
-
-  const uniqueCategories = [...new Set(products.map((p) => p.category))].sort();
-
-  if (isPending) {
+  if (isPending || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -118,137 +83,267 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-7xl">
-          {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      {/* Header Section */}
+      <div className="border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-bold text-foreground">MediFlow Pro</h1>
+          </div>
+          <div className="text-sm text-muted-foreground">Inventory Management</div>
+        </div>
+
+        {/* Branch Info */}
+        <div className="flex items-center space-x-4 px-4 py-2 text-sm sm:px-6">
+          <div className="flex items-center space-x-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
+              🏥
+            </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Package className="h-6 w-6 text-primary" />
-                Inventory
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {totalItems} products {totalPages > 1 && `(page ${currentPage} of ${totalPages})`}
-              </p>
+              <p className="font-medium text-foreground">MediFlow Pro</p>
+              <p className="text-xs text-muted-foreground">Downtown Branch</p>
             </div>
-            <Button asChild>
-              <Link href="/products/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Product
-              </Link>
-            </Button>
           </div>
+        </div>
 
-          {/* Stats Summary */}
-          <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Card className="border-border bg-card p-4">
-              <div className="text-sm text-muted-foreground">Total Products</div>
-              <div className="text-xl font-bold text-foreground">{totalItems}</div>
-            </Card>
-            <Card className="border-border bg-card p-4">
-              <div className="text-sm text-muted-foreground">Low Stock</div>
-              <div className="text-xl font-bold text-warning">{lowStockCount}</div>
-            </Card>
-            <Card className="border-border bg-card p-4">
-              <div className="text-sm text-muted-foreground">Categories</div>
-              <div className="text-xl font-bold text-foreground">{uniqueCategories.length}</div>
-            </Card>
-            <Card className="border-border bg-card p-4">
-              <div className="text-sm text-muted-foreground">Companies</div>
-              <div className="text-xl font-bold text-foreground">{companies.length}</div>
-            </Card>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="flex space-x-2 overflow-x-auto border-t border-border px-4 py-2 sm:px-6">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/pos">POS</Link>
+          </Button>
+          <Button variant="default" size="sm" asChild>
+            <Link href="/inventory">Inventory</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/prescriptions">Prescriptions</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/customers">Customers</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/reports">Reports</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/settings">Settings</Link>
+          </Button>
+        </div>
+      </div>
 
-          {/* Search & Filters */}
-          <div className="mb-6 space-y-4">
-            <ProductSearch onSearch={handleSearch} placeholder="Search by name or SKU..." />
-            <ProductFilters
-              selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
-              selectedCompany={selectedCompany}
-              onCompanyChange={handleCompanyChange}
-              onClearFilters={handleClearFilters}
-              hasActiveFilters={hasActiveFilters}
-              companies={companies}
-              availableCategories={uniqueCategories}
-            />
-          </div>
-
-          {/* Error */}
-          {deleteProductMutation.isError && (
-            <Card className="mb-6 border-destructive bg-destructive/5 p-4">
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                <p>{deleteProductMutation.error?.message || 'Failed to delete product'}</p>
+      {/* Main Content */}
+      <div className="flex-1 p-4 sm:p-6">
+        <div className="mx-auto max-w-7xl">
+          {/* Top Bar / Search */}
+          <div className="mb-6">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search medication SKUs or names..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
-            </Card>
-          )}
-
-          {/* Loading State */}
-          {isLoading && (
-            <div className="flex min-h-75 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          )}
-
-          {/* Error State */}
-          {!isLoading && error && (
-            <Card className="border-destructive bg-destructive/5 p-4">
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                <p>{error instanceof Error ? error.message : 'Failed to load products'}</p>
-              </div>
-            </Card>
-          )}
-
-          {/* Empty State */}
-          {!isLoading && !error && products.length === 0 && (
-            <div className="flex min-h-75 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
-              <Package className="h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-semibold text-foreground">No products found</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {hasActiveFilters
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Get started by adding your first product.'}
-              </p>
-              {!hasActiveFilters && (
-                <Button asChild className="mt-4">
-                  <Link href="/products/new">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Product
-                  </Link>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm">
+                  Export Report
                 </Button>
-              )}
+                <Button size="sm">
+                  <Plus className="mr-1 h-4 w-4" /> Add Product
+                </Button>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Inventory SKUs</h2>
+            <p className="text-sm text-muted-foreground">
+              Real-time tracking of active medication SKUs and stock alerts.
+            </p>
+          </div>
+
+          {/* Filters Section */}
+          <div className="mb-6 space-y-4 rounded-lg border border-border bg-card p-4">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Category:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleCategoryChange(cat)}
+                    className={`rounded px-3 py-1 text-sm transition-colors border ${
+                      (selectedCategory === '' && cat === 'All Categories') ||
+                      selectedCategory === cat
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-input hover:bg-muted'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Manufacturer:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {MANUFACTURERS.map((mfg) => (
+                  <button
+                    key={mfg}
+                    onClick={() => handleCompanyChange(mfg)}
+                    className={`rounded px-3 py-1 text-sm transition-colors border ${
+                      (selectedCompany === '' && mfg === 'All Manufacturers') ||
+                      selectedCompany === mfg
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-input hover:bg-muted'
+                    }`}
+                  >
+                    {mfg}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(selectedCategory || selectedCompany || searchQuery) && (
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="text-xs text-destructive"
+                >
+                  <X className="mr-1 h-3 w-3" /> Clear Filters
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Product Table Section */}
+          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+            <table className="min-w-full divide-y divide-border text-left">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Product Name
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    SKU
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Stock Level
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Unit Price
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {products.map((product) => {
+                  const isLowStock = product.quantity <= (product.lowStock || 10);
+
+                  return (
+                    <tr key={product.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground">
+                        {product.name}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-sm text-muted-foreground">
+                        {product.sku || `SKU-${product.id.slice(0, 6).toUpperCase()}`}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground capitalize">
+                        {product.category || 'General'}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-foreground">
+                            {product.quantity} units
+                          </span>
+                          {isLowStock && (
+                            <span className="rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                              Low Stock
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-sm text-foreground">
+                        ${Number(product.price || 0).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            title="Refresh"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {products.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      No products found. Adjust filters or add new stock.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Section */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+              <div className="text-sm text-muted-foreground">
+                Showing {products.length} of {totalItems} entries
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
-
-          {/* Product Table */}
-          {!isLoading && !error && products.length > 0 && (
-            <ProductTable
-              products={products}
-              totalItems={totalItems}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              onDelete={handleDeleteClick}
-            />
-          )}
-
-          {/* Delete Confirmation Dialog */}
-          <ConfirmDialog
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            title="Delete Product"
-            description={
-              productToDelete
-                ? `Are you sure you want to delete "${productToDelete.name}"? This action cannot be undone.`
-                : ''
-            }
-            confirmText="Delete"
-            onConfirm={handleConfirmDelete}
-            loading={deleteProductMutation.isPending}
-          />
         </div>
       </div>
     </div>

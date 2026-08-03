@@ -4,45 +4,64 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProducts } from '@/hooks/useProducts';
-import { useCompanies } from '@/hooks/useCompanies';
 import { useStats } from '@/hooks/useStats';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, BarChart3, Package, AlertCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, BarChart3, Package } from 'lucide-react';
 import Link from 'next/link';
 
-const CATEGORIES = [
-  'Medications',
-  'Supplements',
-  'Healthcare',
-  'Personal Care',
-  'First Aid',
-  'Other',
-];
-
-// Generate deterministic category values based on index for consistent rendering
-const getCategoryValue = (index: number): number => {
-  const baseValues = [75, 42, 68, 32, 55, 28];
-  return baseValues[index % baseValues.length];
+// Static mock metrics (Extracting outside render loop prevents re-creation on render)
+const ANALYTICS_SUMMARY = {
+  avgBasketValue: 84.5,
+  profitMargin: 32.4,
+  totalOrders: 1284,
+  inventoryTurn: 12.5,
 };
+
+const TOP_SELLERS = [
+  {
+    name: 'Amoxicillin 500mg',
+    category: 'Antibiotics',
+    units: '420 units',
+    revenue: '$12,400',
+    change: '+12%',
+    positive: true,
+  },
+  {
+    name: 'Lipitor 20mg',
+    category: 'Cholesterol',
+    units: '385 units',
+    revenue: '$9,150',
+    change: '+8%',
+    positive: true,
+  },
+  {
+    name: 'Metformin 850mg',
+    category: 'Diabetes',
+    units: '310 units',
+    revenue: '$7,820',
+    change: '-3%',
+    positive: false,
+  },
+  {
+    name: 'Aspirin 81mg',
+    category: 'OTC',
+    units: '290 units',
+    revenue: '$2,400',
+    change: '+15%',
+    positive: true,
+  },
+];
 
 export default function AnalyticsPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const { data: productsResponse } = useProducts({ limit: 100 });
-  const { data: companiesResponse } = useCompanies();
   const { isLoading: isStatsLoading } = useStats();
 
-  // Calculate stats from data
-  const products = productsResponse?.data ?? [];
-  const companies = companiesResponse?.data ?? [];
-  const totalProducts = products.length;
-  const totalValue = products.reduce((sum, p) => sum + Number(p.price) * p.quantity, 0);
-  const lowStockItems = products.filter((p) => p.quantity <= (p.lowStock || 10)).length;
-
+  // Authentication Guard
   useEffect(() => {
     if (!isPending && !session) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, isPending, router]);
 
@@ -59,21 +78,21 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="min-h-screen bg-background">
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-3xl font-bold text-foreground">
                 <BarChart3 className="h-6 w-6 text-primary" />
                 Analytics & Reports
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="mt-1 text-sm text-muted-foreground">
                 View sales performance and inventory insights
               </p>
             </div>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="w-fit">
               <Link href="/dashboard">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
@@ -81,183 +100,181 @@ export default function AnalyticsPage() {
             </Button>
           </div>
 
-          {/* KPI Cards */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* KPI Cards Grid */}
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Average Basket Value */}
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Inventory Value
+                  Average Basket Value
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-foreground">
-                  ${totalValue.toLocaleString()}
+                  ${ANALYTICS_SUMMARY.avgBasketValue.toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Total stock value across all products
+                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <span className="text-emerald-600 font-medium">▲ +4.2%</span>
+                  <span>from last month</span>
                 </p>
               </CardContent>
             </Card>
 
+            {/* Profit Margin */}
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Products
+                  Profit Margin
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{totalProducts}</div>
-                <p className="text-xs text-muted-foreground">Active products</p>
+                <div className="text-2xl font-bold text-foreground">
+                  {ANALYTICS_SUMMARY.profitMargin}%
+                </div>
+                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <span className="text-emerald-600 font-medium">▲ +1.8%</span>
+                  <span>from last month</span>
+                </p>
               </CardContent>
             </Card>
 
+            {/* Total Orders */}
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Low Stock
+                  Total Orders
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-warning">{lowStockItems}</div>
-                <p className="text-xs text-muted-foreground">Items below threshold</p>
+                <div className="text-2xl font-bold text-foreground">
+                  {ANALYTICS_SUMMARY.totalOrders.toLocaleString()}
+                </div>
+                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <span className="text-destructive font-medium">▼ -0.5%</span>
+                  <span>from last month</span>
+                </p>
               </CardContent>
             </Card>
 
+            {/* Inventory Turnover */}
             <Card className="border-border bg-card shadow-sm">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Suppliers
+                  Inventory Turn
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">{companies.length}</div>
-                <p className="text-xs text-muted-foreground">Registered companies</p>
+                <div className="text-2xl font-bold text-foreground">
+                  {ANALYTICS_SUMMARY.inventoryTurn}x
+                </div>
+                <p className="text-xs text-muted-foreground">Optimal</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Charts & Insights */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Inventory Value by Category */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Monthly Sales Chart Placeholder */}
             <Card className="border-border bg-card">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-foreground">
-                  Inventory by Category
+                  Monthly Sales vs Targets
                 </CardTitle>
-                <CardDescription>Value distribution across categories</CardDescription>
+                <CardDescription>January through June performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {CATEGORIES.map((category, index) => {
-                    const value = getCategoryValue(index);
-                    return (
-                      <div key={category} className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">{category}</span>
-                          <span className="font-medium text-foreground">${value * 100}</span>
-                        </div>
-                        <div className="h-2 bg-border rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${(value / 100) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Stock Level Distribution */}
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  Stock Level Distribution
-                </CardTitle>
-                <CardDescription>High, Medium, Low stock items</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">High Stock (20+)</span>
-                      <span className="font-medium text-foreground">
-                        {products.filter((p) => p.quantity > (p.lowStock || 10)).length}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-border rounded-full overflow-hidden">
-                      <div className="h-full bg-success rounded-full" style={{ width: '45%' }} />
-                    </div>
+                  <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    Monthly Sales Chart Placeholder
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Medium Stock (5-20)</span>
-                      <span className="font-medium text-foreground">
-                        {
-                          products.filter((p) => p.quantity > 0 && p.quantity <= (p.lowStock || 10))
-                            .length
-                        }
-                      </span>
-                    </div>
-                    <div className="h-2 bg-border rounded-full overflow-hidden">
-                      <div className="h-full bg-warning rounded-full" style={{ width: '30%' }} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Out of Stock</span>
-                      <span className="font-medium text-foreground">
-                        {products.filter((p) => p.quantity === 0).length}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-border rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-destructive rounded-full"
-                        style={{ width: '25%' }}
-                      />
-                    </div>
+                  <div className="flex flex-wrap gap-2">
+                    {['Day', 'Week', 'Month'].map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        className="rounded border border-input px-3 py-1 text-sm transition-colors hover:bg-muted"
+                      >
+                        {filter}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Recent Low Stock Alerts */}
+            {/* Top Sellers Table */}
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold text-foreground">Top Sellers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-border text-left">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Product
+                          </th>
+                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Category
+                          </th>
+                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Units Sold
+                          </th>
+                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Revenue
+                          </th>
+                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Change
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {TOP_SELLERS.map((item) => (
+                          <tr key={item.name}>
+                            <td className="px-4 py-3 text-sm font-medium text-foreground">
+                              {item.name}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground capitalize">
+                              {item.category}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground">
+                              {item.units}
+                            </td>
+                            <td className="px-4 py-3 font-mono text-sm text-foreground">
+                              {item.revenue}
+                            </td>
+                            <td
+                              className={`px-4 py-3 text-sm font-medium ${
+                                item.positive ? 'text-emerald-600' : 'text-destructive'
+                              }`}
+                            >
+                              {item.change}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Showing {TOP_SELLERS.length} of {TOP_SELLERS.length} products
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Peak Sales Hours */}
             <Card className="border-border bg-card lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-warning" />
-                  Low Stock Alerts
+                <CardTitle className="text-lg font-semibold text-foreground">
+                  Peak Sales Hours
                 </CardTitle>
-                <CardDescription>Products requiring immediate attention</CardDescription>
               </CardHeader>
               <CardContent>
-                {lowStockItems > 0 ? (
-                  <div className="divide-y divide-border">
-                    {products
-                      .filter((p) => p.quantity <= (p.lowStock || 10) && p.quantity > 0)
-                      .slice(0, 5)
-                      .map((product) => (
-                        <div key={product.id} className="py-3 flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium text-foreground">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Quantity: {product.quantity} / {product.lowStock || 10}
-                            </p>
-                          </div>
-                          <span className="text-xs px-2 py-1 rounded-full bg-warning/10 text-warning font-medium">
-                            Low Stock
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium">All stock levels are healthy</p>
-                    <p className="text-sm mt-1">No items currently below threshold</p>
-                  </div>
-                )}
+                <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  Peak Hours Heatmap Placeholder
+                </div>
               </CardContent>
             </Card>
           </div>

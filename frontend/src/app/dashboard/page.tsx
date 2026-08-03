@@ -3,7 +3,7 @@
 import { useSession, signOut } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, LogOut, Loader2, Package, Store, BarChart3 } from 'lucide-react';
+import { AlertCircle, LogOut, Loader2, Package, Store, BarChart3, TrendingUp, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useProducts } from '@/hooks/useProducts';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -12,7 +12,7 @@ import { useStats } from '@/hooks/useStats';
 export default function DashboardPage() {
   const { data: session, error, isPending } = useSession();
   const { data: productsResponse } = useProducts({ limit: 1 });
-  const { data: companiesResponse } = useCompanies({ limit: 1 });
+  const { data: companiesResponse } = useCompanies();
   const { data: statsData } = useStats();
 
   // Calculate stats from available data
@@ -53,11 +53,67 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="min-h-screen bg-background">
+      {/* Header Section */}
+      <div className="border-b border-border">
+        <div className="px-4 sm:px-6 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-bold text-foreground">MediFlow Pro</h1>
+          </div>
+          <div className="text-sm text-muted-foreground">Downtown Branch</div>
+        </div>
+
+        {/* Station Info */}
+        <div className="px-4 sm:px-6 py-2 flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-2">
+            <span>Downtown Pharmacy STATION 04</span>
+            {/* Status indicators would go here */}
+          </div>
+          <div className="flex items-center space-x-2">
+            <button className="p-1 rounded hover:bg-muted">Settings</button>
+            <button className="p-1 rounded hover:bg-muted">Support</button>
+            <input
+              type="text"
+              placeholder="Search"
+              className="border border-input bg-background px-3 py-1 rounded text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="px-4 sm:px-6 py-2 border-t border-border overflow-x-auto space-x-2">
+          <Button variant="default" size="icon-only" asChild>
+            <Link href="#">Dashboard</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">POS</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Inventory</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Prescriptions</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Customers</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Reports</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Settings</Link>
+          </Button>
+          <Button variant="outline" size="icon-only" asChild>
+            <Link href="#">Support</Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content */}
       <div className="flex-1 p-4 sm:p-6">
         <div className="mx-auto max-w-7xl">
           {/* Welcome Section */}
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground">
               Welcome back, {session.user.name?.split(' ')[0] || 'User'}!
             </h1>
@@ -67,149 +123,222 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* KPI Cards - 3 columns on desktop, 1 on mobile */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Key Metrics - Matching Stitch Design */}
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Daily Sales */}
             <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">Products</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stats.totalProducts}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stats.totalProducts > 0 ? '+12 from last month' : 'Start adding products'}
-                </p>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-foreground">Daily Sales</h2>
+                    <p className="text-sm text-success">▲ 12.5%</p>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    $4,280.50
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
+            {/* Pending Rx */}
             <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">Companies</CardTitle>
-                <Store className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stats.totalCompanies}</div>
-                <p className="text-xs text-muted-foreground">All active suppliers</p>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-foreground">Pending Rx</h2>
+                    <p className="text-sm text-muted-foreground">! </p>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    24
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">8 awaiting verification</p>
               </CardContent>
             </Card>
 
+            {/* Low Stock */}
             <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-foreground">
-                  Low Stock Items
-                </CardTitle>
-                <AlertCircle className="h-4 w-4 text-warning" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-foreground">{stats.lowStockItems}</div>
-                <p className="text-xs text-muted-foreground">Items below threshold</p>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-foreground">Inventory</h2>
+                    <p className="text-sm text-muted-foreground">Active</p>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    12
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">3 critical items</p>
+              </CardContent>
+            </Card>
+
+            {/* Active Patients */}
+            <Card className="border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="font-semibold text-foreground">Active Patients</h2>
+                    <p className="text-sm text-success">▲ 4%</p>
+                  </div>
+                  <div className="text-2xl font-bold text-foreground">
+                    1,842
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">12 new today</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Quick Actions */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-foreground">Quick Actions</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Button
-                asChild
-                className="justify-start gap-3 rounded-lg p-4 shadow-sm hover:shadow-md"
-                variant="default"
-              >
-                <Link href="/products/new">
-                  <Package className="h-5 w-5 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium">Add Product</div>
-                    <span className="text-xs text-muted-foreground">New inventory item</span>
-                  </div>
-                </Link>
+          {/* Sales Revenue Section */}
+          <div className="mb-6">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Sales Revenue</h2>
+              <p className="text-sm text-muted-foreground">Last 30 days performance</p>
+            </div>
+            <div className="flex flex-col sm:flex-row">
+              <Button variant="outline" size="sm" className="mr-2">
+                Day
               </Button>
-
-              <Button
-                asChild
-                className="justify-start gap-3 rounded-lg p-4 shadow-sm hover:shadow-md"
-                variant="outline"
-              >
-                <Link href="/companies/new">
-                  <Store className="h-5 w-5 text-muted-foreground" />
-                  <div className="text-left">
-                    <div className="font-medium">Add Company</div>
-                    <span className="text-xs text-muted-foreground">New supplier</span>
-                  </div>
-                </Link>
+              <Button variant="outline" size="sm" className="mr-2">
+                Week
               </Button>
-
-              <Button
-                asChild
-                className="justify-start gap-3 rounded-lg p-4 shadow-sm hover:shadow-md"
-                variant="outline"
-              >
-                <Link href="/inventory">
-                  <Package className="h-5 w-5 text-muted-foreground" />
-                  <div className="text-left">
-                    <div className="font-medium">View Inventory</div>
-                    <span className="text-xs text-muted-foreground">Manage stock</span>
-                  </div>
-                </Link>
+              <Button variant="default" size="sm">
+                Month
               </Button>
-
-              <Button
-                asChild
-                className="justify-start gap-3 rounded-lg p-4 shadow-sm hover:shadow-md"
-                variant="outline"
-              >
-                <Link href="/analytics">
-                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                  <div className="text-left">
-                    <div className="font-medium">Analytics</div>
-                    <span className="text-xs text-muted-foreground">Sales reports</span>
-                  </div>
-                </Link>
-              </Button>
+            </div>
+            {/* In a real implementation, you would show a chart here */}
+            <div className="aspect-w-16 aspect-h-9 bg-muted rounded-lg mt-4">
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                Sales Revenue Chart Placeholder
+              </div>
             </div>
           </div>
 
-          {/* Recent Activity Section */}
-          <div className="mt-8">
-            <h2 className="mb-4 text-xl font-semibold text-foreground">Recent Activity</h2>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-foreground">
-                    Recent Products
-                  </CardTitle>
-                  <CardDescription>Recently added inventory items</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No recent products</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-foreground">
-                    Sales This Month
-                  </CardTitle>
-                  <CardDescription>Revenue and transaction summary</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No sales data available</p>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Prescription Distribution */}
+          <div className="mb-6">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Prescription Distribution</h2>
+              <p className="text-sm text-muted-foreground">148 Total Rx</p>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Chronic Care</span>
+                <span className="font-medium text-foreground">65%</span>
+              </div>
+              <div className="h-2 bg-border rounded-full overflow-hidden">
+                <div className="h-full bg-primary rounded-full" style={{ width: '65%' }}></div>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Acute Meds</span>
+                <span className="font-medium text-foreground">25%</span>
+              </div>
+              <div className="h-2 bg-border rounded-full overflow-hidden">
+                <div className="h-full bg-success rounded-full" style={{ width: '25%' }}></div>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Other</span>
+                <span className="font-medium text-foreground">10%</span>
+              </div>
+              <div className="h-2 bg-border rounded-full overflow-hidden">
+                <div className="h-full bg-muted rounded-full" style={{ width: '10%' }}></div>
+              </div>
             </div>
           </div>
 
-          {/* Sign Out Button */}
-          <div className="mt-8">
-            <Button variant="outline" onClick={() => signOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+          {/* Recent Transactions */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Recent Transactions</h2>
+              <Button variant="outline" size="sm">
+                View All
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Order ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Patient Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  <tr className="hover:bg-muted">
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">#RX-8291</td>
+                    <td className="px-4 py-3 text-sm text-foreground">Sarah Johnson</td>
+                    <td className="px-4 py-3 text-sm text-success">Completed</td>
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">$45.00</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">⋯⋯⋯</td>
+                  </tr>
+                  <tr className="hover:bg-muted">
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">#RX-8292</td>
+                    <td className="px-4 py-3 text-sm text-foreground">Robert Chen</td>
+                    <td className="px-4 py-3 text-sm text-warning">Pending</td>
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">$124.20</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">⋯⋯⋯</td>
+                  </tr>
+                  <tr className="hover:bg-muted">
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">#RX-8293</td>
+                    <td className="px-4 py-3 text-sm text-foreground">Emily Davis</td>
+                    <td className="px-4 py-3 text-sm text-success">Completed</td>
+                    <td className="px-4 py-3 text-sm font-mono text-foreground">$12.50</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">⋯⋯⋯</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Low Stock Alerts */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Low Stock Alerts</h2>
+              <span className="text-sm text-destructive font-medium">3 CRITICAL</span>
+            </div>
+            <div className="space-y-3">
+              <div className="p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold text-foreground mb-2">Amoxicillin 500mg</h3>
+                <p className="text-sm text-muted-foreground">8 units remaining</p>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" size="sm">Restock</Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                </div>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold text-foreground mb-2">Lisinopril 10mg</h3>
+                <p className="text-sm text-muted-foreground">15 units remaining</p>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" size="sm">Restock</Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                </div>
+              </div>
+              <div className="p-4 bg-muted rounded-lg">
+                <h3 className="font-semibold text-foreground mb-2">Metformin 850mg</h3>
+                <p className="text-sm text-muted-foreground">22 units remaining</p>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" size="sm">Restock</Button>
+                  <Button variant="outline" size="sm" className="text-muted-foreground">Dismiss</Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manage Inventory Button */}
+          <div className="mt-6 flex justify-end">
+            <Button variant="default">
+              Manage Inventory
             </Button>
           </div>
         </div>
