@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>"MediFlow Pro" | Inventory Management</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0;}
+        header {background:#0066cc; color:#fff; padding:1rem;}
+        nav {margin:1rem 0;}
+        nav a {margin-right:1rem; text-decoration:none; color:#0066cc;}
+        .hero-img {width:100%; height:auto; display:block;}
+        section {padding:1rem;}
+        table {width:100%; border-collapse:collapse; margin-top:1rem;}
+        th, td {border:1px solid #ddd; padding:0.5rem; text-align:left;}
+        th {background:#f2f2f2;}
+        .actions {white-space:nowrap;}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>"MediFlow Pro"</h1>
+        <p>Downtown Branch</p>
+    </header>
+    <nav>
+        <a href="#">dashboard Dashboard</a>
+        <a href="#">point_of_sale POS</a>
+        <a href="#">inventory_2 Inventory</a>
+        <a href="#">prescriptions Prescriptions</a>
+        <a href="#">group Customers</a>
+        <a href="#">assessment Reports</a>
+        <a href="#">settings Settings</a>
+        <a href="#">help_outline Support</a>
+    </nav>
+
+    <section>
+        <h2>MediFlow Dashboard</h2>
+        <div>
+            <input type="text" placeholder="search" />
+            <span>location_on Downtown Pharmacy</span>
+            <span>notifications dark_mode</span>
+        </div>
+        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAj5PJJmKBbVFayxWIolUpsHEOeArTSxonzfO6DWw5pc7YMslh4UH-EP0cFXrPcrIsIcDg_3k_pMPisAPbJKS6KDsuV9Xdr39oDUCeM2Avz0TxRuIGv58F-5eeTswHT1Tz1KnLRWZ4DwsFf5RzLS1gWkdW007k7DF9YAw4P_5k_OgC5RFWFidUfbrrNkL6affvjzl0UvDwc2VwlY-FIZg_uzYhsXLKMeRLJbsrgoI9F5aHFvXxbyuRdUQ"
+             alt="Dashboard illustration"
+             class="hero-img">
+    </section>
+
+    <section>
+        <h2>"Inventory Management"</h2>
+        <p>Real-time tracking of 1,284 medication SKUs and batch monitoring.</p>
+        <div>
+            <button>file_download Export Report</button>
+            <button>add_box Add New Product</button>
+        </div>
+        <div>
+            <label>Category:
+                <select>
+                    <option>All Categories</option>
+                    <option>Antibiotics</option>
+                    <option>Analgesics</option>
+                    <option>Antivirals</option>
+                    <option>Cardiovascular</option>
+                </select>
+            </label>
+            <label>Manufacturer:
+                <select>
+                    <option>All Manufacturers</option>
+                    <option>Pfizer</option>
+                    <option>Novartis</option>
+                    <option>Roche</option>
+                    <option>AstraZeneca</option>
+                </select>
+            </label>
+            <label>Expiry Status:
+                <select>
+                    <option>All Statuses</option>
+                    <option>Valid (> 6 months)</option>
+                    <option>Near Expiry (< 3 months)</option>
+                    <option>Expired</option>
+                </select>
+            </label>
+        </div>
+
+        <div style="margin-top:1rem;">
+            <strong>Total Value</strong>
+            <div>$142,590.20</div>
+            <div>trending_up +12% from last month</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>SKU</th>
+                    <th>Category</th>
+                    <th>Stock Level</th>
+                    <th>Expiry Date</th>
+                    <th>Unit Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>pill Amoxicillin 500mg</td>
+                    <td>Batch #B-2045-A</td>
+                    <td>AMX-500-24</td>
+                    <td>Antibiotics</td>
+                    <td>450 / 500 90%</td>
+                    <td>Oct 12, 2025</td>
+                    <td>$24.50</td>
+                    <td class="actions">refresh edit</td>
+                </tr>
+                <tr>
+                    <td>vaccines Lisinopril 10mg</td>
+                    <td>Batch #B-9812-C</td>
+                    <td>LIS-010-09</td>
+                    <td>Cardio</td>
+                    <td>42 / 500 8.4%</td>
+                    <td>Aug 24, 2024</td>
+                    <td>$12.00</td>
+                    <td class="actions">Urgent Restock edit</td>
+                </tr>
+                <tr>
+                    <td>thermometer_gain Insulin Glargine</td>
+                    <td>Batch #B-5531-K</td>
+                    <td>INS-GLA-100</td>
+                    <td>Diabetic</td>
+                    <td>120 / 200 60%</td>
+                    <td>warning May 15, 2024</td>
+                    <td>$89.00</td>
+                    <td class="actions">refresh edit</td>
+                </tr>
+                <tr>
+                    <td>medication_liquid Guaifenesin Syrup</td>
+                    <td>Batch #B-3344-S</td>
+                    <td>GUA-SYR-005</td>
+                    <td>Respiratory</td>
+                    <td>320 / 400 80%</td>
+                    <td>Jan 10, 2026</td>
+                    <td>$15.75</td>
+                    <td class="actions">refresh edit</td>
+                </tr>
+                <!-- Additional rows omitted for brevity -->
+            </tbody>
+        </table>
+        <div>Showing 1 to 10 of 1,284 entries</div>
+        <div>chevron_left 1 2 3 chevron_right</div>
+        <button>add</button>
+    </section>
+</body>
+</html>
