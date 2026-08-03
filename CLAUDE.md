@@ -64,7 +64,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Shared types added: `CreateCustomerInput`, `UpdateCustomerInput`, `CustomerWithOrders`
 
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
-- Design system updated to match "Clinical Precision" theme from Stitch
+- Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
+- "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary
+- 4 Stitch screens: Dashboard Overview, POS Terminal, Inventory Management, Sales & Analytics Reports
 - Dashboard Overview with KPI cards and quick actions
 - Inventory Management page with product listing and filters
 - Analytics/Reports page with sales insights and charts
@@ -92,6 +94,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 ```markdown
 pharmacy-point/
+├── DESIGN.md # Complete design system from Stitch (Clinical Precision)
 ├── specs/ # Specification documents
 │ ├── mission.md # Vision, goals, and success metrics
 │ ├── techstack.md # Technology stack and architecture decisions
@@ -143,7 +146,8 @@ pharmacy-point/
 │   └── config/ # Shared configuration
 ├── package.json # Root package.json with workspaces
 ├── turbo.json # Turborepo configuration
-└── CLAUDE.md # This file
+├── CLAUDE.md # This file
+└── DESIGN.md # Design system (from Stitch)
 ```
 
 ## Architecture
@@ -312,6 +316,7 @@ enum OrderStatus {
 - `npm run prisma` - Run Prisma CLI commands
 
 ## Key Files to Reference
+- `DESIGN.md` - Complete design system specification (from Stitch)
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
@@ -325,13 +330,17 @@ The following path aliases are configured for monorepo imports:
 
 ## Design System
 
-### Clinical Precision Theme (from Stitch)
+The **"Clinical Precision"** design system was created in Google Stitch (`projects/16769129460188176504`) and exported to `DESIGN.md`. Refer to `DESIGN.md` for the complete design specification including all color tokens, typography scales, spacing values, component specs, and screen-by-screen breakdowns.
+
+### Quick Reference — Clinical Precision Theme (from Stitch)
 - **Primary**: Pharma Teal (#00685f) - for primary actions and brand-critical elements
 - **Secondary**: Medi-Blue (#006398) - for informational callouts and secondary actions
 - **Tertiary**: Safety Green (#006b2c) - for success states (In Stock, Verified)
 - **Typography**: Inter font family with JetBrains Mono for numerical data
-- **Spacing**: 8px base rhythm
-- **Shapes**: Rounded corners (0.5rem base, 1rem for containers)
+- **Spacing**: 4px base unit (8px rhythm), with lg=24px, xl=40px
+- **Shapes**: Rounded corners (0.5rem/8px base, 1rem/16px for containers, 999px for status chips)
+- **Grid**: 12-column desktop, 4-column mobile
+- **Container Max**: 1440px
 
 ## Navigation Structure
 
