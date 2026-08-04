@@ -2,6 +2,7 @@
 
 import { useSession } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -454,17 +455,21 @@ export default function DashboardPage() {
       <div className="flex-1 p-4 sm:p-6">
         <div className="w-full space-y-6">
           {/* ── Header ── */}
-          <div className="flex flex-col space-y-1">
-            <h1 className="text-display-lg text-foreground">Pharmacy Dashboard</h1>
-            <p className="text-body-md text-on-surface-variant">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-              {' · '}Signed in as {session.user?.email}
-            </p>
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col space-y-1">
+              <h1 className="text-display-lg text-foreground">Pharmacy Dashboard</h1>
+              <p className="text-body-md text-on-surface-variant">
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+                {' · '}Signed in as {session.user?.email}
+              </p>
+            </div>
+            {/* Sidebar toggle (desktop collapse/expand) */}
+            <SidebarTrigger className="mt-1 -mr-1 md:flex hidden" />
           </div>
 
           {/* ── Hero Metric: Total Inventory Value ── */}

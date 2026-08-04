@@ -139,12 +139,18 @@ pharmacy-point/
 │   │       ├── analytics/ # Analytics & reports
 │   │       ├── pos/ # Point of Sale interface
 │   │       └── components/ # UI components
-│   │           ├── navigation/index.tsx # Responsive sidebar navigation
+│   │           ├── navigation/index.tsx # Responsive sidebar navigation (SidebarProvider + AuthShell)
+│   │           ├── app-sidebar.tsx # Clinical Precision AppSidebar (Pharma vial brand, liquid-fill indicators)
 │   │           ├── companies/ # Company components
 │   │           ├── products/ # Product components
 │   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
 │   │           ├── inventory/ # Inventory components (StockAdjustmentModal, StockChip, InventoryTable, InventoryPagination, inventory-columns)
 │   │           └── pos/ # POS components (ProductSearch, ProductGrid, Cart, Checkout, Receipt)
+│   │           ├── ui/sidebar.tsx # shadcn Sidebar primitives (SidebarProvider, Sidebar, SidebarTrigger, etc.)
+│   │           ├── ui/sheet.tsx # Sheet/Dialog for mobile sidebar drawer
+│   │           ├── ui/tooltip.tsx # Tooltip via Radix UI
+│   │           ├── ui/skeleton.tsx # Loading skeleton component
+│   │           └── ui/badge.tsx # Status chip badges (default, success, warning, destructive, secondary, outline, muted)
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
 ├── packages/ # Shared packages
@@ -398,6 +404,23 @@ The inventory page uses TanStack Table's native `globalFilter` for client-side s
 - **Need `getFilteredRowModel()`** in the `useReactTable` config alongside `getCoreRowModel` and `getSortedRowModel`
 - **Empty state**: handle inside the table component by checking `table.getRowModel().rows.length === 0` (covers both no-data and filter-no-match)
 - **Search input**: bind `value={globalFilter ?? ''}` and `onChange={(e) => setGlobalFilter(e.target.value)}`
+
+### Modern Sidebar Architecture (shadcn/ui Sidebar Primitives)
+
+The application uses a modern, shadcn/ui-compatible sidebar system built on `SidebarProvider`, `Sidebar`, `SidebarInset`, and `SidebarTrigger` primitives.
+
+**Key components**:
+- `src/components/ui/sidebar.tsx` — Sidebar primitives (adapted from shadcn v4 source, uses `@radix-ui/react-slot`, `Sheet`, `Tooltip`)
+- `src/components/app-sidebar.tsx` — Application sidebar with Clinical Precision theming (Pharma Vial brand mark, liquid-fill active indicator, clinical color dots)
+- `src/components/navigation/index.tsx` — Auth-gated `Navigation` wrapper that renders `SidebarProvider` + `AppSidebar` + `SidebarInset` for authenticated routes
+
+**Features**:
+- Collapsible: `collapsible="icon"` collapses to a 3rem icon-only column on desktop; tooltips show on hover
+- Responsive: off-canvas mobile drawer via Radix `Sheet`; `sidebar_state` cookie persists open/collapsed state for 7 days
+- Keyboard shortcut: `⌘+B` / `Ctrl+B` toggles sidebar
+- Dashboard badges: POS shows pending orders count (amber), Inventory shows low-stock count (amber), Dashboard shows low-stock alerts
+
+**Requirement**: All `Tooltip` components must be wrapped in a `TooltipProvider`. The `AuthShell` in `navigation/index.tsx` provides this automatically for authenticated routes. If adding `Tooltip` outside this shell, wrap it in `<TooltipProvider>`.
 
 ### Tailwind config
 
