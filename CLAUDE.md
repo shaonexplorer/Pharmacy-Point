@@ -364,3 +364,26 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── customers/[id]/edit/ - Edit customer form
 └── (auth)/login - Authentication page
 ```
+
+## Troubleshooting
+
+### Build errors after recent UI changes
+
+**Symptom**: `Parsing CSS source code failed` in `globals.css` with `BadUrl("data:image/svg+xml_(ASCII)")`.
+**Root cause**: A JSX syntax error in `frontend/src/components/inventory/StockAdjustmentModal.tsx` — the shadcn/ui `Select` component was opened with `<Select` but closed with `</select>` (lowercase HTML tag). JSX component tags are case-sensitive.
+**Fix**: Changed `</select>` → `</Select>` on line 116.
+
+**Symptom**: `Cannot find name 'CardContent'` TypeScript error during build.
+**Root cause**: Several pages use `CardContent` from `@/components/ui/card` but only imported `Card`.
+**Fix**: Updated the import to `{ Card, CardContent }` in:
+- `frontend/src/app/companies/page.tsx`
+- `frontend/src/app/products/page.tsx`
+- `frontend/src/app/customers/page.tsx`
+
+**Note**: CSS parsing errors like `BadUrl("data:image/svg+xml")` are almost always a cascading failure from an upstream JSX or TypeScript error. Always fix the JSX/TS error first and rebuild — the CSS error typically resolves itself.
+
+### Tailwind config
+
+- The project uses **Tailwind CSS v4** (`@tailwindcss/postcss` and `tailwindcss` `^4`).
+- `tailwind.config.js` is a **new file** (added but not yet committed) — it imports design tokens from `src/lib/theme.ts`.
+- The project now uses the PostCSS approach (`@import "tailwindcss"` in `globals.css`) rather than the legacy Tailwind CLI.
