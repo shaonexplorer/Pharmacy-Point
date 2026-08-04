@@ -1,12 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type {
-  InventoryItem,
-  InventoryTransaction,
-  StockInInput,
-  StockOutInput,
-  StockAdjustInput,
-} from '@pharmacy-point/types';
+import type { StockInInput, StockOutInput, StockAdjustInput } from '@pharmacy-point/types';
 
 export interface InventoryListParams {
   page?: number;
