@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 /* ============================================================================
  * Clinical Precision Design System
@@ -9,89 +10,97 @@
  * as CSS custom properties so that every component consumes the same source of
  * truth.
  *
+ * Colors use the hsl() notation so that Tailwind's /<alpha-value> syntax
+ * (e.g. bg-primary/10, ring-ring/50) works correctly via CSS color-mix.
+ *
  * Primary:   Pharma Teal  (#00685f) — brand-critical actions, active nav
  * Secondary: Medi-Blue    (#006398) — informational callouts, secondary actions
  * Tertiary:  Safety Green (#006b2c) — "In Stock", "Verified", success states
  * =========================================================================== */
+
+/* ── Dark mode variant (class-based, via .dark) ────────────────────────── *
+ * Also supports prefers-color-scheme media query for automatic dark mode.
+ * ───────────────────────────────────────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
 
 /* ────────────────────────── Color Tokens ────────────────────────── */
 
 :root {
   /* ── Semantic Palette ──────────────────────────────────────────── */
 
-  /* Primary — Pharma Teal */
-  --primary: #00685f;
-  --on-primary: #ffffff;
-  --primary-container: #008378;
-  --on-primary-container: #f4fffc;
+  /* Primary — Pharma Teal  #00685f */
+  --primary: hsl(175 100% 20%);
+  --on-primary: hsl(0 0% 100%);
+  --primary-container: hsl(175 100% 26%);
+  --on-primary-container: hsl(164 100% 98%);
+  --primary-hsl: 175 100% 20%;
 
-  /* Secondary — Medi-Blue */
-  --secondary: #006398;
-  --on-secondary: #ffffff;
-  --secondary-container: #5bb8fe;
-  --on-secondary-container: #00476e;
+  /* Secondary — Medi-Blue  #006398 */
+  --secondary: hsl(201 100% 30%);
+  --on-secondary: hsl(0 0% 100%);
+  --secondary-container: hsl(206 99% 68%);
+  --on-secondary-container: hsl(201 100% 22%);
+  --secondary-hsl: 201 100% 30%;
 
-  /* Tertiary — Safety Green */
-  --tertiary: #006b2c;
-  --on-tertiary: #ffffff;
-  --tertiary-container: #00873a;
-  --on-tertiary-container: #f7fff2;
+  /* Tertiary — Safety Green  #006b2c */
+  --tertiary: hsl(145 100% 21%);
+  --on-tertiary: hsl(0 0% 100%);
+  --tertiary-container: hsl(146 100% 26%);
+  --on-tertiary-container: hsl(97 100% 97%);
+  --tertiary-hsl: 145 100% 21%;
 
-  /* Error */
-  --error: #ba1a1a;
-  --on-error: #ffffff;
+  /* Error  #ba1a1a */
+  --error: hsl(0 75% 42%);
+  --on-error: hsl(0 0% 100%);
+  --error-container: hsl(0 75% 55%);
+  --on-error-container: hsl(0 0% 98%);
+  --error-hsl: 0 75% 42%;
 
-  /* HSL hue / saturation / lightness values for use in inline styles and dynamic contexts */
-  --primary-hsl: 179 58% 35%;
-  --secondary-hsl: 207 80% 50%;
-  --tertiary-hsl: 153 51% 43%;
-  --warning-hsl: 45 83% 31%;
-  --error-hsl: 0 70% 44%;
-
-  /* Warning (Amber) — Low Stock / Caution states */
-  --warning: #ca8a04;
-  --on-warning: #ffffff;
-  --warning-container: #e5c24e;
-  --on-warning-container: #4a3a0e;
+  /* Warning (Amber)  #ca8a04 — Low Stock / Caution states */
+  --warning: hsl(41 96% 40%);
+  --on-warning: hsl(0 0% 100%);
+  --warning-container: hsl(46 74% 60%);
+  --on-warning-container: hsl(44 68% 17%);
+  --warning-hsl: 41 96% 40%;
 
   /* ── Surface Palette (Light Mode) ──────────────────────────────── */
 
-  --background: #f8f9ff;
-  --on-background: #0b1c30;
+  --background: hsl(231 100% 99%);
+  --on-background: hsl(212 63% 12%);
 
-  --surface-container-lowest: #ffffff;
-  --surface-container-low: #eff4ff;
-  --surface-container: #e5eeff;
-  --surface-container-high: #dce9ff;
-  --surface-container-highest: #d3e4fe;
-  --surface-dim: #cbdbf5;
-  --surface-bright: #f8f9ff;
+  --surface-container-lowest: hsl(0 0% 100%);
+  --surface-container-low: hsl(221 100% 97%);
+  --surface-container: hsl(219 100% 95%);
+  --surface-container-high: hsl(218 100% 93%);
+  --surface-container-highest: hsl(216 96% 91%);
+  --surface-dim: hsl(217 68% 88%);
+  --surface-bright: hsl(231 100% 99%);
 
-  --surface: #f8f9ff;
-  --on-surface: #0b1c30;
-  --on-surface-variant: #3d4947;
+  --surface: hsl(231 100% 99%);
+  --on-surface: hsl(212 63% 12%);
+  --on-surface-variant: hsl(170 9% 26%);
 
-  --outline: #6d7a77;
-  --outline-variant: #bcc9c6;
-  --surface-tint: #006a61;
-  --surface-variant: #d3e4fe;
+  --outline: hsl(166 6% 45%);
+  --outline-variant: hsl(166 11% 76%);
+  --surface-tint: hsl(175 100% 21%);
+  --surface-variant: hsl(216 96% 91%);
 
   /* ── Fixed Color Tokens ────────────────────────────────────────── */
 
-  --primary-fixed: #89f5e7;
-  --primary-fixed-dim: #6bd8cb;
-  --on-primary-fixed: #00201d;
-  --on-primary-fixed-variant: #005049;
+  --primary-fixed: hsl(172 84% 75%);
+  --primary-fixed-dim: hsl(173 58% 63%);
+  --on-primary-fixed: hsl(174 100% 6%);
+  --on-primary-fixed-variant: hsl(175 100% 16%);
 
-  --secondary-fixed: #cce5ff;
-  --secondary-fixed-dim: #93ccff;
-  --on-secondary-fixed: #001d31;
-  --on-secondary-fixed-variant: #004b73;
+  --secondary-fixed: hsl(211 100% 90%);
+  --secondary-fixed-dim: hsl(207 100% 72%);
+  --on-secondary-fixed: hsl(204 100% 10%);
+  --on-secondary-fixed-variant: hsl(201 100% 23%);
 
-  --tertiary-fixed: #7ffc97;
-  --tertiary-fixed-dim: #62df7d;
-  --on-tertiary-fixed: #002109;
-  --on-tertiary-fixed-variant: #005320;
+  --tertiary-fixed: hsl(132 95% 74%);
+  --tertiary-fixed-dim: hsl(133 66% 63%);
+  --on-tertiary-fixed: hsl(136 100% 6%);
+  --on-tertiary-fixed-variant: hsl(143 100% 16%);
 
   /* ── Derived Semantic Tokens ───────────────────────────────────── */
 
@@ -105,57 +114,83 @@
   --border: var(--outline);
   --input: var(--outline-variant);
   --ring: var(--primary);
+  --popover: var(--surface-container);
+  --popover-foreground: var(--on-surface);
+
+  /* ── Chart colors (for analytics/charts) ───────────────────────── */
+
+  --chart-1: var(--primary);
+  --chart-2: var(--secondary);
+  --chart-3: var(--tertiary);
+  --chart-4: var(--warning);
+  --chart-5: var(--surface-container-highest);
+
+  /* ── Sidebar tokens (shadcn v4) ───────────────────────────────── */
+
+  --sidebar: var(--surface-container-lowest);
+  --sidebar-foreground: var(--on-surface);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--on-primary);
+  --sidebar-accent: var(--surface-container-low);
+  --sidebar-accent-foreground: var(--on-surface);
+  --sidebar-border: var(--outline-variant);
+  --sidebar-ring: var(--ring);
 
   /* ── Border Radius (Shape) ─────────────────────────────────────── */
 
-  --radius-sm: 0.25rem;   /* 4px — small elements, compact UI        */
-  --radius: 0.5rem;       /* 8px — base: buttons, input fields       */
-  --radius-md: 0.75rem;   /* 12px — medium-radius containers          */
-  --radius-lg: 1rem;      /* 16px — KPI cards, modals, containers     */
-  --radius-xl: 1.5rem;    /* 24px — large containers, section headers */
-  --radius-full: 9999px;  /* pills — status chips                     */
+  --radius-sm: 0.25rem; /* 4px — small elements, compact UI        */
+  --radius: 0.5rem; /* 8px — base: buttons, input fields       */
+  --radius-md: 0.75rem; /* 12px — medium-radius containers          */
+  --radius-lg: 1rem; /* 16px — KPI cards, modals, containers     */
+  --radius-xl: 1.5rem; /* 24px — large containers, section headers */
+  --radius-full: 9999px; /* pills — status chips                     */
 
   /* ── Spacing (8px base rhythm) ─────────────────────────────────── */
 
-  --spacing-xs: 0.25rem;  /* 4px */
-  --spacing-sm: 0.5rem;   /* 8px */
-  --spacing-md: 1rem;     /* 16px */
-  --spacing-lg: 1.5rem;   /* 24px */
-  --spacing-xl: 2.5rem;   /* 40px */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem; /* 8px */
+  --spacing-md: 1rem; /* 16px */
+  --spacing-lg: 1.5rem; /* 24px */
+  --spacing-xl: 2.5rem; /* 40px */
   --spacing-base: 0.25rem; /* 4px base unit */
   --spacing-container-max: 90rem; /* 1440px */
-  --spacing-gutter: 1.25rem;     /* 20px */
+  --spacing-gutter: 1.25rem; /* 20px */
   --spacing-margin-desktop: 2.5rem; /* 40px */
 
   /* ── Elevation / Shadows ───────────────────────────────────────── */
 
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 6px 16px rgba(0, 0, 0, 0.06);
-  --shadow-popover: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 4px 12px hsl(0 0% 0 / 0.04);
+  --shadow-card-hover: 0 6px 16px hsl(0 0% 0 / 0.06);
+  --shadow-popover: 0 4px 12px hsl(0 0% 0 / 0.08);
+  --shadow-sm: 0 1px 2px hsl(0 0% 0 / 0.05);
+  --shadow: 0 1px 3px hsl(0 0% 0 / 0.1), 0 1px 2px hsl(0 0% 0 / 0.06);
+  --shadow-md: 0 4px 6px hsl(0 0% 0 / 0.07);
+  --shadow-lg: 0 10px 15px hsl(0 0% 0 / 0.1);
   --backdrop-blur-modal: blur(8px);
 }
 
 /* ─────────────────────── Dark Mode Overrides ─────────────────────── */
+/* Supports both prefers-color-scheme media query AND .dark class. */
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b1c30;
-    --on-background: #eaf1ff;
+    --background: hsl(212 63% 12%);
+    --on-background: hsl(220 100% 96%);
 
-    --surface-container-lowest: #17253d;
-    --surface-container-low: #1c2f4a;
-    --surface-container: #213145;
-    --surface-container-high: #2a3f5f;
-    --surface-container-highest: #344e6b;
-    --surface-dim: #17253d;
-    --surface-bright: #1e2e4a;
+    --surface-container-lowest: hsl(218 45% 16%);
+    --surface-container-low: hsl(215 45% 20%);
+    --surface-container: hsl(213 35% 20%);
+    --surface-container-high: hsl(216 39% 27%);
+    --surface-container-highest: hsl(212 35% 31%);
+    --surface-dim: hsl(218 45% 16%);
+    --surface-bright: hsl(218 42% 20%);
 
-    --surface: #0b1c30;
-    --on-surface: #eaf1ff;
-    --on-surface-variant: #a3c2b0;
+    --surface: hsl(212 63% 12%);
+    --on-surface: hsl(220 100% 96%);
+    --on-surface-variant: hsl(145 20% 70%);
 
-    --outline: #8a9896;
-    --outline-variant: #4a5a58;
+    --outline: hsl(171 6% 57%);
+    --outline-variant: hsl(172 10% 32%);
 
     --card: var(--surface-container-lowest);
     --card-foreground: var(--on-surface);
@@ -163,62 +198,134 @@
     --muted-foreground: var(--on-surface-variant);
     --border: var(--outline);
     --input: var(--outline-variant);
+    --accent: var(--surface-container-low);
+    --accent-foreground: var(--on-surface);
+    --popover: var(--surface-container);
+    --popover-foreground: var(--on-surface);
 
     /* Primary (lighter in dark mode per Material 3 inverse-primary) */
-    --primary: #6bd8cb;
-    --on-primary: #00362f;
-    --primary-container: #008378;
-    --on-primary-container: #00201d;
+    --primary: hsl(173 58% 63%);
+    --primary-hsl: 173 58% 63%;
+    --on-primary: hsl(172 100% 11%);
+    --primary-container: hsl(175 100% 26%);
+    --on-primary-container: hsl(174 100% 6%);
 
     /* Secondary (lighter in dark mode) */
-    --secondary: #93ccff;
-    --on-secondary: #00284c;
-    --secondary-container: #006398;
-    --on-secondary-container: #001d31;
+    --secondary: hsl(208 100% 79%);
+    --secondary-hsl: 208 100% 79%;
+    --on-secondary: hsl(208 100% 15%);
+    --secondary-container: hsl(201 100% 30%);
+    --on-secondary-container: hsl(204 100% 10%);
 
     /* Tertiary (lighter in dark mode) */
-    --tertiary: #62df7d;
-    --on-tertiary: #003816;
-    --tertiary-container: #00873a;
-    --on-tertiary-container: #002109;
+    --tertiary: hsl(133 66% 63%);
+    --tertiary-hsl: 133 66% 63%;
+    --on-tertiary: hsl(144 100% 11%);
+    --tertiary-container: hsl(146 100% 26%);
+    --on-tertiary-container: hsl(136 100% 6%);
 
     /* Error */
-    --error: #ff6b6b;
-    --on-error: #00362f;
-
-    /* HSL values for dark mode */
-    --primary-hsl: 160 60% 55%;
-    --secondary-hsl: 200 81% 56%;
-    --tertiary-hsl: 140 62% 41%;
-    --warning-hsl: 42 66% 45%;
-    --error-hsl: 0 70% 55%;
+    --error: hsl(0 100% 71%);
+    --error-hsl: 0 100% 71%;
+    --on-error: hsl(172 100% 11%);
+    --error-container: hsl(0 100% 50%);
+    --on-error-container: hsl(0 0% 98%);
 
     /* Warning (Amber) — Low Stock / Caution states */
-    --warning: #e3b34c;
-    --on-warning: #4a3a0e;
-    --warning-container: #b8922f;
-    --on-warning-container: #fff8ec;
+    --warning: hsl(41 73% 59%);
+    --warning-hsl: 41 73% 59%;
+    --on-warning: hsl(44 68% 17%);
+    --warning-container: hsl(43 59% 45%);
+    --on-warning-container: hsl(38 100% 96%);
 
     /* Fixed color tokens dark mode */
-    --on-primary-fixed: #00201d;
-    --on-secondary-fixed: #001d31;
-    --on-tertiary-fixed: #002109;
+    --primary-fixed-dim: hsl(173 58% 63%);
+    --secondary-fixed-dim: hsl(207 100% 72%);
+    --tertiary-fixed-dim: hsl(133 66% 63%);
+    --on-primary-fixed: hsl(174 100% 6%);
+    --on-secondary-fixed: hsl(204 100% 10%);
+    --on-tertiary-fixed: hsl(136 100% 6%);
+
+    --shadow-card: 0 4px 12px hsl(0 0% 0 / 0.2);
+    --shadow-card-hover: 0 6px 16px hsl(0 0% 0 / 0.3);
+    --shadow-popover: 0 4px 12px hsl(0 0% 0 / 0.3);
   }
 }
 
-/* ────────────────────────── Typography ────────────────────────────── */
+/* .dark class-based dark mode (takes priority over media query) */
+.dark {
+  --background: hsl(212 63% 12%);
+  --on-background: hsl(220 100% 96%);
 
-/*
- * Inter  — foundational typeface for all text
- * JetBrains Mono — numerical / data display (SKUs, quantities, prices)
- *
- * Loaded via next/font in layout.tsx → --font-inter / --font-mono variables.
- * Below we map the @theme tokens so Tailwind's font utilities pick them up.
- */
+  --surface-container-lowest: hsl(218 45% 16%);
+  --surface-container-low: hsl(215 45% 20%);
+  --surface-container: hsl(213 35% 20%);
+  --surface-container-high: hsl(216 39% 27%);
+  --surface-container-highest: hsl(212 35% 31%);
+  --surface-dim: hsl(218 45% 16%);
+  --surface-bright: hsl(218 42% 20%);
 
-@theme {
+  --surface: hsl(212 63% 12%);
+  --on-surface: hsl(220 100% 96%);
+  --on-surface-variant: hsl(145 20% 70%);
+
+  --outline: hsl(171 6% 57%);
+  --outline-variant: hsl(172 10% 32%);
+
+  --card: var(--surface-container-lowest);
+  --card-foreground: var(--on-surface);
+  --muted: var(--surface-container-low);
+  --muted-foreground: var(--on-surface-variant);
+  --border: var(--outline);
+  --input: var(--outline-variant);
+  --accent: var(--surface-container-low);
+  --accent-foreground: var(--on-surface);
+  --popover: var(--surface-container);
+  --popover-foreground: var(--on-surface);
+
+  /* Primary */
+  --primary: hsl(173 58% 63%);
+  --primary-hsl: 173 58% 63%;
+  --on-primary: hsl(172 100% 11%);
+  --primary-container: hsl(175 100% 26%);
+  --on-primary-container: hsl(174 100% 6%);
+
+  /* Secondary */
+  --secondary: hsl(208 100% 79%);
+  --secondary-hsl: 208 100% 79%;
+  --on-secondary: hsl(208 100% 15%);
+  --secondary-container: hsl(201 100% 30%);
+  --on-secondary-container: hsl(204 100% 10%);
+
+  /* Tertiary */
+  --tertiary: hsl(133 66% 63%);
+  --tertiary-hsl: 133 66% 63%;
+  --on-tertiary: hsl(144 100% 11%);
+  --tertiary-container: hsl(146 100% 26%);
+  --on-tertiary-container: hsl(136 100% 6%);
+
+  /* Error */
+  --error: hsl(0 100% 71%);
+  --error-hsl: 0 100% 71%;
+  --on-error: hsl(172 100% 11%);
+
+  /* Warning */
+  --warning: hsl(41 73% 59%);
+  --warning-hsl: 41 73% 59%;
+  --on-warning: hsl(44 68% 17%);
+  --warning-container: hsl(43 59% 45%);
+  --on-warning-container: hsl(38 100% 96%);
+
+  --shadow-card: 0 4px 12px hsl(0 0% 0 / 0.2);
+  --shadow-card-hover: 0 6px 16px hsl(0 0% 0 / 0.3);
+  --shadow-popover: 0 4px 12px hsl(0 0% 0 / 0.3);
+}
+
+/* ────────────────────────── Theme Registration ────────────────────────── */
+
+@theme inline {
   /* Fonts */
-  --font-sans: var(--font-inter, 'Inter', system-ui, sans-serif);
+  --font-sans: var(--font-inter, Inter, system-ui, sans-serif);
   --font-mono: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
 
   /* Semantic color aliases (mapped to CSS variables) */
@@ -226,6 +333,8 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--on-primary);
   --color-primary-container: var(--primary-container);
@@ -265,94 +374,139 @@
   --color-surface-variant: var(--surface-variant);
   --color-on-surface-variant: var(--on-surface-variant);
 
+  /* Fixed color tokens */
+  --color-primary-fixed: var(--primary-fixed);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar tokens */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   /* Border radius */
   --radius-sm: var(--radius-sm);
   --radius: var(--radius);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
-  --radius-full: var(--radius-full);
+  --radius-2xl: var(--radius-full);
+
+  /* Container max width */
+  --max-width-container: var(--spacing-container-max);
 }
 
-/* ── Base body styles ──────────────────────────────────────────────── */
+/* ── Shadcn v4 base layer ──────────────────────────────────────────── *
+ * Provides consistent border/outline defaults and body styling.
+ * Using @apply within @layer base ensures these are injected at the
+ * correct cascade layer (below components).
+ * ────────────────────────────────────────────────────────────────── */
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-inter, Inter, system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Inherit fonts for form elements */
+  button,
+  input,
+  textarea,
+  select {
+    @apply font-sans;
+  }
 }
 
 /* ── Typography Utility Classes (from DESIGN.md) ───────────────────── */
 
 /* display-lg — 36px, 700 weight, 44px line-height */
 .text-display-lg {
+  font-family: var(--font-sans);
   font-size: 2.25rem;
   font-weight: 700;
   line-height: 2.75rem;
   letter-spacing: -0.02em;
-  font-family: var(--font-sans);
 }
 
 /* headline-lg — 28px, 600 weight, 36px line-height */
 .text-headline-lg {
+  font-family: var(--font-sans);
   font-size: 1.75rem;
   font-weight: 600;
   line-height: 2.25rem;
   letter-spacing: -0.01em;
-  font-family: var(--font-sans);
 }
 
 /* headline-lg-mobile — 24px, 600 weight, 32px line-height */
 .text-headline-lg-mobile {
+  font-family: var(--font-sans);
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 2rem;
-  font-family: var(--font-sans);
 }
 
 /* headline-md — 20px, 600 weight, 28px line-height */
 .text-headline-md {
+  font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.75rem;
-  font-family: var(--font-sans);
 }
 
 /* body-lg — 16px, 400 weight, 24px line-height */
 .text-body-lg {
+  font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.5rem;
-  font-family: var(--font-sans);
 }
 
 /* body-md — 14px, 400 weight, 20px line-height */
 .text-body-md {
+  font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.25rem;
-  font-family: var(--font-sans);
 }
 
 /* body-sm — 12px, 400 weight, 16px line-height */
 .text-body-sm {
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 400;
   line-height: 1rem;
-  font-family: var(--font-sans);
 }
 
-/* label-md — 12px, 600 weight, 16px line-height, 0.05em tracking */
+/* label-md — 12px, 600 weight, 16px line-height, 0.05em tracking, uppercase */
 .text-label-md {
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-family: var(--font-sans);
 }
 
 /* data-mono — JetBrains Mono, 14px, 500 weight, 20px line-height */
@@ -373,7 +527,7 @@ body {
 /* Elegant card shadow — soft, diffused (Blur: 12px, Y: 4px, Opacity: 4-6%) */
 .card-elevated {
   box-shadow: var(--shadow-card);
-  transition-property: box-shadow;
+  transition-property: box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -385,8 +539,10 @@ body {
 
 /* Interactive depth — subtle lift (Y: -2px) */
 .card-interactive {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 150ms ease, box-shadow 150ms ease;
+  box-shadow: var(--shadow-sm);
+  transition-property: transform, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }
 
 .card-interactive:hover {
@@ -396,7 +552,7 @@ body {
 
 /* Smooth transitions for interactive elements */
 .transition-smooth {
-  transition-property: all;
+  transition-property: background-color, border-color, color, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -406,7 +562,7 @@ body {
   backdrop-filter: var(--backdrop-blur-modal);
 }
 
-/* Focus ring styling */
+/* Focus ring styling — matches DESIGN.md Input Fields focus spec */
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -414,10 +570,14 @@ body {
 
 /* Loading spinner animation */
 @keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
   to {
     transform: rotate(360deg);
   }
 }
+
 .spin-slow {
   animation: spin-slow 1s linear infinite;
 }
@@ -427,6 +587,7 @@ body {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* ── Scrollbar styling ─────────────────────────────────────────────── */
@@ -457,6 +618,7 @@ body {
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px; /* full pill shape */
+  font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1rem;
@@ -477,4 +639,16 @@ body {
 .margin-desktop {
   margin-left: var(--spacing-margin-desktop);
   margin-right: var(--spacing-margin-desktop);
+}
+
+/* ── Data table cell alignments ────────────────────────────────────── */
+
+td.text-right,
+.text-table-right {
+  text-align: right;
+}
+
+td.text-center,
+.text-table-center {
+  text-align: center;
 }

@@ -287,7 +287,7 @@ function InventorySnapshot({ stats, isLoading }: { stats: Stats; isLoading: bool
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="space-y-4 mt-5">
+          <div className="space-y-4">
             {bars.map((bar) => {
               const widthPct = (bar.value / maxValue) * 100;
               return (
@@ -370,7 +370,7 @@ function buildActivityItems(
 
   return [...txItems, ...orderItems]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 6);
+    .slice(0, 4);
 }
 
 /* ── Dashboard ──────────────────────────────────────────────────────── */
@@ -390,13 +390,13 @@ export default function DashboardPage() {
 
   // Recent completed orders for the activity timeline
   const { data: recentOrdersData, isLoading: ordersLoading } = useOrders({
-    limit: 5,
+    limit: 4,
     status: 'COMPLETED',
   });
 
   // Recent inventory transactions for the activity timeline
   const { data: transactionsData, isLoading: txLoading } = useInventoryTransactions({
-    limit: 8,
+    limit: 4,
   });
 
   const fallbackStats: Stats = {
@@ -595,7 +595,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3 mt-5">
+                  <div className="space-y-3 ">
                     {activityItems.map((item) => {
                       const Icon = item.icon;
                       return (

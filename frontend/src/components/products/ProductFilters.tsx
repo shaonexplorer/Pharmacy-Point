@@ -32,7 +32,7 @@ export function ProductFilters({
   const categories = availableCategories || PRODUCT_CATEGORIES;
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-border bg-card card-elevated p-4">
+    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card card-elevated p-4">
       <div className="flex items-center gap-3">
         <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         <span className="text-label-md text-on-surface-variant">Filter by:</span>
@@ -89,7 +89,7 @@ export function ProductFilters({
           </Button>
         </div>
       ) : (
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-body-sm text-on-surface-variant">
           <Filter className="mr-2 h-4 w-4" />
           <span>No active filters</span>
         </div>

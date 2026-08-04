@@ -9,6 +9,10 @@ import { cn } from '@/lib/utils';
  * Design spec (DESIGN.md → Borders):
  *  - Color: outline (#6d7a77) — subtle separator
  *  - Used as a divider between sections and table rows
+ *
+ * Modern shadcn v4 patterns:
+ *  - data-slot attribute for styling hooks
+ *  - CSS variables for border color
  */
 
 function Separator({

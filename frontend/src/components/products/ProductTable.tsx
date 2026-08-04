@@ -5,19 +5,28 @@ import {
   flexRender,
   type ColumnDef,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Edit,
+  Eye,
+  Loader2,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { Product } from '@pharmacy-point/types';
 import { formatCurrency } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -60,7 +69,7 @@ export function ProductTable({
           <div className="font-medium text-foreground">
             {row.original.name}
             {row.original.sku && (
-              <div className="text-xs text-on-surface-variant data-mono">SKU: {row.original.sku}</div>
+              <div className="text-data-mono text-on-surface-variant">SKU: {row.original.sku}</div>
             )}
           </div>
         ),
@@ -68,14 +77,14 @@ export function ProductTable({
       {
         accessorKey: 'category',
         header: 'Category',
-        cell: ({ row }) => row.original.category || '—',
+        cell: ({ row }) => (
+          <span className="capitalize text-on-surface-variant">{row.original.category || '—'}</span>
+        ),
       },
       {
         accessorKey: 'price',
         header: 'Price',
-        cell: ({ row }) => (
-          <TableCellMono>{formatCurrency(row.original.price)}</TableCellMono>
-        ),
+        cell: ({ row }) => <TableCellMono>{formatCurrency(row.original.price)}</TableCellMono>,
       },
       {
         accessorKey: 'quantity',
@@ -86,15 +95,26 @@ export function ProductTable({
           const isLowStock = quantity <= lowStock;
           const isOutOfStock = quantity === 0;
 
+          let badgeVariant: 'success' | 'warning' | 'destructive';
+          let badgeLabel: string;
+
+          if (isOutOfStock) {
+            badgeVariant = 'destructive';
+            badgeLabel = 'Out of Stock';
+          } else if (isLowStock) {
+            badgeVariant = 'warning';
+            badgeLabel = 'Low Stock';
+          } else {
+            badgeVariant = 'success';
+            badgeLabel = 'In Stock';
+          }
+
           return (
-            <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
               <span className="text-data-mono font-medium text-foreground">{quantity} units</span>
-              {isOutOfStock && (
-                <Badge variant="destructive" size="sm">Out of Stock</Badge>
-              )}
-              {isLowStock && !isOutOfStock && (
-                <Badge variant="warning" size="sm">Low Stock</Badge>
-              )}
+              <Badge variant={badgeVariant} size="sm">
+                {badgeLabel}
+              </Badge>
             </div>
           );
         },
@@ -103,9 +123,7 @@ export function ProductTable({
         accessorKey: 'company',
         header: 'Company',
         cell: ({ row }) => (
-          <span className="text-on-surface-variant">
-            {row.original.company?.name ?? '—'}
-          </span>
+          <span className="text-on-surface-variant">{row.original.company?.name ?? '—'}</span>
         ),
       },
       {
@@ -117,7 +135,7 @@ export function ProductTable({
             <div className="flex items-center justify-end gap-1">
               <Button asChild variant="ghostIcon" size="sm">
                 <Link href={`/products/${product.id}`} aria-label="View product">
-                  <Edit className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="ghostIcon" size="sm">
@@ -168,7 +186,6 @@ export function ProductTable({
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     enableSorting: true,
     manualPagination: true,
@@ -177,12 +194,12 @@ export function ProductTable({
 
   if (error) {
     return (
-      <Card className="border-destructive bg-destructive/5 p-4">
+      <div className="rounded-lg border border-destructive bg-destructive/5 p-4 card-elevated">
         <div className="flex items-center gap-2 text-destructive">
           <AlertCircle className="h-4 w-4" />
-          <p>{error.message}</p>
+          <p className="text-body-md">{error.message}</p>
         </div>
-      </Card>
+      </div>
     );
   }
 
@@ -200,8 +217,8 @@ export function ProductTable({
 
   return (
     <>
-      {/* TanStack Table */}
-      <div className="rounded-xl border border-border bg-card card-elevated overflow-hidden">
+      {/* Data Table — no vertical borders, subtle bottom borders only */}
+      <div className="overflow-hidden rounded-lg border border-border bg-card card-elevated">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -210,16 +227,21 @@ export function ProductTable({
                   <TableHead key={header.id}>
                     {header.isPlaceholder ? null : (
                       <div
-                        className={`flex items-center gap-1 ${
-                          header.column.getCanSort() ? 'cursor-pointer select-none' : ''
-                        }`}
+                        className={cn(
+                          'flex items-center gap-1 transition-colors',
+                          header.column.getCanSort()
+                            ? 'cursor-pointer select-none hover:text-foreground'
+                            : ''
+                        )}
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {{
-                          asc: ' 🔼',
-                          desc: ' 🔽',
-                        }[header.column.getIsSorted() as string] ?? null}
+                        {header.column.getIsSorted() === 'asc' && (
+                          <ChevronUp className="h-3 w-3 text-on-surface-variant" />
+                        )}
+                        {header.column.getIsSorted() === 'desc' && (
+                          <ChevronDown className="h-3 w-3 text-on-surface-variant" />
+                        )}
                       </div>
                     )}
                   </TableHead>
@@ -243,8 +265,8 @@ export function ProductTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="text-body-sm text-on-surface-variant">
             Showing {products.length} of {totalItems} products
           </div>
           <div className="flex items-center gap-1">
@@ -253,9 +275,9 @@ export function ProductTable({
               size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Previous page</span>
             </Button>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum = i + 1;
@@ -275,14 +297,15 @@ export function ProductTable({
                   size="sm"
                   onClick={() => onPageChange(pageNum)}
                   aria-current={pageNum === currentPage ? 'page' : undefined}
+                  aria-label={`Page ${pageNum}`}
                 >
                   {pageNum}
                 </Button>
               );
             })}
             {totalPages > 5 && currentPage > 3 && currentPage < totalPages - 2 && (
-              <span className="text-muted-foreground" aria-hidden="true">
-                ...
+              <span className="text-body-sm text-on-surface-variant" aria-hidden="true">
+                …
               </span>
             )}
             <Button
@@ -290,9 +313,9 @@ export function ProductTable({
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Next page</span>
             </Button>
           </div>
         </div>

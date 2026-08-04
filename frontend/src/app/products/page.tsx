@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
@@ -8,7 +8,7 @@ import { useCompanies } from '@/hooks/useCompanies';
 import type { Product, Company } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Plus, Package, AlertCircle } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Loader2, Package, Plus, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { ProductTable } from '@/components/products/ProductTable';
 import { ProductSearch } from '@/components/products/ProductSearch';
@@ -17,7 +17,7 @@ import { ConfirmDialog } from '@/components/common';
 
 export default function ProductsPage() {
   const router = useRouter();
-  const { data: session, isPending } = useSession();
+  const { data: session, isPending, error: authError } = useSession();
   const { data: companiesResponse } = useCompanies();
   const companies: Company[] = companiesResponse?.data ?? [];
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,9 +49,14 @@ export default function ProductsPage() {
 
   const deleteProductMutation = useDeleteProduct();
 
-  const products = productsData?.data ?? [];
+  const products = useMemo(() => productsData?.data ?? [], [productsData?.data]);
   const totalPages = productsData?.pagination.totalPages ?? 1;
   const totalItems = productsData?.pagination.total ?? 0;
+
+  // Derive low-stock count from current page data
+  const lowStockCount = useMemo(() => {
+    return products.filter((p) => p.quantity <= (p.lowStock ?? 0)).length;
+  }, [products]);
 
   const handleDeleteClick = (product: Product) => {
     setProductToDelete(product);
@@ -100,6 +105,7 @@ export default function ProductsPage() {
 
   const hasActiveFilters = !!searchQuery || !!selectedCategory || !!selectedCompany;
 
+  // Auth loading
   if (isPending) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -108,25 +114,40 @@ export default function ProductsPage() {
     );
   }
 
-  if (!session) {
-    return null; // Will redirect to login
+  // Auth error or not authenticated
+  if (authError || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Card className="w-full max-w-md border-border bg-card card-elevated">
+          <CardContent className="p-6">
+            <AlertCircle className="h-8 w-8 text-destructive mb-3" />
+            <h3 className="text-headline-md text-foreground">Not Authenticated</h3>
+            <p className="mt-2 text-body-md text-on-surface-variant">
+              {authError?.message || 'You need to sign in to view this page.'}
+            </p>
+            <Button asChild variant="default" className="mt-4 w-full">
+              <Link href="/login">Sign In</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
-              <Package className="h-6 w-6 text-primary" />
-              Products
-            </h1>
-            <p className="text-body-md text-on-surface-variant">
-              {totalItems} products{' '}
-              {totalPages > 1 && `(page ${currentPage} of ${totalPages})`}{' '}
-            </p>
-          </div>
+    <div className="flex-1 p-4 sm:p-6">
+      <div className="w-full space-y-6">
+        {/* ── Header ── */}
+        <div className="flex flex-col gap-1">
+          <h1 className="text-display-lg text-foreground">Products</h1>
+          <p className="text-body-md text-on-surface-variant">
+            Manage your medication catalogue — add, edit, and monitor stock levels.
+          </p>
+        </div>
+
+        {/* ── Search & Filters ── */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <ProductSearch onSearch={handleSearch} placeholder="Search by name or SKU..." />
           <Button asChild>
             <Link href="/products/new">
               <Plus className="mr-2 h-4 w-4" />
@@ -135,71 +156,100 @@ export default function ProductsPage() {
           </Button>
         </div>
 
-        {/* Search & Filters */}
-        <div className="mb-6 space-y-4">
-          <ProductSearch onSearch={handleSearch} placeholder="Search by name or SKU..." />
-          <ProductFilters
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            selectedCompany={selectedCompany}
-            onCompanyChange={handleCompanyChange}
-            onClearFilters={handleClearFilters}
-            hasActiveFilters={hasActiveFilters}
-            companies={companies}
-          />
-        </div>
+        <ProductFilters
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          selectedCompany={selectedCompany}
+          onCompanyChange={handleCompanyChange}
+          onClearFilters={handleClearFilters}
+          hasActiveFilters={hasActiveFilters}
+          companies={companies}
+        />
 
-        {/* Error */}
+        {/* ── Delete Error ── */}
         {deleteProductMutation.isError && (
-          <Card className="mb-6 border-destructive bg-destructive/5 p-4">
+          <div className="rounded-lg border border-destructive bg-destructive/5 p-4 card-elevated">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
-              <p>{deleteProductMutation.error?.message || 'Failed to delete product'}</p>
+              <p className="text-body-md">
+                {deleteProductMutation.error?.message || 'Failed to delete product'}
+              </p>
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* Loading State */}
+        {/* ── Low Stock Alert ── */}
+        {!isLoading && !error && lowStockCount > 0 && !hasActiveFilters && (
+          <div className="rounded-lg border border-warning-container/50 bg-warning-container/10 p-4 card-elevated">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-warning">
+                  {lowStockCount} product{lowStockCount !== 1 ? 's' : ''} below low-stock threshold
+                </p>
+                <p className="text-body-sm text-on-surface-variant">
+                  Review inventory levels and consider restocking.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Loading State ── */}
         {isLoading && (
           <div className="flex min-h-75 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
 
-        {/* Error State */}
+        {/* ── Error State ── */}
         {!isLoading && error && (
-          <Card className="border-destructive bg-destructive/5 p-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <p>{error instanceof Error ? error.message : 'Failed to load products'}</p>
-            </div>
+          <Card className="border-destructive bg-card card-elevated">
+            <CardContent className="flex items-center gap-3 p-4">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+              <p className="text-body-md text-destructive">
+                {error instanceof Error ? error.message : 'Failed to load products'}
+              </p>
+            </CardContent>
           </Card>
         )}
 
-        {/* Empty State */}
+        {/* ── Empty State ── */}
         {!isLoading && !error && products.length === 0 && (
           <Card className="border-border bg-card card-elevated border-dashed">
             <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
-              <Package className="h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-headline-md text-foreground">No products found</h3>
-              <p className="mt-2 text-body-md text-on-surface-variant">
-                {hasActiveFilters
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Get started by adding your first product.'}
-              </p>
-              {!hasActiveFilters && (
-                <Button asChild className="mt-4">
-                  <Link href="/products/new">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Product
-                  </Link>
-                </Button>
+              {hasActiveFilters ? (
+                <>
+                  <Search className="h-12 w-12 text-muted-foreground/50" />
+                  <h3 className="mt-4 text-headline-md text-foreground">No products found</h3>
+                  <p className="mt-2 text-body-md text-on-surface-variant">
+                    Try adjusting your search or filter criteria.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-4" onClick={handleClearFilters}>
+                    <X className="mr-2 h-3 w-3" />
+                    Clear Filters
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Package className="h-12 w-12 text-muted-foreground/50" />
+                  <h3 className="mt-4 text-headline-md text-foreground">No products found</h3>
+                  <p className="mt-2 text-body-md text-on-surface-variant">
+                    Get started by adding your first product.
+                  </p>
+                  <Button asChild className="mt-4">
+                    <Link href="/products/new">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Product
+                    </Link>
+                  </Button>
+                </>
               )}
             </CardContent>
           </Card>
         )}
 
-        {/* Product Table */}
+        {/* ── Product Table ── */}
         {!isLoading && !error && products.length > 0 && (
           <ProductTable
             products={products}
@@ -211,7 +261,7 @@ export default function ProductsPage() {
           />
         )}
 
-        {/* Delete Confirmation Dialog */}
+        {/* ── Delete Confirmation Dialog ── */}
         <ConfirmDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}

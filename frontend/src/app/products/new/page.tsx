@@ -33,7 +33,7 @@ export default function CreateProductPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
+      <div className="">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">

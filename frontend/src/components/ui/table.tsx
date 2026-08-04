@@ -6,26 +6,28 @@ import { cn } from '@/lib/utils';
  *
  * Design spec (DESIGN.md → Data Tables):
  *  - Headers: label-md (uppercase, 12px, 600 weight, 0.05em tracking)
- *  - Borders: Subtle bottom border only — NO vertical borders.
+ *  - Borders: Subtle bottom border only — NO vertical borders allowed.
  *  - Data cells: body-md (14px, 400 weight)
  *  - Numerical data: data-mono (JetBrains Mono, 14px, 500 weight) for precise alignment
  *  - Zebra-striping: Used in dark mode with 5% luminosity difference between rows
- *
- * Data Tables component spec:
  *  - Row hover: subtle background change
  *  - Selected state: muted background
+ *
+ * Modern shadcn v4 patterns:
+ *  - data-slot attributes for styling hooks
+ *  - CSS variables for borders and hover states
  */
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-auto rounded-lg border border-border bg-card">
+    <div
+      data-slot="table-container"
+      className="w-full overflow-auto rounded-lg border border-border bg-card"
+    >
       <table
+        data-slot="table"
         ref={ref}
-        className={cn(
-          'w-full text-sm',
-          'border-collapse',
-          className
-        )}
+        className={cn('w-full text-sm', 'border-collapse', className)}
         {...props}
       />
     </div>
@@ -37,7 +39,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('bg-muted/50', className)} {...props} />
+  <thead data-slot="table-header" ref={ref} className={cn('bg-muted/50', className)} {...props} />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -45,17 +47,25 @@ const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <tbody ref={ref} className={cn('[&_tr:last-child]:border-0', className)} {...props} />
+  <tbody
+    data-slot="table-body"
+    ref={ref}
+    className={cn('[&_tr:last-child]:border-0', className)}
+    {...props}
+  />
 ));
 TableBody.displayName = 'TableBody';
 
 const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTMLTableRowElement>>(
   ({ className, ...props }, ref) => (
     <tr
+      data-slot="table-row"
       ref={ref}
       className={cn(
         'border-b border-border transition-colors',
+        /* Hover: subtle surface change */
         'hover:bg-surface-container-low',
+        /* Selected state */
         'data-[state=selected]:bg-surface-container-low',
         /* Zebra-striping in dark mode — 5% luminosity difference */
         'dark:even:bg-surface-container-lowest/50',
@@ -73,6 +83,7 @@ const TableHead = React.forwardRef<
   React.ThHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <th
+    data-slot="table-head"
     ref={ref}
     className={cn(
       'h-12 px-4 py-2.5',
@@ -97,6 +108,7 @@ const TableCell = React.forwardRef<
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <td
+    data-slot="table-cell"
     ref={ref}
     className={cn(
       'p-4 align-middle text-sm text-on-surface',
@@ -115,6 +127,7 @@ const TableCellMono = React.forwardRef<
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <td
+    data-slot="table-cell-mono"
     ref={ref}
     className={cn(
       'p-4 align-middle text-sm',
