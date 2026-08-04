@@ -129,11 +129,9 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2">
+    <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => {
         const isOutOfStock = product.quantity <= 0;
-        const showSecondary = product.quantity >= 2 && canAddToCart(product, 2);
-        const showTertiary = product.quantity >= 3 && canAddToCart(product, 3);
 
         return (
           <Card
@@ -142,12 +140,9 @@ export function ProductGrid({
           >
             <div className="flex gap-3">
               {/* Mini stock bottle visualization — pharmacy subject matter */}
-              <div className="flex h-20 w-16 shrink-0 items-end justify-center">
-                <StockBottle quantity={product.quantity} lowStock={product.lowStock} />
-              </div>
 
               {/* Product Image or Placeholder */}
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-md bg-muted/30 overflow-hidden">
+              <div className="flex h-16 w-16  items-center justify-center rounded-md bg-muted/30 overflow-hidden">
                 {product.image ? (
                   <Image
                     src={product.image}
@@ -182,38 +177,16 @@ export function ProductGrid({
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 flex items-center gap-1.5">
+              <div className="mt-3">
                 <Button
                   size="tablet"
                   variant="secondary"
                   onClick={() => onAddItem(product, 1)}
                   disabled={!canAddToCart(product, 1)}
-                  className="flex-1 text-xs"
+                  className="h-12 w-full text-xs"
                 >
-                  +1
+                  + Add
                 </Button>
-                {showSecondary && (
-                  <Button
-                    size="tablet"
-                    variant="outline"
-                    onClick={() => onAddItem(product, 2)}
-                    disabled={!canAddToCart(product, 2)}
-                    className="flex-1 text-xs"
-                  >
-                    +2
-                  </Button>
-                )}
-                {showTertiary && (
-                  <Button
-                    size="tablet"
-                    variant="outline"
-                    onClick={() => onAddItem(product, 3)}
-                    disabled={!canAddToCart(product, 3)}
-                    className="flex-1 text-xs"
-                  >
-                    +3
-                  </Button>
-                )}
               </div>
             )}
           </Card>
