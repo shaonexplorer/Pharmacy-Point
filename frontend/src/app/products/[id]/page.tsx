@@ -107,8 +107,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const isOutOfStock = product.quantity === 0;
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -117,7 +117,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
+            <h1 className="text-headline-lg text-foreground">{product.name}</h1>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="outline">
@@ -141,7 +141,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         {/* Product Details */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Image / Media */}
-          <Card className="bg-card border-border">
+          <Card className="bg-card border-border card-elevated">
             <CardContent className="pt-6">
               <div className="aspect-video relative overflow-hidden rounded-md bg-muted">
                 {product.image ? (
@@ -163,74 +163,74 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           {/* Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Price & Stock */}
-            <Card className="bg-card border-border">
+            <Card className="bg-card border-border card-elevated">
               <CardHeader>
-                <CardTitle className="text-card-foreground">Pricing &amp; Availability</CardTitle>
+                <CardTitle className="text-headline-md">Pricing &amp; Availability</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Price</p>
-                    <p className="text-3xl font-bold text-primary">
+                    <p className="text-label-md text-on-surface-variant">Price</p>
+                    <p className="text-display-lg font-bold text-data-mono text-primary">
                       {formatCurrency(product.price)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Stock Quantity</p>
+                    <p className="text-label-md text-on-surface-variant">Stock Quantity</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-2xl font-semibold text-foreground">
+                      <p className="text-2xl font-semibold text-data-mono text-foreground">
                         {product.quantity} units
                       </p>
                       {isOutOfStock && <Badge variant="destructive">Out of Stock</Badge>}
-                      {isLowStock && !isOutOfStock && <Badge variant="secondary">Low Stock</Badge>}
+                      {isLowStock && !isOutOfStock && <Badge variant="warning">Low Stock</Badge>}
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Low Stock Threshold</p>
-                    <p className="text-foreground">{product.lowStock} units</p>
+                    <p className="text-label-md text-on-surface-variant">Low Stock Threshold</p>
+                    <p className="text-body-md text-foreground">{product.lowStock} units</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Metadata */}
-            <Card className="bg-card border-border">
+            <Card className="bg-card border-border card-elevated">
               <CardHeader>
-                <CardTitle className="text-card-foreground">Product Information</CardTitle>
+                <CardTitle className="text-headline-md">Product Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-muted-foreground">SKU</p>
-                      <p className="font-mono text-foreground">{product.sku}</p>
+                      <p className="text-label-md text-on-surface-variant">SKU</p>
+                      <p className="text-data-mono text-foreground">{product.sku}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Category</p>
+                      <p className="text-label-md text-on-surface-variant">Category</p>
                       <div className="flex items-center gap-2">
-                        <Tag className="h-4 w-4 text-muted-foreground" />
-                        <p className="text-foreground">{product.category}</p>
+                        <Tag className="h-4 w-4 text-on-surface-variant" />
+                        <p className="text-body-md text-foreground">{product.category}</p>
                       </div>
                     </div>
                   </div>
                   {product.company && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Company</p>
-                      <p className="text-foreground font-medium">{product.company.name}</p>
+                      <p className="text-label-md text-on-surface-variant">Company</p>
+                      <p className="text-body-md text-foreground font-medium">{product.company.name}</p>
                     </div>
                   )}
                   {product.description && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Description</p>
-                      <p className="text-foreground whitespace-pre-wrap">{product.description}</p>
+                      <p className="text-label-md text-on-surface-variant">Description</p>
+                      <p className="text-body-md text-foreground whitespace-pre-wrap">{product.description}</p>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                       <Calendar className="h-4 w-4" />
                       <span>Created: {new Date(product.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                       <Calendar className="h-4 w-4" />
                       <span>Updated: {new Date(product.updatedAt).toLocaleDateString()}</span>
                     </div>

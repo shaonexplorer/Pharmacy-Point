@@ -58,7 +58,7 @@ export function CompanyTable({
         accessorKey: 'description',
         header: 'Description',
         cell: ({ row }) => (
-          <span className="text-muted-foreground line-clamp-2 max-w-xs">
+          <span className="text-on-surface-variant line-clamp-2 max-w-xs">
             {row.original.description || '—'}
           </span>
         ),
@@ -68,7 +68,7 @@ export function CompanyTable({
         header: 'Created',
         cell: ({ row }) => {
           const date = new Date(row.original.createdAt);
-          return <span className="text-muted-foreground">{date.toLocaleDateString()}</span>;
+          return <span className="text-on-surface-variant">{date.toLocaleDateString()}</span>;
         },
       },
       {
@@ -163,7 +163,7 @@ export function CompanyTable({
   return (
     <>
       {/* TanStack Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="rounded-xl border border-border bg-card card-elevated">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

@@ -72,8 +72,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -85,8 +85,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Form */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card card-elevated p-6">
+          <div className="mb-4 flex items-center gap-2 text-label-md text-on-surface-variant">
             <Edit className="h-4 w-4" />
             <span>Update the product details below</span>
           </div>

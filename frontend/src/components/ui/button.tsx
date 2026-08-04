@@ -55,7 +55,7 @@ const buttonVariants = cva(
           'border border-secondary text-secondary',
         /* Inventory — warning variant */
         warning:
-          'bg-warning text-warning-container',
+          'bg-warning text-on-warning-container',
         /* Destructive outline — outlined in red, filled on hover (prevents accidental triggers) */
         destructiveOutline:
           'border border-error text-error hover:bg-error hover:text-on-error',

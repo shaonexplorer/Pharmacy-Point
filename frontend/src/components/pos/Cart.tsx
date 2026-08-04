@@ -31,7 +31,7 @@ export function Cart({
   const isEmpty = items.length === 0;
 
   return (
-    <Card className="border-border bg-card flex flex-col">
+    <Card className="border-border bg-card card-elevated flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
@@ -63,17 +63,17 @@ export function Cart({
         <>
           {/* Summary */}
           <div className="border-t border-border px-6 py-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="text-foreground font-medium">{formatCurrency(subtotal)}</span>
+            <div className="flex justify-between text-body-md">
+              <span className="text-on-surface-variant">Subtotal</span>
+              <span className="text-foreground font-medium text-data-mono">{formatCurrency(subtotal)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Tax ({Math.round(taxRate * 100)}%)</span>
-              <span className="text-foreground font-medium">{formatCurrency(taxAmount)}</span>
+            <div className="flex justify-between text-body-md">
+              <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
+              <span className="text-foreground font-medium text-data-mono">{formatCurrency(taxAmount)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
               <span className="text-foreground">Total</span>
-              <span className="text-primary">{formatCurrency(total)}</span>
+              <span className="text-primary text-data-mono">{formatCurrency(total)}</span>
             </div>
           </div>
 

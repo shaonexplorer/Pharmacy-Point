@@ -113,7 +113,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {apiError && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
           {apiError}
         </div>
       )}
@@ -121,7 +121,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
       <div className="grid grid-cols-1 gap-6">
         {/* Company Name */}
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-foreground">
+          <Label htmlFor="name" className="text-body-md text-foreground">
             Company Name <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -137,7 +137,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
 
         {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="description" className="text-foreground">
+          <Label htmlFor="description" className="text-body-md text-foreground">
             Description
           </Label>
           <Textarea
@@ -152,7 +152,7 @@ export function CompanyForm({ company, mode }: CompanyFormProps) {
 
         {/* Image URL */}
         <div className="space-y-2">
-          <Label htmlFor="image" className="text-foreground">
+          <Label htmlFor="image" className="text-body-md text-foreground">
             Logo Image URL
           </Label>
           <Input

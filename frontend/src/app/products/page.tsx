@@ -7,7 +7,7 @@ import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
 import { useCompanies } from '@/hooks/useCompanies';
 import type { Product, Company } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Plus, Package, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { ProductTable } from '@/components/products/ProductTable';
@@ -114,15 +114,15 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
               <Package className="h-6 w-6 text-primary" />
               Products
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-body-md text-on-surface-variant">
               {totalItems} products{' '}
               {totalPages > 1 && `(page ${currentPage} of ${totalPages})`}{' '}
             </p>
@@ -178,23 +178,25 @@ export default function ProductsPage() {
 
         {/* Empty State */}
         {!isLoading && !error && products.length === 0 && (
-          <div className="flex min-h-75 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
-            <Package className="h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold text-foreground">No products found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {hasActiveFilters
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Get started by adding your first product.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild className="mt-4">
-                <Link href="/products/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Product
-                </Link>
-              </Button>
-            )}
-          </div>
+          <Card className="border-border bg-card card-elevated border-dashed">
+            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
+              <Package className="h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mt-4 text-headline-md text-foreground">No products found</h3>
+              <p className="mt-2 text-body-md text-on-surface-variant">
+                {hasActiveFilters
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Get started by adding your first product.'}
+              </p>
+              {!hasActiveFilters && (
+                <Button asChild className="mt-4">
+                  <Link href="/products/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Product
+                  </Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Product Table */}
@@ -220,6 +222,7 @@ export default function ProductsPage() {
               : ''
           }
           confirmText="Delete"
+          variant="destructive"
           onConfirm={handleConfirmDelete}
           loading={deleteProductMutation.isPending}
         />

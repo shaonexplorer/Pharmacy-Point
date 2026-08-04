@@ -145,7 +145,7 @@ function PosContent() {
     const staffName = sessionData?.user?.name ?? undefined;
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-3xl">
+        <div className="container-max">
           <Receipt
             order={completedOrder}
             staffName={staffName}
@@ -160,32 +160,32 @@ function PosContent() {
   // Main POS interface
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
               <ShoppingCart className="h-6 w-6 text-primary" />
               Point of Sale
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-body-md text-on-surface-variant">
               {sessionData?.user?.name
                 ? `Signed in as ${sessionData.user.name}`
                 : 'Ready to process a new sale'}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Order Total</p>
-            <p className="text-2xl font-bold text-primary">{formatCurrency(total)}</p>
+            <p className="text-label-md text-on-surface-variant">Order Total</p>
+            <p className="text-2xl font-bold text-data-mono text-primary">{formatCurrency(total)}</p>
           </div>
         </div>
 
         {/* Error State */}
         {createOrderMutation.isError && (
-          <Card id="checkout-error" className="border-destructive bg-destructive/5 p-4 mb-4">
+          <Card id="checkout-error" className="border-destructive bg-destructive/5 card-elevated p-4 mb-4">
             <div className="flex items-center gap-2 text-destructive">
               <AlertCircle className="h-4 w-4" />
-              <p>
+              <p className="text-body-md">
                 {createOrderMutation.error?.message || 'Failed to process sale. Please try again.'}
               </p>
             </div>
@@ -195,6 +195,7 @@ function PosContent() {
         {/* Main Layout */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
           {/* Left Column: Products */}
+          {/* POS grid spacing: md (16px) between elements per spec */}
           <div className="space-y-4">
             {/* Product Search */}
             <ProductSearch

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 import { Loader2, Save, X, Trash2 } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '@/lib/formatters';
 import Link from 'next/link';
@@ -159,7 +160,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {apiError && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
           {apiError}
         </div>
       )}
@@ -167,7 +168,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Product Name */}
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-foreground">
+          <Label htmlFor="name" className="text-body-md text-foreground">
             Product Name <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -183,7 +184,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* SKU */}
         <div className="space-y-2">
-          <Label htmlFor="sku" className="text-foreground">
+          <Label htmlFor="sku" className="text-body-md text-foreground">
             SKU <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -199,7 +200,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Price */}
         <div className="space-y-2">
-          <Label htmlFor="price" className="text-foreground">
+          <Label htmlFor="price" className="text-body-md text-foreground">
             Price <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -217,19 +218,14 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Category */}
         <div className="space-y-2">
-          <Label htmlFor="category" className="text-foreground">
+          <Label htmlFor="category" className="text-body-md text-foreground">
             Category <span className="text-destructive">*</span>
           </Label>
-          <select
+          <Select
             id="category"
             value={formData.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            className={cn(
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
-              'transition-colors duration-200 focus-within:outline-none focus-within:ring-2',
-              'focus-within:ring-primary focus-within:ring-offset-2 disabled:cursor-not-allowed',
-              errors.category ? 'border-destructive' : ''
-            )}
+            className={errors.category ? 'border-destructive' : ''}
           >
             <option value="">Select a category</option>
             {PRODUCT_CATEGORIES.map((cat) => (
@@ -237,25 +233,20 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                 {cat}
               </option>
             ))}
-          </select>
+          </Select>
           {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
         </div>
 
         {/* Company */}
         <div className="space-y-2">
-          <Label htmlFor="companyId" className="text-foreground">
+          <Label htmlFor="companyId" className="text-body-md text-foreground">
             Company
           </Label>
-          <select
+          <Select
             id="companyId"
             value={formData.companyId ?? ''}
             onChange={(e) => handleChange('companyId', e.target.value || '')}
-            className={cn(
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
-              'transition-colors duration-200 focus-within:outline-none focus-within:ring-2',
-              'focus-within:ring-primary focus-within:ring-offset-2 disabled:cursor-not-allowed',
-              errors.companyId ? 'border-destructive' : ''
-            )}
+            className={errors.companyId ? 'border-destructive' : ''}
           >
             <option value="">Select a company</option>
             {companies.map((company) => (
@@ -263,13 +254,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
                 {company.name}
               </option>
             ))}
-          </select>
+          </Select>
           {errors.companyId && <p className="text-sm text-destructive">{errors.companyId}</p>}
         </div>
 
         {/* Quantity */}
         <div className="space-y-2">
-          <Label htmlFor="quantity" className="text-foreground">
+          <Label htmlFor="quantity" className="text-body-md text-foreground">
             Stock Quantity <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -286,7 +277,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Low Stock Threshold */}
         <div className="space-y-2">
-          <Label htmlFor="lowStock" className="text-foreground">
+          <Label htmlFor="lowStock" className="text-body-md text-foreground">
             Low Stock Threshold <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -303,7 +294,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Image URL */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="image" className="text-foreground">
+          <Label htmlFor="image" className="text-body-md text-foreground">
             Image URL
           </Label>
           <Input
@@ -319,7 +310,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Description */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="description" className="text-foreground">
+          <Label htmlFor="description" className="text-body-md text-foreground">
             Description
           </Label>
           <Textarea
@@ -372,6 +363,3 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     </form>
   );
 }
-
-// Import cn helper
-import { cn } from '@/lib/utils';

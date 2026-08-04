@@ -6,7 +6,7 @@ import { useSession } from '@/lib/auth-client';
 import { useCompanies, useDeleteCompany } from '@/hooks/useCompanies';
 import { CompanyTable } from '@/components/companies/CompanyTable';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Plus, Store, AlertCircle, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -79,15 +79,15 @@ export default function CompaniesPage() {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
               <Store className="h-6 w-6 text-primary" />
               Companies
             </h1>
-            <p className="text-muted-foreground">Manage your pharmacy company profiles</p>
+            <p className="text-body-md text-on-surface-variant">Manage your pharmacy company profiles</p>
           </div>
           <Button asChild>
             <Link href="/companies/new">
@@ -130,23 +130,25 @@ export default function CompaniesPage() {
 
         {/* Empty State */}
         {!isLoading && !error && companies.length === 0 && (
-          <div className="flex min-h-75 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
-            <Store className="h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-semibold text-foreground">No companies found</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {searchQuery
-                ? 'Try adjusting your search query.'
-                : 'Get started by adding your first company.'}
-            </p>
-            {!searchQuery && (
-              <Button asChild className="mt-4">
-                <Link href="/companies/new">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Company
-                </Link>
-              </Button>
-            )}
-          </div>
+          <Card className="border-border bg-card card-elevated border-dashed">
+            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
+              <Store className="h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mt-4 text-headline-md text-foreground">No companies found</h3>
+              <p className="mt-2 text-body-md text-on-surface-variant">
+                {searchQuery
+                  ? 'Try adjusting your search query.'
+                  : 'Get started by adding your first company.'}
+              </p>
+              {!searchQuery && (
+                <Button asChild className="mt-4">
+                  <Link href="/companies/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Company
+                  </Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Company Table */}
@@ -172,6 +174,7 @@ export default function CompaniesPage() {
               : ''
           }
           confirmText="Delete"
+          variant="destructive"
           onConfirm={handleConfirmDelete}
           loading={deleteCompanyMutation.isPending}
         />

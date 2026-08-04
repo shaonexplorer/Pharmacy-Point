@@ -4,6 +4,8 @@ import { Customer, PaymentMethod } from '@pharmacy-point/types';
 import { CartItem } from '@/context/PosContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
@@ -42,7 +44,7 @@ export function Checkout({
   const isEmpty = items.length === 0;
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border-border bg-card card-elevated">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
@@ -53,27 +55,27 @@ export function Checkout({
       <CardContent className="space-y-4">
         {/* Order Summary */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span className="text-foreground">{formatCurrency(subtotal)}</span>
+          <div className="flex justify-between text-body-md">
+            <span className="text-on-surface-variant">Subtotal</span>
+            <span className="text-foreground text-data-mono">{formatCurrency(subtotal)}</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tax ({Math.round(taxRate * 100)}%)</span>
-            <span className="text-foreground">{formatCurrency(taxAmount)}</span>
+          <div className="flex justify-between text-body-md">
+            <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
+            <span className="text-foreground text-data-mono">{formatCurrency(taxAmount)}</span>
           </div>
           <div className="flex justify-between border-t border-border pt-2 text-xl font-bold">
             <span className="text-foreground">Total</span>
-            <span className="text-primary">{formatCurrency(total)}</span>
+            <span className="text-primary text-data-mono">{formatCurrency(total)}</span>
           </div>
         </div>
 
         {/* Payment Method Selection */}
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Payment Method</p>
+          <p className="text-label-md text-foreground">Payment Method</p>
           <div className="flex gap-2">
             <Button
               variant={paymentMethod === 'cash' ? 'default' : 'outline'}
-              size="sm"
+              size="tablet"
               onClick={() => onPaymentMethodChange('cash')}
               className={cn(
                 'flex-1',
@@ -85,7 +87,7 @@ export function Checkout({
             </Button>
             <Button
               variant={paymentMethod === 'card' ? 'default' : 'outline'}
-              size="sm"
+              size="tablet"
               onClick={() => onPaymentMethodChange('card')}
               className={cn(
                 'flex-1',
@@ -100,17 +102,10 @@ export function Checkout({
 
         {/* Customer Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Customer (optional)</label>
-          <select
+          <Label className="text-label-md text-foreground">Customer (optional)</Label>
+          <Select
             value={customerId ?? ''}
             onChange={(e) => onCustomerChange(e.target.value)}
-            className={cn(
-              'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
-              'transition-colors duration-200 placeholder:text-muted-foreground',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              'focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50',
-              'hover:border-muted'
-            )}
             disabled={isLoadingCustomers}
           >
             <option value="">Walk-in Customer</option>
@@ -120,12 +115,12 @@ export function Checkout({
                 {customer.phone ? ` (${customer.phone})` : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
-        {/* Process Sale Button */}
+        {/* Process Sale Button — primary action, large format with rounded-lg */}
         <Button
-          size="lg"
+          size="tablet"
           className="w-full"
           disabled={isEmpty || isProcessing}
           onClick={onProcessSale}

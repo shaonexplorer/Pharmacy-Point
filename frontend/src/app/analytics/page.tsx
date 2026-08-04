@@ -7,6 +7,15 @@ import { useProducts } from '@/hooks/useProducts';
 import { useStats } from '@/hooks/useStats';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableCellMono,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Loader2, ArrowLeft, BarChart3, Package } from 'lucide-react';
 import Link from 'next/link';
 
@@ -80,15 +89,15 @@ export default function AnalyticsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="container-max space-y-6">
           {/* Header */}
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="flex items-center gap-2 text-3xl font-bold text-foreground">
+              <h1 className="flex items-center gap-2 text-headline-lg text-foreground">
                 <BarChart3 className="h-6 w-6 text-primary" />
                 Analytics & Reports
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-1 text-body-md text-on-surface-variant">
                 View sales performance and inventory insights
               </p>
             </div>
@@ -101,55 +110,55 @@ export default function AnalyticsPage() {
           </div>
 
           {/* KPI Cards Grid */}
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Average Basket Value */}
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-label-md text-on-surface-variant">
                   Average Basket Value
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl font-bold text-data-mono text-foreground">
                   ${ANALYTICS_SUMMARY.avgBasketValue.toFixed(2)}
                 </div>
-                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
-                  <span className="text-emerald-600 font-medium">▲ +4.2%</span>
+                <p className="flex items-center gap-1 text-xs text-on-surface-variant">
+                  <span className="text-tertiary font-medium">▲ +4.2%</span>
                   <span>from last month</span>
                 </p>
               </CardContent>
             </Card>
 
             {/* Profit Margin */}
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-label-md text-on-surface-variant">
                   Profit Margin
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl font-bold text-data-mono text-foreground">
                   {ANALYTICS_SUMMARY.profitMargin}%
                 </div>
-                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
-                  <span className="text-emerald-600 font-medium">▲ +1.8%</span>
+                <p className="flex items-center gap-1 text-xs text-on-surface-variant">
+                  <span className="text-tertiary font-medium">▲ +1.8%</span>
                   <span>from last month</span>
                 </p>
               </CardContent>
             </Card>
 
             {/* Total Orders */}
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-label-md text-on-surface-variant">
                   Total Orders
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl font-bold text-data-mono text-foreground">
                   {ANALYTICS_SUMMARY.totalOrders.toLocaleString()}
                 </div>
-                <p className="flex items-center space-x-1 text-xs text-muted-foreground">
+                <p className="flex items-center gap-1 text-xs text-on-surface-variant">
                   <span className="text-destructive font-medium">▼ -0.5%</span>
                   <span>from last month</span>
                 </p>
@@ -157,17 +166,17 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Inventory Turnover */}
-            <Card className="border-border bg-card shadow-sm">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+                <CardTitle className="text-label-md text-on-surface-variant">
                   Inventory Turn
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-2xl font-bold text-data-mono text-foreground">
                   {ANALYTICS_SUMMARY.inventoryTurn}x
                 </div>
-                <p className="text-xs text-muted-foreground">Optimal</p>
+                <p className="text-xs text-tertiary">Optimal</p>
               </CardContent>
             </Card>
           </div>
@@ -175,27 +184,21 @@ export default function AnalyticsPage() {
           {/* Charts & Insights */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Monthly Sales Chart Placeholder */}
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  Monthly Sales vs Targets
-                </CardTitle>
+                <CardTitle className="text-headline-md">Monthly Sales vs Targets</CardTitle>
                 <CardDescription>January through June performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-on-surface-variant">
                     Monthly Sales Chart Placeholder
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {['Day', 'Week', 'Month'].map((filter) => (
-                      <button
-                        key={filter}
-                        type="button"
-                        className="rounded border border-input px-3 py-1 text-sm transition-colors hover:bg-muted"
-                      >
+                      <Button key={filter} variant="outline" size="sm">
                         {filter}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -203,61 +206,53 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Top Sellers Table */}
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground">Top Sellers</CardTitle>
+                <CardTitle className="text-headline-md">Top Sellers</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-border text-left">
-                      <thead className="bg-muted">
-                        <tr>
-                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Product
-                          </th>
-                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Category
-                          </th>
-                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Units Sold
-                          </th>
-                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Revenue
-                          </th>
-                          <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            Change
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product</TableHead>
+                          <TableHead>Category</TableHead>
+                          <TableHead>Units Sold</TableHead>
+                          <TableHead>Revenue</TableHead>
+                          <TableHead className="text-right">Change</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {TOP_SELLERS.map((item) => (
-                          <tr key={item.name}>
-                            <td className="px-4 py-3 text-sm font-medium text-foreground">
+                          <TableRow key={item.name}>
+                            <TableCell className="font-medium text-foreground">
                               {item.name}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-muted-foreground capitalize">
+                            </TableCell>
+                            <TableCell className="capitalize text-on-surface-variant">
                               {item.category}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-muted-foreground">
+                            </TableCell>
+                            <TableCell className="text-on-surface-variant">
                               {item.units}
-                            </td>
-                            <td className="px-4 py-3 font-mono text-sm text-foreground">
+                            </TableCell>
+                            <TableCellMono>
                               {item.revenue}
-                            </td>
-                            <td
-                              className={`px-4 py-3 text-sm font-medium ${
-                                item.positive ? 'text-emerald-600' : 'text-destructive'
-                              }`}
-                            >
-                              {item.change}
-                            </td>
-                          </tr>
+                            </TableCellMono>
+                            <TableCell className="text-right">
+                              <span
+                                className={item.positive
+                                  ? 'text-tertiary font-medium'
+                                  : 'text-destructive font-medium'}
+                              >
+                                {item.change}
+                              </span>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="text-xs text-on-surface-variant">
                     Showing {TOP_SELLERS.length} of {TOP_SELLERS.length} products
                   </p>
                 </div>
@@ -265,14 +260,12 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Peak Sales Hours */}
-            <Card className="border-border bg-card lg:col-span-2">
+            <Card className="border-border bg-card card-elevated lg:col-span-2">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-foreground">
-                  Peak Sales Hours
-                </CardTitle>
+                <CardTitle className="text-headline-md">Peak Sales Hours</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <div className="flex h-40 items-center justify-center rounded-lg bg-muted text-on-surface-variant">
                   Peak Hours Heatmap Placeholder
                 </div>
               </CardContent>

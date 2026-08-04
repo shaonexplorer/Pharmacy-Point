@@ -8,6 +8,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableCellMono,
   TableHead,
   TableHeader,
   TableRow,
@@ -47,7 +48,7 @@ function StatCard({
   iconColor?: string;
 }) {
   return (
-    <Card className="border-border bg-card group">
+    <Card className="border-border bg-card card-elevated group">
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <div
@@ -59,9 +60,9 @@ function StatCard({
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            {subtext && <p className="text-xs text-muted-foreground">{subtext}</p>}
+            <p className="text-label-md text-on-surface-variant">{label}</p>
+            <p className="text-2xl font-bold text-foreground data-mono">{value}</p>
+            {subtext && <p className="text-xs text-on-surface-variant">{subtext}</p>}
           </div>
         </div>
       </CardContent>
@@ -80,7 +81,7 @@ function TearLine({ label }: { label?: string }) {
         <div className="border-t border-dashed border-border w-full" />
       </div>
       {label && (
-        <div className="relative mx-auto px-3 py-1 text-sm font-medium text-muted-foreground bg-card">
+        <div className="relative mx-auto px-3 py-1 text-label-md text-on-surface-variant bg-card">
           {label}
         </div>
       )}
@@ -100,7 +101,7 @@ function StockVial({ quantity, lowStock }: { quantity: number; lowStock: number 
   // Fill the vial to a percentage relative to 2× the low-stock threshold
   const fillPct = Math.min(100, Math.max(0, (quantity / (threshold * 2)) * 100));
 
-  const fillColor = isCritical ? 'hsl(0 72% 65%)' : isLow ? 'hsl(38 90% 54%)' : 'hsl(153 51% 43%)';
+  const fillColor = isCritical ? 'hsl(var(--error-hsl))' : isLow ? 'hsl(var(--warning-hsl))' : 'hsl(var(--tertiary-hsl))';
 
   return (
     <div className="relative mx-auto h-20 w-8">
@@ -127,20 +128,20 @@ function StockVial({ quantity, lowStock }: { quantity: number; lowStock: number 
  */
 function InventorySnapshot({ stats }: { stats: Stats }) {
   const bars = [
-    { label: 'Products', value: stats.totalProducts, color: 'hsl(199 59% 33%)' },
-    { label: 'Suppliers', value: stats.totalCompanies, color: 'hsl(217 80% 50%)' },
-    { label: 'Low Stock', value: stats.lowStockItems, color: 'hsl(38 90% 54%)' },
-    { label: 'Sold MTD', value: stats.salesThisMonth, color: 'hsl(153 51% 43%)' },
-    { label: 'Received', value: stats.stockInThisMonth ?? 0, color: 'hsl(217 80% 50%)' },
+    { label: 'Products', value: stats.totalProducts, color: 'hsl(var(--primary-hsl))' },
+    { label: 'Suppliers', value: stats.totalCompanies, color: 'hsl(var(--secondary-hsl))' },
+    { label: 'Low Stock', value: stats.lowStockItems, color: 'hsl(var(--warning-hsl))' },
+    { label: 'Sold MTD', value: stats.salesThisMonth, color: 'hsl(var(--tertiary-hsl))' },
+    { label: 'Received', value: stats.stockInThisMonth ?? 0, color: 'hsl(var(--secondary-hsl))' },
   ];
 
   const maxValue = Math.max(...bars.map((b) => b.value), 1);
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border-border bg-card card-elevated">
       <CardHeader>
-        <CardTitle>Inventory Snapshot</CardTitle>
-        <CardDescription>Key metrics at a glance</CardDescription>
+        <CardTitle className="text-headline-md">Inventory Snapshot</CardTitle>
+        <CardDescription className="text-body-md text-on-surface-variant">Key metrics at a glance</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -148,7 +149,7 @@ function InventorySnapshot({ stats }: { stats: Stats }) {
             const widthPct = (bar.value / maxValue) * 100;
             return (
               <div key={bar.label} className="flex items-center gap-3">
-                <span className="w-16 text-xs font-medium text-muted-foreground">{bar.label}</span>
+                <span className="w-16 text-label-md text-on-surface-variant">{bar.label}</span>
                 <div className="relative flex-1">
                   <div className="h-6 w-full overflow-hidden rounded-md bg-muted/30">
                     <div
@@ -199,10 +200,10 @@ export default function DashboardPage() {
   const { data: statsData, isLoading: statsLoading } = useStats();
   const { data: lowStockData, isLoading: lowStockLoading } = useInventory({
     lowStock: true,
-    limit: 10,
+    limit: 4,
   });
   const { data: transactionsData, isLoading: txLoading } = useInventoryTransactions({
-    limit: 10,
+    limit: 4,
     type: undefined,
   });
 
@@ -255,11 +256,11 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex-1 p-4 sm:p-6">
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="container-max space-y-6">
           {/* ── Header ── */}
           <div className="flex flex-col space-y-1">
-            <h1 className="text-3xl font-bold text-foreground">Pharmacy Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-display-lg text-foreground">Pharmacy Dashboard</h1>
+            <p className="text-body-md text-on-surface-variant">
               {new Date().toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
@@ -271,15 +272,15 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Hero Metric: Total Inventory Value ── */}
-          <Card className="border-border bg-card">
+          <Card className="border-border bg-card card-elevated">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Total Inventory Value</p>
-                  <p className="text-4xl font-bold font-mono text-foreground">
+                  <p className="text-label-md text-on-surface-variant">Total Inventory Value</p>
+                  <p className="text-4xl font-bold text-data-mono text-foreground">
                     {formatCurrency(stats.totalInventoryValue ?? 0)}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-body-md text-on-surface-variant">
                     {stats.totalProducts} products across {stats.totalCompanies} suppliers
                   </p>
                 </div>
@@ -355,7 +356,7 @@ export default function DashboardPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left: Inventory Snapshot Chart */}
             {isLoading ? (
-              <div className="flex min-h-[280px] items-center justify-center">
+              <div className="flex min-h-70 items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : (
@@ -363,23 +364,23 @@ export default function DashboardPage() {
             )}
 
             {/* Right: Recent Transactions */}
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card card-elevated">
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-headline-md">Recent Activity</CardTitle>
+                <CardDescription className="text-body-md text-on-surface-variant">
                   Latest {recentTransactions.length} inventory transactions
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {txLoading ? (
-                  <div className="flex min-h-[200px] items-center justify-center">
+                  <div className="flex min-h-50 items-center justify-center">
                     <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   </div>
                 ) : recentTransactions.length === 0 ? (
-                  <div className="flex min-h-[200px] items-center justify-center text-center">
+                  <div className="flex min-h-50 items-center justify-center text-center">
                     <div className="space-y-2">
                       <ClipboardList className="h-8 w-8 text-muted-foreground/50 mx-auto" />
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-body-md text-on-surface-variant">
                         No inventory transactions recorded yet.
                       </p>
                     </div>
@@ -398,7 +399,7 @@ export default function DashboardPage() {
                       <TableBody>
                         {recentTransactions.map((tx) => (
                           <TableRow key={tx.id}>
-                            <TableCell className="font-mono text-xs text-muted-foreground">
+                            <TableCell className="text-data-mono text-xs text-on-surface-variant">
                               {formatDate(tx.createdAt)}
                             </TableCell>
                             <TableCell>
@@ -406,15 +407,15 @@ export default function DashboardPage() {
                                 {tx.product?.name ?? '—'}
                               </div>
                               {tx.product?.sku && (
-                                <p className="text-xs text-muted-foreground">{tx.product.sku}</p>
+                                <p className="text-xs text-on-surface-variant">{tx.product.sku}</p>
                               )}
                             </TableCell>
                             <TableCell>
                               <TransactionTypeBadge type={tx.type} />
                             </TableCell>
-                            <TableCell className="text-right font-mono font-medium">
+                            <TableCellMono className="text-right">
                               {tx.quantity}
-                            </TableCell>
+                            </TableCellMono>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -430,14 +431,14 @@ export default function DashboardPage() {
             <TearLine label="Low Stock Alerts" />
 
             {lowStockLoading ? (
-              <div className="flex min-h-[120px] items-center justify-center">
+              <div className="flex min-h-30 items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
               </div>
             ) : lowStockItems.length === 0 ? (
-              <Card className="border-border bg-card">
-                <CardContent className="flex min-h-[120px] flex-col items-center justify-center text-center p-6">
-                  <AlertTriangle className="h-8 w-8 text-success mb-2" />
-                  <p className="text-sm text-muted-foreground">
+              <Card className="border-border bg-card card-elevated">
+                <CardContent className="flex min-h-30 flex-col items-center justify-center text-center p-6">
+                  <AlertTriangle className="h-8 w-8 text-tertiary mb-2" />
+                  <p className="text-body-md text-on-surface-variant">
                     All stock levels are healthy. No low-stock items to display.
                   </p>
                 </CardContent>
@@ -448,7 +449,7 @@ export default function DashboardPage() {
                   const isCritical = product.quantity <= (product.lowStock || 10) / 2;
                   const statusVariant = isCritical ? 'destructive' : 'warning';
                   return (
-                    <Card key={product.id} className="border-border bg-card">
+                    <Card key={product.id} className="border-border bg-card card-elevated">
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
                           {/* Medication bottle visualisation */}
@@ -463,10 +464,10 @@ export default function DashboardPage() {
                                 {isCritical ? 'Critical' : 'Low'}
                               </Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground font-mono">
+                            <p className="text-xs text-on-surface-variant font-mono">
                               SKU: {product.sku}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-body-md text-on-surface-variant">
                               {product.quantity} units remaining
                               {' · '}threshold: {product.lowStock}
                             </p>

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Edit, Trash2, Calendar, AlertCircle, Package } from 'lucide-react';
 import Link from 'next/link';
 import { ConfirmDialog } from '@/components/common';
+import { formatCurrency } from '@/lib/formatters';
 
 export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   if (error) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="container-max">
           <Card className="border-destructive bg-destructive/5">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-destructive">
@@ -76,7 +77,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   if (!company) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="container-max">
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">Company not found.</p>
@@ -92,14 +93,14 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
               <Link href="/companies">← Back</Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">{company.name}</h1>
+            <h1 className="text-headline-lg text-foreground">{company.name}</h1>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="outline">
@@ -121,16 +122,16 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Company Details */}
-        <Card className="bg-card border-border mb-6">
+        <Card className="bg-card border-border card-elevated mb-6">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Company Information</CardTitle>
+            <CardTitle className="text-headline-md">Company Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {/* Logo/Image */}
               {company.image && (
                 <div className="mb-4">
-                  <div className="relative h-48 w-full max-w-md overflow-hidden rounded-xl bg-muted shadow-sm">
+                  <div className="relative h-48 w-full max-w-md overflow-hidden rounded-lg bg-muted">
                     <img
                       src={company.image}
                       alt={company.name}
@@ -143,9 +144,9 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
               {/* Basic Info */}
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">{company.name}</h2>
+                  <h2 className="text-headline-lg text-foreground">{company.name}</h2>
                   {company.description && (
-                    <p className="mt-1 text-muted-foreground whitespace-pre-wrap">
+                    <p className="mt-1 text-body-md text-on-surface-variant whitespace-pre-wrap">
                       {company.description}
                     </p>
                   )}
@@ -153,11 +154,11 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
                 {/* Metadata */}
                 <div className="border-t border-border pt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                     <Calendar className="h-4 w-4" />
                     <span>Created: {new Date(company.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                     <Calendar className="h-4 w-4" />
                     <span>Updated: {new Date(company.updatedAt).toLocaleDateString()}</span>
                   </div>
@@ -168,9 +169,9 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
         </Card>
 
         {/* Products Section */}
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border card-elevated">
           <CardHeader>
-            <CardTitle className="text-card-foreground flex items-center gap-2">
+            <CardTitle className="text-headline-md flex items-center gap-2">
               <Package className="h-5 w-5" />
               Products ({company.products?.length ?? 0})
             </CardTitle>
@@ -181,22 +182,21 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
                 {company.products.map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4"
+                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4 card-elevated"
                   >
                     <div className="space-y-1">
                       <h3 className="font-medium text-foreground">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        SKU: {product.sku} • Price: ${product.price.toFixed(2)} • Stock:{' '}
-                        {product.quantity}
+                      <p className="text-body-sm text-on-surface-variant">
+                        SKU: {product.sku} • Price: <span className="text-data-mono">{formatCurrency(product.price)}</span> • Stock: <span className="text-data-mono">{product.quantity}</span>
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-8 text-on-surface-variant">
                 <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No products found for this company.</p>
+                <p className="text-body-md">No products found for this company.</p>
                 <Button asChild className="mt-4">
                   <Link href="/products">View All Products</Link>
                 </Button>
@@ -212,6 +212,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           title="Delete Company"
           description={`Are you sure you want to delete "${company.name}"? This action cannot be undone.`}
           confirmText="Delete"
+          variant="destructive"
           onConfirm={handleConfirmDelete}
           loading={deleteCompanyMutation.isPending}
         />

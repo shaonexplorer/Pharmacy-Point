@@ -54,27 +54,27 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-card border-border shadow-xl">
+      <Card className="w-full max-w-md bg-card border-border card-elevated">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
             <div className="rounded-full bg-primary/10 p-3">
               <UserPlus className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center text-foreground">Create Account</CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
+          <CardTitle className="text-headline-lg text-center text-foreground">Create Account</CardTitle>
+          <CardDescription className="text-center text-body-md text-on-surface-variant">
             Enter your details to create a pharmacy account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+              <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
                 {error}
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-foreground">
+              <Label htmlFor="name" className="text-body-md text-foreground">
                 Name
               </Label>
               <Input
@@ -85,11 +85,11 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 autoComplete="name"
-                className="bg-background border-border"
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">
+              <Label htmlFor="email" className="text-body-md text-foreground">
                 Email
               </Label>
               <Input
@@ -100,11 +100,11 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="bg-background border-border"
+                className="bg-background"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">
+              <Label htmlFor="password" className="text-body-md text-foreground">
                 Password
               </Label>
               <Input
@@ -115,7 +115,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="bg-background border-border"
+                className="bg-background"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>

@@ -52,7 +52,7 @@ export function ProductGrid({
         <Card
           key={product.id}
           className={cn(
-            'border-border p-3 transition-shadow duration-200 hover:shadow-md',
+            'border-border card-elevated p-3',
             product.quantity === 0 && 'opacity-60'
           )}
         >
@@ -77,8 +77,8 @@ export function ProductGrid({
               <h4 className="font-medium text-foreground text-sm leading-tight truncate">
                 {product.name}
               </h4>
-              <p className="text-sm font-bold text-primary">{formatCurrency(product.price)}</p>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <p className="text-sm font-bold text-data-mono text-primary">{formatCurrency(product.price)}</p>
+              <div className="flex items-center gap-1 text-xs text-on-surface-variant">
                 <span>SKU: {product.sku}</span>
                 {product.quantity <= product.lowStock && (
                   <Badge variant="warning" size="sm">

@@ -83,7 +83,7 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
 
   const receiptRef = (
     <div
-      className="receipt-content border-2 border-dashed border-border rounded-lg p-6 bg-card text-sm"
+      className="receipt-content border-2 border-dashed border-border rounded-lg p-6 bg-card text-body-md"
       id="pos-receipt"
     >
       {/* Header */}
@@ -167,26 +167,26 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
   );
 
   return (
-    <Card className="border-border bg-card">
+    <Card className="border-border bg-card card-elevated">
       <CardContent className="p-6">
         <div className="flex flex-col items-center gap-4">
           <div className="flex items-center justify-center gap-2 text-primary">
             <ReceiptIcon className="h-8 w-8" />
-            <span className="text-2xl font-bold">Sale Complete!</span>
+            <span className="text-display-lg font-bold">Sale Complete!</span>
           </div>
 
           {receiptRef}
 
           <div className="flex flex-col gap-2 sm:flex-row pt-4 border-t border-border w-full">
-            <Button variant="outline" size="sm" onClick={handlePrint} className="flex-1">
+            <Button variant="outline" size="tablet" onClick={handlePrint} className="flex-1">
               <Printer className="mr-2 h-4 w-4" />
               Print Receipt
             </Button>
-            <Button variant="outline" size="sm" onClick={onEmail} className="flex-1">
+            <Button variant="outline" size="tablet" onClick={onEmail} className="flex-1">
               <Mail className="mr-2 h-4 w-4" />
               Email Receipt
             </Button>
-            <Button size="sm" onClick={onNewSale} className="flex-1">
+            <Button size="tablet" onClick={onNewSale} className="flex-1">
               <ShoppingCart className="mr-2 h-4 w-4" />
               New Sale
             </Button>

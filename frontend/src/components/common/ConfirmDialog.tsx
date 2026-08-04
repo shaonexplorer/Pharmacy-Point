@@ -21,6 +21,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void | Promise<void>;
   loading?: boolean;
+  variant?: 'default' | 'destructive';
 }
 
 export function ConfirmDialog({
@@ -32,6 +33,7 @@ export function ConfirmDialog({
   cancelText = 'Cancel',
   onConfirm,
   loading = false,
+  variant = 'default',
 }: ConfirmDialogProps) {
   const handleConfirm = async () => {
     try {
@@ -54,7 +56,13 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} disabled={loading}>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={loading}
+            className={variant === 'destructive'
+              ? 'border border-error text-error hover:bg-error hover:text-on-error'
+              : 'bg-primary text-on-primary hover:bg-primary/90'}
+          >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

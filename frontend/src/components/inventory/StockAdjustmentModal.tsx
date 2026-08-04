@@ -11,10 +11,11 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-  Input,
-  Label,
-  Textarea,
 } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import type { Product } from '@pharmacy-point/types';
 
@@ -91,7 +92,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="current-stock">Current Stock</Label>
+            <Label htmlFor="current-stock" className="text-body-md text-foreground">Current Stock</Label>
             <Input
               id="current-stock"
               type="number"
@@ -102,22 +103,21 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="adjustment-type">Type</Label>
-            <select
+            <Label htmlFor="adjustment-type" className="text-body-md text-foreground">Type</Label>
+            <Select
               id="adjustment-type"
               value={adjustmentType}
               onChange={(e) => setAdjustmentType(e.target.value as typeof adjustmentType)}
               disabled={isPending}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="ADJUSTMENT">Manual Adjustment (Set absolute value)</option>
               <option value="STOCK_IN">Stock In (Purchase Receipt)</option>
               <option value="STOCK_OUT">Stock Out (Sale)</option>
-            </select>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity">
+            <Label htmlFor="quantity" className="text-body-md text-foreground">
               {adjustmentType === 'STOCK_IN'
                 ? 'Quantity to Add'
                 : adjustmentType === 'STOCK_OUT'
@@ -138,7 +138,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes" className="text-body-md text-foreground">Notes (optional)</Label>
             <Textarea
               id="notes"
               value={notes}

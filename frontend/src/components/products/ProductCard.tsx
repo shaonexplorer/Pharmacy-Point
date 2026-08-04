@@ -18,7 +18,7 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
   const isOutOfStock = product.quantity === 0;
 
   return (
-    <Card className="bg-card border-border transition-all duration-200 hover:shadow-md hover:-translate-y-1">
+    <Card className="bg-card border-border card-elevated transition-all duration-200">
       <CardHeader className="pb-3">
         <div className="aspect-video relative overflow-hidden rounded-lg bg-muted">
           {product.image ? (
@@ -30,40 +30,40 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
             </div>
           )}
         </div>
-        <CardTitle className="text-card-foreground text-lg mt-2 line-clamp-1">
+        <CardTitle className="text-headline-md text-card-foreground mt-2 line-clamp-1">
           {product.name}
         </CardTitle>
         {product.company && (
-          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{product.company.name}</p>
+          <p className="text-body-sm text-on-surface-variant mt-1 line-clamp-1">{product.company.name}</p>
         )}
       </CardHeader>
 
       <CardContent className="pb-3">
         <div className="space-y-2">
-          <p className="text-2xl font-bold text-primary">{formatCurrency(product.price)}</p>
-          <p className="text-sm text-muted-foreground font-mono tracking-wider">
+          <p className="text-2xl font-bold text-data-mono text-primary">{formatCurrency(product.price)}</p>
+          <p className="text-xs text-on-surface-variant font-mono tracking-wider">
             SKU: {product.sku}
           </p>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
-            Category: <span className="text-foreground font-medium">{product.category}</span>
+          <p className="text-xs text-label-md text-on-surface-variant">
+            Category: <span className="text-on-surface font-medium">{product.category}</span>
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Stock: {product.quantity}</span>
+              <span className="text-sm text-on-surface-variant data-mono">Stock: {product.quantity}</span>
               {isOutOfStock && (
-                <Badge variant="destructive" className="text-xs font-medium">
+                <Badge variant="destructive" size="sm">
                   Out of Stock
                 </Badge>
               )}
               {isLowStock && !isOutOfStock && (
-                <Badge className="text-xs font-medium bg-warning/10 text-warning border-border">
+                <Badge variant="warning" size="sm">
                   Low Stock
                 </Badge>
               )}
             </div>
           </div>
           {product.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+            <p className="text-body-sm text-on-surface-variant line-clamp-2">{product.description}</p>
           )}
         </div>
       </CardContent>

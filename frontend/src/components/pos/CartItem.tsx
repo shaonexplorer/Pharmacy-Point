@@ -58,8 +58,8 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       {/* Product Details */}
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-foreground text-sm truncate">{product.name}</h4>
-        <p className="text-xs text-muted-foreground">
-          SKU: {product.sku} • {formatCurrency(price)} each
+        <p className="text-xs text-on-surface-variant">
+          SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each
         </p>
       </div>
 
@@ -97,7 +97,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       </div>
 
       {/* Line Total */}
-      <div className="w-20 text-right font-medium text-foreground">{formatCurrency(lineTotal)}</div>
+      <div className="w-20 text-right font-medium text-data-mono text-foreground">{formatCurrency(lineTotal)}</div>
 
       {/* Remove Button */}
       <Button

@@ -27,7 +27,7 @@ export function ProductSearch({
         onChange={(e) => onChange(e.target.value)}
         className={cn(
           'bg-background border-border pl-10 pr-10',
-          'transition-colors duration-200 hover:border-muted',
+          'transition-colors duration-200',
           'focus-visible:ring-primary/50'
         )}
         aria-label="Search products"

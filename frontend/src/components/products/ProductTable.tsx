@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Product } from '@pharmacy-point/types';
@@ -21,6 +22,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableCellMono,
   TableHead,
   TableHeader,
   TableRow,
@@ -58,7 +60,7 @@ export function ProductTable({
           <div className="font-medium text-foreground">
             {row.original.name}
             {row.original.sku && (
-              <div className="text-sm text-muted-foreground">SKU: {row.original.sku}</div>
+              <div className="text-xs text-on-surface-variant data-mono">SKU: {row.original.sku}</div>
             )}
           </div>
         ),
@@ -66,26 +68,32 @@ export function ProductTable({
       {
         accessorKey: 'category',
         header: 'Category',
-        cell: ({ row }) => row.original.category,
+        cell: ({ row }) => row.original.category || '—',
       },
       {
         accessorKey: 'price',
         header: 'Price',
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.price)}</span>,
+        cell: ({ row }) => (
+          <TableCellMono>{formatCurrency(row.original.price)}</TableCellMono>
+        ),
       },
       {
         accessorKey: 'quantity',
         header: 'Stock',
         cell: ({ row }) => {
           const quantity = row.original.quantity;
-          const lowStock = row.original.lowStock;
+          const lowStock = row.original.lowStock ?? 0;
           const isLowStock = quantity <= lowStock;
+          const isOutOfStock = quantity === 0;
 
           return (
-            <div className="flex flex-col">
-              <span className="font-medium">{quantity}</span>
-              {isLowStock && (
-                <span className="text-xs text-destructive font-medium">Low Stock</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-data-mono font-medium text-foreground">{quantity} units</span>
+              {isOutOfStock && (
+                <Badge variant="destructive" size="sm">Out of Stock</Badge>
+              )}
+              {isLowStock && !isOutOfStock && (
+                <Badge variant="warning" size="sm">Low Stock</Badge>
               )}
             </div>
           );
@@ -94,7 +102,11 @@ export function ProductTable({
       {
         accessorKey: 'company',
         header: 'Company',
-        cell: ({ row }) => row.original.company?.name ?? '—',
+        cell: ({ row }) => (
+          <span className="text-on-surface-variant">
+            {row.original.company?.name ?? '—'}
+          </span>
+        ),
       },
       {
         id: 'actions',
@@ -102,7 +114,7 @@ export function ProductTable({
         cell: ({ row }) => {
           const product = row.original;
           return (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-end gap-1">
               <Button asChild variant="ghostIcon" size="sm">
                 <Link href={`/products/${product.id}`} aria-label="View product">
                   <Edit className="h-4 w-4" />
@@ -189,7 +201,7 @@ export function ProductTable({
   return (
     <>
       {/* TanStack Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-border bg-card card-elevated overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

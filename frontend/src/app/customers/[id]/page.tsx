@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ConfirmDialog } from '@/components/common';
+import { Badge } from '@/components/ui/badge';
+import { formatCurrency } from '@/lib/formatters';
 
 export default function CustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -68,7 +70,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   if (error) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="container-max">
           <Card className="border-destructive bg-destructive/5">
             <CardContent className="pt-6">
               <div className="flex items-center gap-2 text-destructive">
@@ -88,7 +90,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   if (!customer) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="container-max">
           <Card>
             <CardContent className="pt-6">
               <p className="text-muted-foreground">Customer not found.</p>
@@ -109,14 +111,14 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
               <Link href="/customers">← Back</Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
               <User className="h-5 w-5" />
               {customer.name}
             </h1>
@@ -155,7 +157,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 <div>
                   <h2 className="text-xl font-bold text-foreground">{customer.name}</h2>
                   {customer.dueAmount > 0 && (
-                    <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-1 text-sm font-medium text-destructive">
+                    <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-error/10 px-3 py-1 text-sm font-medium text-error">
                       <DollarSign className="h-4 w-4" />
                       Due: ${customer.dueAmount.toFixed(2)}
                     </div>
@@ -165,32 +167,32 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 {/* Contact Details */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {customer.email && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Email:</span>
+                    <div className="flex items-center gap-2 text-body-sm">
+                      <Mail className="h-4 w-4 text-on-surface-variant" />
+                      <span className="text-on-surface-variant">Email:</span>
                       <span className="text-foreground">{customer.email}</span>
                     </div>
                   )}
                   {customer.phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Phone:</span>
+                    <div className="flex items-center gap-2 text-body-sm">
+                      <Phone className="h-4 w-4 text-on-surface-variant" />
+                      <span className="text-on-surface-variant">Phone:</span>
                       <span className="text-foreground">{customer.phone}</span>
                     </div>
                   )}
                   {customer.address && (
-                    <div className="flex items-start gap-2 text-sm md:col-span-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <span className="text-muted-foreground">Address:</span>
+                    <div className="flex items-start gap-2 text-body-sm md:col-span-2">
+                      <MapPin className="h-4 w-4 text-on-surface-variant mt-0.5" />
+                      <span className="text-on-surface-variant">Address:</span>
                       <span className="text-foreground">{customer.address}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-sm">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Due Amount:</span>
+                  <div className="flex items-center gap-2 text-body-sm">
+                    <DollarSign className="h-4 w-4 text-on-surface-variant" />
+                    <span className="text-on-surface-variant">Due Amount:</span>
                     <span
                       className={
-                        customer.dueAmount > 0 ? 'text-destructive font-medium' : 'text-foreground'
+                        customer.dueAmount > 0 ? 'text-error font-medium text-data-mono' : 'text-foreground text-data-mono'
                       }
                     >
                       ${customer.dueAmount.toFixed(2)}
@@ -234,28 +236,29 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4"
+                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4 card-elevated"
                   >
                     <div className="space-y-1">
-                      <h3 className="font-medium text-foreground">Order #{order.id.slice(0, 8)}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Status: {order.status} • Total: ${order.total.toFixed(2)}
+                      <h3 className="font-medium text-foreground data-mono">Order #{order.id.slice(0, 8)}</h3>
+                      <p className="text-body-sm text-on-surface-variant">
+                        Status: {order.status} • Total: <span className="text-data-mono">{formatCurrency(order.total)}</span>
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-on-surface-variant">
                         Date: {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <span
-                      className={`text-xs font-medium uppercase ${
+                    <Badge
+                      variant={
                         order.status === 'COMPLETED'
-                          ? 'text-green-600'
+                          ? 'success'
                           : order.status === 'CANCELLED'
-                            ? 'text-red-600'
-                            : 'text-yellow-600'
-                      }`}
+                            ? 'destructive'
+                            : 'pending'
+                      }
+                      size="sm"
                     >
                       {order.status}
-                    </span>
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -275,6 +278,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
           title="Delete Customer"
           description={`Are you sure you want to delete "${customer.name}"? This action cannot be undone.`}
           confirmText="Delete"
+          variant="destructive"
           onConfirm={handleConfirmDelete}
           loading={deleteCustomerMutation.isPending}
         />

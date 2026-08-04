@@ -124,7 +124,7 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {apiError && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
           {apiError}
         </div>
       )}
@@ -132,7 +132,7 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Customer Name */}
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-foreground">
+          <Label htmlFor="name" className="text-body-md text-foreground">
             Full Name <span className="text-destructive">*</span>
           </Label>
           <Input
@@ -148,7 +148,7 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-foreground">
+          <Label htmlFor="email" className="text-body-md text-foreground">
             Email
           </Label>
           <Input
@@ -164,7 +164,7 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
 
         {/* Phone */}
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-foreground">
+          <Label htmlFor="phone" className="text-body-md text-foreground">
             Phone
           </Label>
           <Input
@@ -180,7 +180,7 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
 
         {/* Address */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="address" className="text-foreground">
+          <Label htmlFor="address" className="text-body-md text-foreground">
             Address
           </Label>
           <Textarea

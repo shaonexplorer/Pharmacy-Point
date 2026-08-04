@@ -74,20 +74,20 @@ export default function EditCompanyPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="container-max">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
               <Link href={`/companies/${company.id}`}>← Back</Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Edit Company</h1>
+            <h1 className="text-headline-lg text-foreground">Edit Company</h1>
           </div>
         </div>
 
         {/* Form */}
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card card-elevated p-6">
+          <div className="mb-4 flex items-center gap-2 text-label-md text-on-surface-variant">
             <Store className="h-4 w-4" />
             <span>Update company information</span>
           </div>

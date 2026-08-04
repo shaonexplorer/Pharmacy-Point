@@ -54,7 +54,7 @@ export function CustomerTable({
         header: 'Name',
         cell: ({ row }) => (
           <div className="font-medium text-foreground flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="h-4 w-4 text-on-surface-variant" />
             {row.original.name}
           </div>
         ),
@@ -63,21 +63,21 @@ export function CustomerTable({
         accessorKey: 'email',
         header: 'Email',
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.email || '—'}</span>
+          <span className="text-on-surface-variant">{row.original.email || '—'}</span>
         ),
       },
       {
         accessorKey: 'phone',
         header: 'Phone',
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.phone || '—'}</span>
+          <span className="text-on-surface-variant">{row.original.phone || '—'}</span>
         ),
       },
       {
         accessorKey: 'address',
         header: 'Address',
         cell: ({ row }) => (
-          <span className="text-muted-foreground line-clamp-1 max-w-xs">
+          <span className="text-on-surface-variant line-clamp-1 max-w-xs">
             {row.original.address || '—'}
           </span>
         ),
@@ -92,7 +92,7 @@ export function CustomerTable({
             currency: 'USD',
           }).format(amount);
           return (
-            <span className={amount > 0 ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+            <span className={amount > 0 ? 'text-destructive font-medium text-data-mono' : 'text-on-surface-variant text-data-mono'}>
               {formatted}
             </span>
           );
@@ -103,7 +103,7 @@ export function CustomerTable({
         header: 'Created',
         cell: ({ row }) => {
           const date = new Date(row.original.createdAt);
-          return <span className="text-muted-foreground">{date.toLocaleDateString()}</span>;
+          return <span className="text-on-surface-variant">{date.toLocaleDateString()}</span>;
         },
       },
       {
@@ -198,7 +198,7 @@ export function CustomerTable({
   return (
     <>
       {/* TanStack Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm">
+      <div className="rounded-xl border border-border bg-card card-elevated">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
