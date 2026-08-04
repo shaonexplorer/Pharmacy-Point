@@ -40,7 +40,6 @@ const Select = React.forwardRef<HTMLSelectElement, React.ComponentProps<'select'
           'disabled:cursor-not-allowed disabled:opacity-50',
           /* Custom chevron area — space for the icon */
           'pr-10',
-          'bg-transparent',
           '[&::-ms-expand]:hidden',
           className
         )}
