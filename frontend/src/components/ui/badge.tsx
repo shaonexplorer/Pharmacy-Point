@@ -41,9 +41,9 @@ const badgeVariants = cva(
         success:
           'bg-tertiary/10 text-tertiary border-tertiary/20',
 
-        /* Low Stock / Warning — Amber */
+        /* Low Stock / Warning — Amber (Clinical Precision) */
         warning:
-          'bg-orange-100 text-orange-800 border-orange-200',
+          'bg-warning-container text-on-warning-container border-warning/20',
 
         /* Out of Stock / Error — Error red */
         destructive:

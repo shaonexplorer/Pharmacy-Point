@@ -32,8 +32,8 @@ const buttonVariants = cva(
     'motion-safe:active:scale-100',
     'select-none',
     'appearance-none',
-    /* Base radius per spec: 0.5rem (8px) */
-    'rounded-lg'
+    /* Base radius per spec: 0.5rem (8px) for standard buttons */
+    'rounded'
   ),
   {
     variants: {
@@ -55,20 +55,24 @@ const buttonVariants = cva(
           'border border-secondary text-secondary',
         /* Inventory — warning variant */
         warning:
-          'bg-warning text-on-secondary',
+          'bg-warning text-warning-container',
+        /* Destructive outline — outlined in red, filled on hover (prevents accidental triggers) */
+        destructiveOutline:
+          'border border-error text-error hover:bg-error hover:text-on-error',
+
         /* Ghost with icon only — compact */
-        ghostIcon: 'p-1.5 rounded-md',
+        ghostIcon: 'p-1.5 rounded',
       },
       size: {
         default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-lg px-3 text-xs',
-        lg: 'h-11 rounded-lg px-8 py-3',
-        xl: 'h-12 rounded-xl px-8 py-3 text-lg', /* POS large-format buttons */
+        sm: 'h-9 px-3 text-xs',
+        lg: 'h-12 rounded-lg px-8 py-3 text-lg', /* POS large-format buttons — rounded-lg per spec */
+        xl: 'h-12 rounded-lg px-8 py-3 text-lg', /* POS large-format buttons — rounded-lg per spec */
         icon: 'h-10 w-10 p-0',
         /* Compact for tight layouts */
         compact: 'h-8 px-3 text-xs',
         /* Tablet/POS — 48px minimum touch target per spec */
-        tablet: 'h-12 px-6',
+        tablet: 'h-12 rounded-lg px-6',
       },
     },
     defaultVariants: {

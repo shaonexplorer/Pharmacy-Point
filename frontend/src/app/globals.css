@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* ===========================================================================
+/* ============================================================================
  * Clinical Precision Design System
- * ===========================================================================
+ * ============================================================================
  *
  * Design tokens derived from the DESIGN.md specification (Clinical Precision
  * theme).  All colours, typography, spacing, and shape values are defined here
@@ -40,6 +40,19 @@
   /* Error */
   --error: #ba1a1a;
   --on-error: #ffffff;
+
+  /* HSL hue / saturation / lightness values for use in inline styles and dynamic contexts */
+  --primary-hsl: 179 58% 35%;
+  --secondary-hsl: 207 80% 50%;
+  --tertiary-hsl: 153 51% 43%;
+  --warning-hsl: 45 83% 31%;
+  --error-hsl: 0 70% 44%;
+
+  /* Warning (Amber) — Low Stock / Caution states */
+  --warning: #ca8a04;
+  --on-warning: #ffffff;
+  --warning-container: #e5c24e;
+  --on-warning-container: #4a3a0e;
 
   /* ── Surface Palette (Light Mode) ──────────────────────────────── */
 
@@ -81,6 +94,7 @@
   --on-tertiary-fixed-variant: #005320;
 
   /* ── Derived Semantic Tokens ───────────────────────────────────── */
+
   --foreground: var(--on-background);
   --card: var(--surface-container-lowest);
   --card-foreground: var(--on-surface);
@@ -172,6 +186,19 @@
     --error: #ff6b6b;
     --on-error: #00362f;
 
+    /* HSL values for dark mode */
+    --primary-hsl: 160 60% 55%;
+    --secondary-hsl: 200 81% 56%;
+    --tertiary-hsl: 140 62% 41%;
+    --warning-hsl: 42 66% 45%;
+    --error-hsl: 0 70% 55%;
+
+    /* Warning (Amber) — Low Stock / Caution states */
+    --warning: #e3b34c;
+    --on-warning: #4a3a0e;
+    --warning-container: #b8922f;
+    --on-warning-container: #fff8ec;
+
     /* Fixed color tokens dark mode */
     --on-primary-fixed: #00201d;
     --on-secondary-fixed: #001d31;
@@ -213,8 +240,10 @@
   --color-on-tertiary-container: var(--on-tertiary-container);
   --color-success: var(--tertiary);
   --color-success-foreground: var(--on-tertiary);
-  --color-warning: var(--secondary);
-  --color-warning-foreground: var(--on-secondary);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--on-warning);
+  --color-warning-container: var(--warning-container);
+  --color-on-warning-container: var(--on-warning-container);
   --color-destructive: var(--error);
   --color-destructive-foreground: var(--on-error);
   --color-muted: var(--muted);
@@ -276,6 +305,14 @@ body {
   font-family: var(--font-sans);
 }
 
+/* headline-lg-mobile — 24px, 600 weight, 32px line-height */
+.text-headline-lg-mobile {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2rem;
+  font-family: var(--font-sans);
+}
+
 /* headline-md — 20px, 600 weight, 28px line-height */
 .text-headline-md {
   font-size: 1.25rem;
@@ -297,6 +334,14 @@ body {
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.25rem;
+  font-family: var(--font-sans);
+}
+
+/* body-sm — 12px, 400 weight, 16px line-height */
+.text-body-sm {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
   font-family: var(--font-sans);
 }
 
