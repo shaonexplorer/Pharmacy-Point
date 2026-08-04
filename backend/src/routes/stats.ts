@@ -60,15 +60,29 @@ router.get('/', async (req: Request, res: Response) => {
       },
     });
 
+    // Get total sales — sum of all completed order totals
+    const totalSalesResult = await prisma.order.aggregate({
+      where: { status: 'COMPLETED' },
+      _sum: { total: true },
+    });
+    const totalSales = Number(totalSalesResult._sum.total ?? 0);
+
+    // Get pending orders count
+    const pendingOrders = await prisma.order.count({
+      where: { status: 'PENDING' },
+    });
+
     const stats = {
       totalProducts,
       totalCompanies,
       totalTransactions,
       lowStockItems,
+      totalSales: Math.round(totalSales * 100) / 100,
       totalInventoryValue: Math.round(totalInventoryValue * 100) / 100,
       stockInThisMonth,
       stockOutThisMonth,
       salesThisMonth: stockOutThisMonth,
+      pendingOrders,
     };
 
     return res.json(stats);

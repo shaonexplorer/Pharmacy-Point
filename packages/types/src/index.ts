@@ -183,3 +183,20 @@ export interface StockAdjustInput {
   quantity: number;
   notes?: string;
 }
+
+/**
+ * Aggregated statistics for the dashboard.
+ * Populated by GET /api/stats
+ */
+export interface Stats {
+  totalProducts: number;
+  totalCompanies: number;
+  lowStockItems: number;
+  totalSales: number;
+  salesThisMonth: number;
+  totalInventoryValue?: number;
+  totalTransactions?: number;
+  stockInThisMonth?: number;
+  stockOutThisMonth?: number;
+  pendingOrders?: number;
+}

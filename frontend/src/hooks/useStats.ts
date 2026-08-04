@@ -1,16 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import type { Stats } from '@pharmacy-point/types';
 
-export interface Stats {
-  totalProducts: number;
-  totalCompanies: number;
-  lowStockItems: number;
-  totalSales: number;
-  salesThisMonth: number;
-  totalInventoryValue?: number;
-  totalTransactions?: number;
-  stockInThisMonth?: number;
-  stockOutThisMonth?: number;
-}
+export type { Stats };
 
 async function fetchStats(): Promise<Stats> {
   const response = await fetch('/api/stats', {
