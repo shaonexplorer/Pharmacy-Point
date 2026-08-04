@@ -6,28 +6,17 @@ import { useSession } from '@/lib/auth-client';
 import { useInventory } from '@/hooks/useInventory';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useCategories } from '@/hooks/useCategories';
-import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
+import { getStockStatus } from '@/components/inventory/StockChip';
+import { getInventoryColumns } from '@/components/inventory/inventory-columns';
+import { InventoryTable } from '@/components/inventory/InventoryTable';
+import { InventoryPagination } from '@/components/inventory/InventoryPagination';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { InventoryItem } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableCellMono,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Loader2,
   Plus,
-  Edit,
-  ChevronLeft,
-  ChevronRight,
   Search,
   X,
   Package,
@@ -35,8 +24,6 @@ import {
   TrendingDown,
   RefreshCw,
 } from 'lucide-react';
-import Link from 'next/link';
-import { formatCurrency } from '@/lib/formatters';
 
 /* ──────────────────────────────────────────────────────────────────────────── *
  * Clinical Precision — Inventory Management Page
@@ -47,49 +34,15 @@ import { formatCurrency } from '@/lib/formatters';
  *  - Stock Level Display: data-mono for quantities, tertiary for "In Stock"
  *  - Transaction History: separate view (not on this page)
  *
+ * Table and pagination are delegated to dedicated components:
+ *  - InventoryTable     — TanStack Table instance + rendering
+ *  - inventory-columns  — typed ColumnDef<InventoryItem>[] definitions
+ *  - InventoryPagination — page navigation controls
+ *  - StockChip          — stock status chip + getStockStatus helper
+ *
  * Signature element: prescription-border-l (4px Pharma Teal) on the page header
  * reinforces the clinical identity — like the colored bar on a prescription label.
  * ──────────────────────────────────────────────────────────────────────────── */
-
-/* ── Helpers ───────────────────────────────────────────────────────── */
-
-/**
- * Resolve a product's stock status using the API-provided `isLowStock` flag.
- *
- * Returns one of: 'out' | 'low' | 'ok'
- * - 'out'  → quantity === 0                       (error red)
- * - 'low'  → isLowStock && quantity > 0            (warning amber)
- * - 'ok'   → otherwise                            (tertiary / Safety Green)
- */
-function getStockStatus(product: InventoryItem): 'out' | 'low' | 'ok' {
-  if (product.quantity === 0) return 'out';
-  if (product.isLowStock) return 'low';
-  return 'ok';
-}
-
-function StockChip({ status }: { status: 'out' | 'low' | 'ok' }) {
-  if (status === 'ok') {
-    return (
-      <Badge variant="success" size="sm">
-        In Stock
-      </Badge>
-    );
-  }
-  if (status === 'low') {
-    return (
-      <Badge variant="warning" size="sm">
-        Low Stock
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="destructive" size="sm">
-      Out of Stock
-    </Badge>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────────────────────── */
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -106,6 +59,7 @@ export default function InventoryPage() {
   const {
     data: inventoryData,
     isLoading,
+    error,
     refetch,
   } = useInventory({
     page: currentPage,
@@ -147,6 +101,9 @@ export default function InventoryPage() {
     return { inStock, lowStock, outOfStock };
   }, [displayedProducts]);
 
+  // Column definitions (memoized to avoid unnecessary table re-renders)
+  const columns = useMemo(() => getInventoryColumns(), []);
+
   const hasActiveFilters = searchQuery || selectedCategory || selectedCompany || showLowStockOnly;
 
   /* ── Auth redirect ────────────────────────────────────────────────── */
@@ -170,21 +127,6 @@ export default function InventoryPage() {
       setCurrentPage(newPage);
     }
   };
-
-  // Render up to 5 page-number buttons centered around the current page
-  function pageNumbers(): number[] {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    const half = 2;
-    if (currentPage <= half) {
-      return [1, 2, 3, 4, 5];
-    }
-    if (currentPage >= totalPages - half) {
-      return [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    }
-    return [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2];
-  }
 
   /* ── Loading / auth guards ────────────────────────────────────────── */
   if (isPending || isLoading) {
@@ -388,139 +330,31 @@ export default function InventoryPage() {
             </div>
           </div>
 
-          {/* ── Product Table ───────────────────────────────────────── */}
-          {/*
-            The <Table> component already wraps itself in a card-style container
-            (overflow-auto, rounded-lg, border, bg-card). No extra wrapper needed.
-          */}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Stock Level</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayedProducts.map((product) => {
-                const stockStatus = getStockStatus(product);
+          {/* ── Product Table (TanStack Table) ─────────────────────── */}
+          <InventoryTable
+            data={displayedProducts}
+            columns={columns}
+            isLoading={isLoading}
+            error={error instanceof Error ? error : null}
+          />
 
-                return (
-                  <TableRow key={product.id}>
-                    {/* Product name */}
-                    <TableCell className="font-medium text-foreground">{product.name}</TableCell>
-
-                    {/* SKU — data-mono for precise character alignment */}
-                    <TableCellMono>
-                      {product.sku || `SKU-${product.id.slice(0, 6).toUpperCase()}`}
-                    </TableCellMono>
-
-                    {/* Category — muted text per spec */}
-                    <TableCell className="capitalize text-on-surface-variant">
-                      {product.category || 'General'}
-                    </TableCell>
-
-                    {/* Stock level — data-mono + status chip */}
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-medium text-foreground">
-                          {product.quantity} units
-                        </span>
-                        <StockChip status={stockStatus} />
-                      </div>
-                    </TableCell>
-
-                    {/* Unit price — data-mono */}
-                    <TableCellMono>{formatCurrency(product.price)}</TableCellMono>
-
-                    {/* Actions — icon buttons */}
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {stockStatus === 'low' && (
-                          <AlertTriangle className="h-4 w-4 text-warning" />
-                        )}
-                        <StockAdjustmentModal
-                          product={product}
-                          trigger={
-                            <Button
-                              type="button"
-                              variant="ghostIcon"
-                              size="sm"
-                              title="Adjust Stock"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          }
-                        />
-                        <Button asChild variant="ghostIcon" size="sm" title="Edit">
-                          <Link href={`/products/${product.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-
-              {/* Empty state */}
-              {displayedProducts.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12">
-                    <div className="flex flex-col items-center gap-3 text-on-surface-variant">
-                      <Package className="h-10 w-10 text-muted-foreground/50" />
-                      <p className="text-body-md">No products found.</p>
-                      <p className="text-body-sm">Adjust your filters or add new stock.</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* ── Pagination ──────────────────────────────────────────── */}
-          {totalPages > 1 && (
-            <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="text-body-sm text-on-surface-variant">
-                Page {currentPage} of {totalPages}
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="sr-only">Previous page</span>
-                </Button>
-
-                {pageNumbers().map((pageNum) => (
-                  <Button
-                    key={pageNum}
-                    variant={pageNum === currentPage ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handlePageChange(pageNum)}
-                  >
-                    {pageNum}
-                  </Button>
-                ))}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                  <span className="sr-only">Next page</span>
-                </Button>
+          {/* ── Empty State (only when table returned no rows) ───────── */}
+          {!isLoading && displayedProducts.length === 0 && (
+            <div className="flex items-center justify-center py-12 text-on-surface-variant">
+              <div className="flex flex-col items-center gap-3">
+                <Package className="h-10 w-10 text-muted-foreground/50" />
+                <p className="text-body-md">No products found.</p>
+                <p className="text-body-sm">Adjust your filters or add new stock.</p>
               </div>
             </div>
           )}
+
+          {/* ── Pagination ─────────────────────────────────────────── */}
+          <InventoryPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </div>
