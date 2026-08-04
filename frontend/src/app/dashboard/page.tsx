@@ -258,7 +258,7 @@ function StockVial({ quantity, lowStock }: { quantity: number; lowStock: number 
  * Inline SVG bar chart — visualises key pharmacy metrics at a glance
  * without an external charting dependency.
  */
-function InventorySnapshot({ stats }: { stats: Stats }) {
+function InventorySnapshot({ stats, isLoading }: { stats: Stats; isLoading: boolean }) {
   const bars = [
     { label: 'Products', value: stats.totalProducts, color: 'hsl(var(--primary-hsl))' },
     { label: 'Suppliers', value: stats.totalCompanies, color: 'hsl(var(--secondary-hsl))' },
@@ -282,30 +282,36 @@ function InventorySnapshot({ stats }: { stats: Stats }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4 mt-5">
-          {bars.map((bar) => {
-            const widthPct = (bar.value / maxValue) * 100;
-            return (
-              <div key={bar.label} className="flex items-center gap-3">
-                <span className="w-16 text-label-md text-on-surface-variant">{bar.label}</span>
-                <div className="relative flex-1">
-                  <div className="h-6 w-full overflow-hidden rounded-md bg-muted/30">
-                    <div
-                      className="h-full rounded-md transition-all duration-300 ease-out"
-                      style={{
-                        width: `${Math.max(2, widthPct)}%`,
-                        backgroundColor: bar.color,
-                      }}
-                    />
+        {isLoading ? (
+          <div className="flex min-h-70 items-center justify-center">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-4 mt-5">
+            {bars.map((bar) => {
+              const widthPct = (bar.value / maxValue) * 100;
+              return (
+                <div key={bar.label} className="flex items-center gap-3">
+                  <span className="w-16 text-label-md text-on-surface-variant">{bar.label}</span>
+                  <div className="relative flex-1">
+                    <div className="h-6 w-full overflow-hidden rounded-md bg-muted/30">
+                      <div
+                        className="h-full rounded-md transition-all duration-300 ease-out"
+                        style={{
+                          width: `${Math.max(2, widthPct)}%`,
+                          backgroundColor: bar.color,
+                        }}
+                      />
+                    </div>
                   </div>
+                  <span className="w-16 text-right text-sm font-mono font-medium text-foreground">
+                    {bar.value}
+                  </span>
                 </div>
-                <span className="w-16 text-right text-sm font-mono font-medium text-foreground">
-                  {bar.value}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -446,7 +452,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex-1 p-4 sm:p-6">
-        <div className="container-max space-y-6">
+        <div className="w-full space-y-6">
           {/* ── Header ── */}
           <div className="flex flex-col space-y-1">
             <h1 className="text-display-lg text-foreground">Pharmacy Dashboard</h1>
@@ -564,13 +570,7 @@ export default function DashboardPage() {
           {/* ── Main Content: Chart + Recent Activity ── */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left: Inventory Snapshot Chart */}
-            {isLoading ? (
-              <div className="flex min-h-70 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <InventorySnapshot stats={stats} />
-            )}
+            <InventorySnapshot stats={stats} isLoading={isLoading} />
 
             {/* Right: Recent Activity */}
             <Card className="border-border bg-card card-elevated">
@@ -583,7 +583,7 @@ export default function DashboardPage() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex min-h-70 items-center justify-center">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
                 ) : activityItems.length === 0 ? (
                   <div className="flex min-h-70 items-center justify-center text-center">
