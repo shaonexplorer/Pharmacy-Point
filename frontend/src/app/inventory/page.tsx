@@ -202,7 +202,7 @@ export default function InventoryPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex-1 p-4 sm:p-6">
-        <div className="container-max space-y-6">
+        <div className=" space-y-6">
           {/* ── Page Header (signature: prescription-border-l accent) ── */}
           <div className="prescription-border-l pl-4">
             <h1 className="text-headline-lg text-foreground">Inventory</h1>
