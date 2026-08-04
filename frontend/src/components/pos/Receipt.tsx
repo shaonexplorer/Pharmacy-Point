@@ -101,10 +101,10 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
       {/* Customer & Payment Info */}
       {order.customer && (
         <div className="border-b border-border pb-3 mb-3">
-          <p className="text-xs text-muted-foreground">Customer</p>
+          <p className="text-xs text-label-md text-on-surface-variant">Customer</p>
           <p className="font-medium text-foreground">{order.customer.name}</p>
           {order.customer.phone && (
-            <p className="text-xs text-muted-foreground">{order.customer.phone}</p>
+            <p className="text-xs text-on-surface-variant">{order.customer.phone}</p>
           )}
         </div>
       )}
@@ -122,26 +122,28 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
               {item.product?.name ?? 'Unknown Product'}
             </span>
             <span className="w-12 text-center text-muted-foreground">{item.quantity}</span>
-            <span className="w-20 text-right text-foreground">
+            <span className="w-20 text-right text-data-mono text-foreground">
               {formatCurrency(item.price * item.quantity)}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Totals */}
+      {/* Totals — data-mono for numerical clarity per DESIGN.md */}
       <div className="border-t border-border pt-3 space-y-1">
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="text-foreground">{formatCurrency(order.subtotal ?? order.total)}</span>
+          <span className="text-on-surface-variant">Subtotal</span>
+          <span className="text-data-mono text-foreground">
+            {formatCurrency(order.subtotal ?? order.total)}
+          </span>
         </div>
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Tax</span>
-          <span className="text-foreground">{formatCurrency(order.tax ?? 0)}</span>
+          <span className="text-on-surface-variant">Tax</span>
+          <span className="text-data-mono text-foreground">{formatCurrency(order.tax ?? 0)}</span>
         </div>
         <div className="flex justify-between text-lg font-bold border-t border-border pt-2">
           <span className="text-foreground">Total</span>
-          <span className="text-primary">{formatCurrency(order.total)}</span>
+          <span className="text-primary text-data-mono">{formatCurrency(order.total)}</span>
         </div>
       </div>
 
@@ -170,7 +172,8 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
     <Card className="border-border bg-card card-elevated">
       <CardContent className="p-6">
         <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center justify-center gap-2 text-primary">
+          {/* Success confirmation — DESIGN.md: tertiary (Safety Green) for success states */}
+          <div className="flex items-center justify-center gap-2 text-tertiary">
             <ReceiptIcon className="h-8 w-8" />
             <span className="text-display-lg font-bold">Sale Complete!</span>
           </div>
@@ -186,7 +189,7 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
               <Mail className="mr-2 h-4 w-4" />
               Email Receipt
             </Button>
-            <Button size="tablet" onClick={onNewSale} className="flex-1">
+            <Button variant="default" size="tablet" onClick={onNewSale} className="flex-1">
               <ShoppingCart className="mr-2 h-4 w-4" />
               New Sale
             </Button>

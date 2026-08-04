@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
-import { cn } from '@/lib/utils';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
 
 interface CheckoutProps {
@@ -52,16 +51,20 @@ export function Checkout({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Order Summary */}
+      <CardContent className="space-y-4 pb-4">
+        {/* Order Summary — data-mono for numerical clarity per DESIGN.md */}
         <div className="space-y-2">
           <div className="flex justify-between text-body-md">
             <span className="text-on-surface-variant">Subtotal</span>
-            <span className="text-foreground text-data-mono">{formatCurrency(subtotal)}</span>
+            <span className="text-data-mono text-foreground font-medium">
+              {formatCurrency(subtotal)}
+            </span>
           </div>
           <div className="flex justify-between text-body-md">
             <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
-            <span className="text-foreground text-data-mono">{formatCurrency(taxAmount)}</span>
+            <span className="text-data-mono text-foreground font-medium">
+              {formatCurrency(taxAmount)}
+            </span>
           </div>
           <div className="flex justify-between border-t border-border pt-2 text-xl font-bold">
             <span className="text-foreground">Total</span>
@@ -69,30 +72,26 @@ export function Checkout({
           </div>
         </div>
 
-        {/* Payment Method Selection */}
+        {/* Payment Method Selection — DESIGN.md: secondary actions use Medi-Blue */}
         <div className="space-y-2">
           <p className="text-label-md text-foreground">Payment Method</p>
           <div className="flex gap-2">
+            {/* Cash — secondary (Medi-Blue) when inactive, primary (Pharma Teal) when active */}
             <Button
-              variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+              variant={paymentMethod === 'cash' ? 'default' : 'secondary'}
               size="tablet"
               onClick={() => onPaymentMethodChange('cash')}
-              className={cn(
-                'flex-1',
-                paymentMethod === 'cash' ? 'bg-primary text-primary-foreground' : 'border-border'
-              )}
+              className="flex-1"
             >
               <Banknote className="mr-2 h-4 w-4" />
               Cash
             </Button>
+            {/* Card — secondary (Medi-Blue) when inactive, primary (Pharma Teal) when active */}
             <Button
-              variant={paymentMethod === 'card' ? 'default' : 'outline'}
+              variant={paymentMethod === 'card' ? 'default' : 'secondary'}
               size="tablet"
               onClick={() => onPaymentMethodChange('card')}
-              className={cn(
-                'flex-1',
-                paymentMethod === 'card' ? 'bg-primary text-primary-foreground' : 'border-border'
-              )}
+              className="flex-1"
             >
               <CreditCard className="mr-2 h-4 w-4" />
               Card
@@ -118,9 +117,10 @@ export function Checkout({
           </Select>
         </div>
 
-        {/* Process Sale Button — primary action, large format with rounded-lg */}
+        {/* Process Sale Button — DESIGN.md: primary action, large-format with rounded-lg */}
         <Button
           size="tablet"
+          variant="default"
           className="w-full"
           disabled={isEmpty || isProcessing}
           onClick={onProcessSale}

@@ -63,25 +63,27 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         </p>
       </div>
 
-      {/* Quantity Controls */}
+      {/* Quantity Controls — DESIGN.md: 48px minimum touch target on tablet/POS */}
       <div className="flex items-center gap-1">
         <Button
           variant="outline"
           size="sm"
           onClick={handleDecrement}
           disabled={quantity <= 1}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
           aria-label="Decrease quantity"
         >
           <Minus className="h-3 w-3" />
         </Button>
         <Input
-          type="number"
           min={1}
           max={product.quantity}
           value={quantity}
           onChange={handleQuantityChange}
-          className={cn('w-12 text-center text-sm', 'focus-visible:ring-primary/50')}
+          className={cn(
+            'w-12 text-center text-sm',
+            'focus-visible:ring-[3px] focus-visible:ring-ring/50'
+          )}
           aria-label="Quantity"
         />
         <Button
@@ -89,15 +91,17 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           size="sm"
           onClick={handleIncrement}
           disabled={quantity >= product.quantity}
-          className="h-7 w-7 p-0"
+          className="h-8 w-8 p-0"
           aria-label="Increase quantity"
         >
           <Plus className="h-3 w-3" />
         </Button>
       </div>
 
-      {/* Line Total */}
-      <div className="w-20 text-right font-medium text-data-mono text-foreground">{formatCurrency(lineTotal)}</div>
+      {/* Line Total — data-mono for numerical clarity per DESIGN.md */}
+      <div className="w-20 text-right font-medium text-data-mono text-foreground">
+        {formatCurrency(lineTotal)}
+      </div>
 
       {/* Remove Button */}
       <Button
@@ -105,7 +109,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         size="sm"
         onClick={() => onRemove(product.id)}
         className={cn(
-          'h-7 w-7 p-0 text-muted-foreground hover:text-destructive',
+          'h-8 w-8 p-0 text-muted-foreground hover:text-destructive',
           'hover:bg-destructive/10'
         )}
         aria-label="Remove from cart"

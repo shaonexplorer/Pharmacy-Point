@@ -6,9 +6,11 @@ import { useSession } from '@/lib/auth-client';
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useCreateOrder } from '@/hooks/useOrders';
+import { useCategories } from '@/hooks/useCategories';
 import { PosProvider, usePos } from '@/context/PosContext';
 import type { Product, Customer, OrderWithItems } from '@pharmacy-point/types';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertCircle, ShoppingCart } from 'lucide-react';
 import { ProductSearch } from '@/components/pos/ProductSearch';
 import { ProductGrid } from '@/components/pos/ProductGrid';
@@ -25,10 +27,14 @@ function PosContent() {
   const { data: session, isPending: authPending } = useSession();
   const { data: sessionData } = useSession();
 
-  // Product search
+  // Product search & category filter
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // Fetch products (with search)
+  // Fetch categories for the filter dropdown
+  const { data: categories, isLoading: isLoadingCategories } = useCategories();
+
+  // Fetch products (with search + category filter)
   const {
     data: productsResponse,
     isLoading: isLoadingProducts,
@@ -37,6 +43,7 @@ function PosContent() {
     page: 1,
     limit: POS_PRODUCT_LIMIT,
     search: searchQuery || undefined,
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
   });
 
   const products: Product[] = productsResponse?.data ?? [];
@@ -144,7 +151,7 @@ function PosContent() {
   if (showReceipt && completedOrder) {
     const staffName = sessionData?.user?.name ?? undefined;
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="bg-background p-4 sm:p-6">
         <div className="container-max">
           <Receipt
             order={completedOrder}
@@ -159,32 +166,48 @@ function PosContent() {
 
   // Main POS interface
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-headline-lg text-foreground flex items-center gap-2">
-              <ShoppingCart className="h-6 w-6 text-primary" />
-              Point of Sale
-            </h1>
-            <p className="text-body-md text-on-surface-variant">
-              {sessionData?.user?.name
-                ? `Signed in as ${sessionData.user.name}`
-                : 'Ready to process a new sale'}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-label-md text-on-surface-variant">Order Total</p>
-            <p className="text-2xl font-bold text-data-mono text-primary">{formatCurrency(total)}</p>
+    <div className="bg-background p-4 sm:p-6">
+      <div className="">
+        {/* ── Header ────────────────────────────────────────────────────── */}
+        <div className="prescription-border-l pl-4 mb-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-tertiary/10">
+                <ShoppingCart className="h-5 w-5 text-tertiary" />
+              </div>
+              <div>
+                <h1 className="text-display-lg text-foreground">Point of Sale</h1>
+                <p className="text-body-md text-on-surface-variant">
+                  {sessionData?.user?.name
+                    ? `Signed in as ${sessionData.user.name}`
+                    : 'Ready to process a new sale'}
+                </p>
+              </div>
+            </div>
+
+            {/* Live order total — data-mono for numerical clarity per spec */}
+            <div className="text-right">
+              <p className="text-label-md text-on-surface-variant">Order Total</p>
+              <p className="text-3xl font-bold text-data-mono text-primary">
+                {formatCurrency(total)}
+              </p>
+              {!isCartEmpty && (
+                <Badge variant="secondary" size="sm" className="mt-1">
+                  {items.reduce((sum, item) => sum + item.quantity, 0)} items
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Error State */}
+        {/* ── Mutation Error ───────────────────────────────────────────── */}
         {createOrderMutation.isError && (
-          <Card id="checkout-error" className="border-destructive bg-destructive/5 card-elevated p-4 mb-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
+          <Card
+            id="checkout-error"
+            className="border-error bg-error/5 shadow-[var(--shadow-md)] p-4 mb-4"
+          >
+            <div className="flex items-start gap-3 text-error">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
               <p className="text-body-md">
                 {createOrderMutation.error?.message || 'Failed to process sale. Please try again.'}
               </p>
@@ -192,25 +215,28 @@ function PosContent() {
           </Card>
         )}
 
-        {/* Main Layout */}
+        {/* ── Main Layout (Product Search + Grid | Cart + Checkout) ───── */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
           {/* Left Column: Products */}
-          {/* POS grid spacing: md (16px) between elements per spec */}
           <div className="space-y-4">
-            {/* Product Search */}
+            {/* Product Search + Category Filter — DESIGN.md: top bar with text input and category filters */}
             <ProductSearch
               value={searchQuery}
               onChange={setSearchQuery}
               onClear={() => setSearchQuery('')}
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              isLoadingCategories={isLoadingCategories}
               placeholder="Search products by name or SKU..."
             />
 
             {/* Products Error */}
             {productsError && (
-              <Card className="border-destructive bg-destructive/5 p-4">
-                <div className="flex items-center gap-2 text-destructive">
+              <Card className="border-error bg-error/5 p-4">
+                <div className="flex items-center gap-2 text-error">
                   <AlertCircle className="h-4 w-4" />
-                  <p>
+                  <p className="text-body-md">
                     {productsError instanceof Error
                       ? productsError.message
                       : 'Failed to load products'}
@@ -219,7 +245,24 @@ function PosContent() {
               </Card>
             )}
 
-            {/* Product Grid */}
+            {/* Active filters indicator */}
+            {(searchQuery || (selectedCategory !== 'all' && (categories ?? []).length > 0)) && (
+              <div className="flex flex-wrap gap-2">
+                {searchQuery && (
+                  <Badge variant="outline" size="sm">
+                    Search: &quot;{searchQuery}&quot;
+                  </Badge>
+                )}
+                {selectedCategory !== 'all' && (categories ?? []).length > 0 && (
+                  <Badge variant="outline" size="sm">
+                    {(categories ?? []).find((c) => c.id === selectedCategory)?.name ||
+                      selectedCategory}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Product Grid — DESIGN.md: md (16px) spacing between interactive elements */}
             <ProductGrid
               products={products}
               onAddItem={(product, qty) => addItem(product, qty)}
