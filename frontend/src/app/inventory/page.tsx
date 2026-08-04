@@ -49,13 +49,17 @@ export default function InventoryPage() {
   const { data: session, isPending } = useSession();
 
   /* ── Filter state ─────────────────────────────────────────────────── */
-  const [searchQuery, setSearchQuery] = useState('');
+  // Native TanStack Table global filter — drives client-side search across
+  // all columns on the currently fetched page (see InventoryTable)
+  const [globalFilter, setGlobalFilter] = useState<string | undefined>('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   /* ── Data fetching ────────────────────────────────────────────────── */
+  // Server-side search has been replaced by TanStack Table's native globalFilter.
+  // The API still handles company and low-stock filters server-side.
   const {
     data: inventoryData,
     isLoading,
@@ -64,7 +68,6 @@ export default function InventoryPage() {
   } = useInventory({
     page: currentPage,
     limit: 20,
-    search: searchQuery || undefined,
     lowStock: showLowStockOnly || undefined,
     companyId: selectedCompany || undefined,
   });
@@ -104,7 +107,7 @@ export default function InventoryPage() {
   // Column definitions (memoized to avoid unnecessary table re-renders)
   const columns = useMemo(() => getInventoryColumns(), []);
 
-  const hasActiveFilters = searchQuery || selectedCategory || selectedCompany || showLowStockOnly;
+  const hasActiveFilters = globalFilter || selectedCategory || selectedCompany || showLowStockOnly;
 
   /* ── Auth redirect ────────────────────────────────────────────────── */
   useEffect(() => {
@@ -117,7 +120,7 @@ export default function InventoryPage() {
   const handleClearFilters = () => {
     setSelectedCategory('');
     setSelectedCompany('');
-    setSearchQuery('');
+    setGlobalFilter('');
     setShowLowStockOnly(false);
     setCurrentPage(1);
   };
@@ -199,17 +202,14 @@ export default function InventoryPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Search */}
+              {/* Search — native TanStack Table global filter */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search medication SKUs or names..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
+                  value={globalFilter ?? ''}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
                   className="pl-9 pr-4"
                 />
               </div>
@@ -334,20 +334,11 @@ export default function InventoryPage() {
           <InventoryTable
             data={displayedProducts}
             columns={columns}
+            globalFilter={globalFilter}
+            onGlobalFilterChange={setGlobalFilter}
             isLoading={isLoading}
             error={error instanceof Error ? error : null}
           />
-
-          {/* ── Empty State (only when table returned no rows) ───────── */}
-          {!isLoading && displayedProducts.length === 0 && (
-            <div className="flex items-center justify-center py-12 text-on-surface-variant">
-              <div className="flex flex-col items-center gap-3">
-                <Package className="h-10 w-10 text-muted-foreground/50" />
-                <p className="text-body-md">No products found.</p>
-                <p className="text-body-sm">Adjust your filters or add new stock.</p>
-              </div>
-            </div>
-          )}
 
           {/* ── Pagination ─────────────────────────────────────────── */}
           <InventoryPagination

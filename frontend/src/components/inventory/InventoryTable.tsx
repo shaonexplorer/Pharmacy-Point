@@ -4,7 +4,9 @@ import { useState } from 'react';
 import {
   flexRender,
   type ColumnDef,
+  type Updater,
   getCoreRowModel,
+  getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
   type SortingState,
@@ -12,7 +14,7 @@ import {
 
 import type { InventoryItem } from '@pharmacy-point/types';
 import { Card } from '@/components/ui/card';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Package } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -39,6 +41,8 @@ import {
 interface InventoryTableProps {
   data: InventoryItem[];
   columns: ColumnDef<InventoryItem>[];
+  globalFilter: string | undefined;
+  onGlobalFilterChange: (updater: Updater<string | undefined>) => void;
   isLoading?: boolean;
   error?: Error | null;
 }
@@ -46,6 +50,8 @@ interface InventoryTableProps {
 export function InventoryTable({
   data,
   columns,
+  globalFilter,
+  onGlobalFilterChange,
   isLoading = false,
   error = null,
 }: InventoryTableProps) {
@@ -54,9 +60,11 @@ export function InventoryTable({
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: { sorting, globalFilter },
     onSortingChange: setSorting,
+    onGlobalFilterChange,
     getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     enableSorting: true,
   });
@@ -76,6 +84,23 @@ export function InventoryTable({
     return (
       <div className="flex min-h-75 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  /* Empty state — covers both no-data and global-filter-no-match scenarios,
+     since TanStack Table's filtered row model is empty when the user's
+     search doesn't match anything on the current page. */
+  if (table.getRowModel().rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card card-elevated">
+        <div className="flex items-center justify-center py-12 text-on-surface-variant">
+          <div className="flex flex-col items-center gap-3">
+            <Package className="h-10 w-10 text-muted-foreground/50" />
+            <p className="text-body-md">No products found.</p>
+            <p className="text-body-sm">Adjust your filters or add new stock.</p>
+          </div>
+        </div>
       </div>
     );
   }

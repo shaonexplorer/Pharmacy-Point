@@ -42,6 +42,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - All stock operations use Prisma transactions for data consistency
 - Updated stats API to include transaction counts and sales metrics
 - Frontend: `useInventory` hooks, `StockAdjustmentModal` component, low stock filter UI
+  - Inventory table components (TanStack Table v8 with native global filter search):
+    - `frontend/src/components/inventory/StockChip.tsx` — stock status chip + `getStockStatus` helper
+    - `frontend/src/components/inventory/inventory-columns.tsx` — typed `ColumnDef<InventoryItem>[]` column definitions
+    - `frontend/src/components/inventory/InventoryTable.tsx` — TanStack Table instance with sorting, filtering, and empty state
+    - `frontend/src/components/inventory/InventoryPagination.tsx` — reusable pagination controls
+  - Server-side search param removed from `useInventory` — client-side search via TanStack Table's `globalFilter`
 
 **Phase 2: Customer Management - COMPLETED ✅**
 - Customer and Order models already present in Prisma schema
@@ -137,7 +143,7 @@ pharmacy-point/
 │   │           ├── companies/ # Company components
 │   │           ├── products/ # Product components
 │   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
-│   │           ├── inventory/ # Inventory components (StockAdjustmentModal)
+│   │           ├── inventory/ # Inventory components (StockAdjustmentModal, StockChip, InventoryTable, InventoryPagination, inventory-columns)
 │   │           └── pos/ # POS components (ProductSearch, ProductGrid, Cart, Checkout, Receipt)
 │   ├── components.json # shadcn/ui configuration
 │   └── package.json # Frontend dependencies
@@ -248,7 +254,8 @@ enum OrderStatus {
 - `DELETE /api/products/:id` - Soft delete product
 
 ### Inventory API (`/api/inventory`) [NEW]
-- `GET /api/inventory` - List inventory with pagination, search, low stock filter
+- `GET /api/inventory` - List inventory with pagination, low stock filter (search handled client-side via TanStack Table globalFilter)
+- Note: the `search` query param is no longer passed to the API — client-side search is handled by TanStack Table's `globalFilter` in the `InventoryTable` component
 - `GET /api/inventory/transactions` - List transaction history
 - `POST /api/inventory/stock-in` - Record stock in (purchase receipt)
 - `POST /api/inventory/stock-out` - Record stock out (sale)
@@ -381,6 +388,16 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 - `frontend/src/app/customers/page.tsx`
 
 **Note**: CSS parsing errors like `BadUrl("data:image/svg+xml")` are almost always a cascading failure from an upstream JSX or TypeScript error. Always fix the JSX/TS error first and rebuild — the CSS error typically resolves itself.
+
+### TanStack Table Global Filter
+
+The inventory page uses TanStack Table's native `globalFilter` for client-side search (replacing server-side `search` query param). Key conventions:
+
+- **`GlobalFilter` type does NOT exist in TanStack Table v8** — use `string | undefined` with `Updater<string | undefined>` from `@tanstack/react-table`
+- **Controlled pattern**: `globalFilter` state lives in the page component, passed down via `globalFilter` and `onGlobalFilterChange` props to `InventoryTable`
+- **Need `getFilteredRowModel()`** in the `useReactTable` config alongside `getCoreRowModel` and `getSortedRowModel`
+- **Empty state**: handle inside the table component by checking `table.getRowModel().rows.length === 0` (covers both no-data and filter-no-match)
+- **Search input**: bind `value={globalFilter ?? ''}` and `onChange={(e) => setGlobalFilter(e.target.value)}`
 
 ### Tailwind config
 
