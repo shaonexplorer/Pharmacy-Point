@@ -367,16 +367,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         variant="sidebar"
         collapsible="icon"
         {...props}
-        className="border-r border-sidebar-border bg-sidebar"
+        className="border-r border-sidebar-border bg-sidebar "
       >
         <SidebarHeader>
           <SidebarBrand />
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent className="px-4 sm:px-6">
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-2">
                 {navItems.map((item) => (
                   <NavItem key={item.name} item={item} />
                 ))}
