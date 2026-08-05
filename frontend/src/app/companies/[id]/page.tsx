@@ -6,10 +6,23 @@ import { useSession } from '@/lib/auth-client';
 import { useCompany, useDeleteCompany } from '@/hooks/useCompanies';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Edit, Trash2, Calendar, AlertCircle, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Loader2, Edit, Trash2, ArrowLeft, Package, Calendar, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '@/lib/formatters';
 import Link from 'next/link';
 import { ConfirmDialog } from '@/components/common';
-import { formatCurrency } from '@/lib/formatters';
+
+/* ─────────────────────────────────────────────────────────────────────────── *
+ * Clinical Precision — Company Detail Page
+ *
+ * Layout follows the same pattern as the Products detail page:
+ *  - flex-1 inside SidebarInset (not container-max)
+ *  - prescription-border-l signature element on the header
+ *  - SidebarTrigger for desktop sidebar toggle
+ *  - Clinical Precision error colors (error/30, error/10)
+ *  - data-mono for numerical data (prices, quantities)
+ * ────────────────────────────────────────────────────────────────────────── */
 
 export default function CompanyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -22,7 +35,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authPending && !session) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, authPending, router]);
 
@@ -38,7 +51,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
     try {
       await deleteCompanyMutation.mutateAsync(company.id);
-      router.push('/companies');
+      router.replace('/companies');
     } catch {
       // Error handled by mutation
     }
@@ -56,17 +69,12 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="container-max">
-          <Card className="border-destructive bg-destructive/5">
-            <CardContent>
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                <p>{errorMessage}</p>
-              </div>
-              <Button asChild className="mt-4" variant="outline">
-                <Link href="/companies">← Back to Companies</Link>
-              </Button>
+      <div className="flex-1 p-4 sm:p-6">
+        <div className="w-full space-y-6">
+          <Card className="border-error/30 bg-error/10 card-elevated">
+            <CardContent className="flex items-center gap-3 px-4">
+              <AlertCircle className="h-5 w-5 text-error shrink-0" />
+              <p className="text-body-md text-error">{errorMessage}</p>
             </CardContent>
           </Card>
         </div>
@@ -76,13 +84,17 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   if (!company) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="container-max">
-          <Card>
-            <CardContent>
-              <p className="text-muted-foreground">Company not found.</p>
-              <Button asChild className="mt-4" variant="outline">
-                <Link href="/companies">← Back to Companies</Link>
+      <div className="flex-1 p-4 sm:p-6">
+        <div className="w-full space-y-6">
+          <Card className="border-border bg-card card-elevated">
+            <CardContent className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+              <Package className="h-12 w-12 text-muted-foreground/50" />
+              <p className="text-body-md text-on-surface-variant">Company not found.</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/companies">
+                  <ArrowLeft className="mr-1 h-4 w-4" />
+                  Back to Companies
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -92,28 +104,40 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/companies">← Back</Link>
-            </Button>
-            <h1 className="text-headline-lg text-foreground">{company.name}</h1>
+    <div className="flex-1 p-4 sm:p-6">
+      <div className="w-full space-y-6">
+        {/* ── Header (signature: prescription-border-l accent) ── */}
+        <div className="flex items-start justify-between">
+          <div className="prescription-border-l pl-4">
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/companies">
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-headline-lg text-foreground">{company.name}</h1>
+                {company.description && (
+                  <p className="mt-1 text-body-md text-on-surface-variant line-clamp-2 max-w-2xl">
+                    {company.description}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="hidden md:flex" />
+            <Button asChild variant="outline" size="sm">
               <Link href={`/companies/${company.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Link>
             </Button>
             <Button
-              variant="outline"
+              variant="destructiveOutline"
+              size="sm"
               onClick={handleDeleteClick}
               disabled={deleteCompanyMutation.isPending}
-              className="border-destructive text-destructive hover:bg-destructive/10"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               {deleteCompanyMutation.isPending ? 'Deleting...' : 'Delete'}
@@ -121,8 +145,8 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Company Details */}
-        <Card className="bg-card border-border card-elevated mb-6">
+        {/* ── Company Details ── */}
+        <Card className="border-border bg-card card-elevated">
           <CardHeader>
             <CardTitle className="text-headline-md">Company Information</CardTitle>
           </CardHeader>
@@ -132,6 +156,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
               {company.image && (
                 <div className="mb-4">
                   <div className="relative h-48 w-full max-w-md overflow-hidden rounded-lg bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={company.image}
                       alt={company.name}
@@ -168,12 +193,15 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           </CardContent>
         </Card>
 
-        {/* Products Section */}
-        <Card className="bg-card border-border card-elevated">
+        {/* ── Products Section ── */}
+        <Card className="border-border bg-card card-elevated">
           <CardHeader>
             <CardTitle className="text-headline-md flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Products ({company.products?.length ?? 0})
+              <Package className="h-5 w-5 text-secondary" />
+              Products
+              <Badge variant="outline" size="sm">
+                {company.products?.length ?? 0}
+              </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -187,17 +215,24 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
                     <div className="space-y-1">
                       <h3 className="font-medium text-foreground">{product.name}</h3>
                       <p className="text-body-sm text-on-surface-variant">
-                        SKU: {product.sku} • Price: <span className="text-data-mono">{formatCurrency(product.price)}</span> • Stock: <span className="text-data-mono">{product.quantity}</span>
+                        <span className="text-label-md">SKU:</span>{' '}
+                        <span className="text-data-mono">{product.sku}</span>
+                        {'  •  '}
+                        <span className="text-label-md">Price:</span>{' '}
+                        <span className="text-data-mono">{formatCurrency(product.price)}</span>
+                        {'  •  '}
+                        <span className="text-label-md">Stock:</span>{' '}
+                        <span className="text-data-mono">{product.quantity}</span>
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-on-surface-variant">
-                <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <div className="flex flex-col items-center justify-center gap-3 py-8 text-center text-on-surface-variant">
+                <Package className="h-12 w-12 text-muted-foreground/50" />
                 <p className="text-body-md">No products found for this company.</p>
-                <Button asChild className="mt-4">
+                <Button asChild variant="outline" size="sm">
                   <Link href="/products">View All Products</Link>
                 </Button>
               </div>
@@ -205,7 +240,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           </CardContent>
         </Card>
 
-        {/* Delete Confirmation Dialog */}
+        {/* ── Delete Confirmation Dialog ── */}
         <ConfirmDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}

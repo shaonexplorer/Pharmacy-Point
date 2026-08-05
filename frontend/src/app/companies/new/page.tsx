@@ -5,8 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { CompanyForm } from '@/components/companies/CompanyForm';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus } from 'lucide-react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Loader2, Plus, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+
+/* ─────────────────────────────────────────────────────────────────────────── *
+ * Clinical Precision — Create Company Page
+ *
+ * Layout follows the same pattern as the Inventory page:
+ *  - flex-1 inside SidebarInset (not container-max)
+ *  - prescription-border-l signature element on the header
+ *  - SidebarTrigger for desktop sidebar toggle
+ * ────────────────────────────────────────────────────────────────────────── */
 
 export default function CreateCompanyPage() {
   const router = useRouter();
@@ -15,7 +25,7 @@ export default function CreateCompanyPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isPending && !session) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, isPending, router]);
 
@@ -32,19 +42,29 @@ export default function CreateCompanyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/companies">← Companies</Link>
-            </Button>
-            <h1 className="text-headline-lg text-foreground">Add New Company</h1>
+    <div className="flex-1 p-4 sm:p-6">
+      <div className="w-full space-y-6">
+        {/* ── Header (signature: prescription-border-l accent) ── */}
+        <div className="flex items-start justify-between">
+          <div className="prescription-border-l pl-4">
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/companies">
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div>
+                <h1 className="text-headline-lg text-foreground">Add New Company</h1>
+                <p className="mt-1 text-body-md text-on-surface-variant">
+                  Register a new company or supplier in your pharmacy system.
+                </p>
+              </div>
+            </div>
           </div>
+          <SidebarTrigger className="hidden md:flex" />
         </div>
 
-        {/* Form */}
+        {/* ── Form ── */}
         <div className="rounded-xl border border-border bg-card card-elevated p-6">
           <div className="mb-4 flex items-center gap-2 text-label-md text-on-surface-variant">
             <Plus className="h-4 w-4" />
