@@ -3,9 +3,9 @@
 import { CartItem as CartItemType } from '@/context/PosContext';
 import { CartItem as PosCartItem } from '@/components/pos/CartItem';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
-import { ShoppingCart, Trash2, Receipt as ReceiptIcon } from 'lucide-react';
+import { ShoppingCart, Receipt as ReceiptIcon, Trash2 } from 'lucide-react';
 
 interface CartProps {
   items: CartItemType[];
@@ -31,9 +31,9 @@ export function Cart({
   const isEmpty = items.length === 0;
 
   return (
-    <Card className="border-border bg-card card-elevated flex flex-col">
+    <Card className="card-elevated">
       <CardHeader className="pb-3">
-        <CardTitle className="text-card-foreground flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
           Shopping Cart
         </CardTitle>
@@ -65,35 +65,33 @@ export function Cart({
       </CardContent>
 
       {!isEmpty && (
-        <>
+        <CardFooter className="flex-col items-stretch gap-4 border-t border-border pt-6">
           {/* Summary — data-mono for numerical clarity per DESIGN.md */}
-          <div className="border-t border-border px-6 py-4 space-y-2">
-            <div className="flex justify-between text-body-md">
+          <div className="flex flex-col gap-2 text-body-md">
+            <div className="flex justify-between">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="text-data-mono text-foreground font-medium">
+              <span className="text-data-mono font-medium text-foreground">
                 {formatCurrency(subtotal)}
               </span>
             </div>
-            <div className="flex justify-between text-body-md">
+            <div className="flex justify-between">
               <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
-              <span className="text-data-mono text-foreground font-medium">
+              <span className="text-data-mono font-medium text-foreground">
                 {formatCurrency(taxAmount)}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
               <span className="text-foreground">Total</span>
-              <span className="text-primary text-data-mono">{formatCurrency(total)}</span>
+              <span className="text-data-mono text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
 
-          {/* Actions — secondary action uses Medi-Blue per DESIGN.md */}
-          <div className="border-t border-border px-6 py-3">
-            <Button variant="secondary" size="sm" onClick={onClearCart} className="w-full">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Clear Cart
-            </Button>
-          </div>
-        </>
+          {/* Destructive outline — outlined until activated per spec to avoid accidents */}
+          <Button variant="outline" size="sm" onClick={onClearCart} className="w-full">
+            <Trash2 className="mr-2 h-4 w-4" />
+            Clear Cart
+          </Button>
+        </CardFooter>
       )}
     </Card>
   );

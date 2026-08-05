@@ -5,6 +5,7 @@ import { Product } from '@pharmacy-point/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Package } from 'lucide-react';
@@ -17,17 +18,19 @@ interface ProductGridProps {
 }
 
 /**
- * Miniature medication-bottle stock indicator — a condensed version of the
- * dashboard's StockVial component. Grounds the POS in the pharmacy subject
- * matter (medication bottles are literal artifacts of the work) while making
- * stock urgency immediately scannable at a glance.
+ * Miniature medication-vial stock indicator — the signature pharmacy element.
+ *
+ * Grounded in the subject: a real dispensing vial is a literal artifact of
+ * pharmacy work. This condensed "bottle" reads stock urgency at a glance
+ * while anchoring the POS in the pharmacy's own visual language (rather than
+ * a generic coloured bar).
  *
  * DESIGN.md → Status Chips:
  *  - In Stock / Success: tertiary (#006b2c)
  *  - Low Stock / Warning: warning (amber)
- *  - Out of Stock / Error: error (#ba1a1a)
+ *  - Out of Stock / Error: error (#ba1a1c)
  */
-function StockBottle({ quantity, lowStock }: { quantity: number; lowStock: number }) {
+function StockVial({ quantity, lowStock }: { quantity: number; lowStock: number }) {
   const threshold = Math.max(lowStock || 10, 1);
   const isCritical = quantity <= threshold / 2;
   const isLow = quantity <= threshold;
@@ -42,13 +45,13 @@ function StockBottle({ quantity, lowStock }: { quantity: number; lowStock: numbe
 
   return (
     <div className="relative mx-auto h-10 w-5">
-      {/* Cap */}
-      <div className="absolute top-0 left-1/2 -ml-[3px] h-2 w-6 rounded-b-md bg-foreground" />
+      {/* Cap — wider than the body, centered like a real vial */}
+      <div className="absolute top-0 left-1/2 h-2 w-6 -translate-x-1/2 rounded-b-md bg-foreground" />
       {/* Bottle body */}
-      <div className="absolute inset-0 top-2 rounded-full border border-border bg-card/50" />
-      {/* Liquid fill — grows from bottom */}
+      <div className="absolute inset-0 top-2 rounded-sm border border-border bg-card/50" />
+      {/* Liquid fill — grows from the bottom to read stock urgency at a glance */}
       <div
-        className="absolute bottom-0 left-0 right-0 rounded-b-full transition-all duration-300"
+        className="absolute bottom-0 left-0 right-0 rounded-b-sm transition-all duration-300"
         style={{
           height: `${fillPct}%`,
           minHeight: '2px',
@@ -60,7 +63,7 @@ function StockBottle({ quantity, lowStock }: { quantity: number; lowStock: numbe
 }
 
 /**
- * Stock status badge — uses DESIGN.md status chip colors with full pill shape.
+ * Stock status chip — DESIGN.md full-pill (9999px) status chip.
  */
 function StockStatusBadge({ quantity, lowStock }: { quantity: number; lowStock: number }) {
   const threshold = Math.max(lowStock || 10, 1);
@@ -104,12 +107,14 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="border-border p-4 animate-pulse">
-            <div className="aspect-square w-full rounded-md bg-muted mb-2" />
-            <div className="h-4 w-3/4 rounded bg-muted mb-2" />
-            <div className="h-4 w-1/2 rounded bg-muted" />
+          <Card key={i} className="card-elevated p-4">
+            <Skeleton className="aspect-[4/3] w-full rounded-md" />
+            <div className="mt-3 space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
           </Card>
         ))}
       </div>
@@ -122,27 +127,25 @@ export function ProductGrid({
         <Package className="mx-auto h-12 w-12 text-muted-foreground/50" />
         <h3 className="mt-4 text-headline-md font-semibold text-foreground">No products found</h3>
         <p className="mt-2 text-body-md text-on-surface-variant">
-          Try adjusting your search query.
+          Try adjusting your search query or clearing the category filter.
         </p>
       </Card>
     );
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => {
         const isOutOfStock = product.quantity <= 0;
 
         return (
           <Card
             key={product.id}
-            className={cn('border-border card-elevated p-3', isOutOfStock && 'opacity-60')}
+            className={cn('relative card-elevated p-3', isOutOfStock && 'opacity-60')}
           >
             <div className="flex gap-3">
-              {/* Mini stock bottle visualization — pharmacy subject matter */}
-
               {/* Product Image or Placeholder */}
-              <div className="flex h-16 w-16  items-center justify-center rounded-md bg-muted/30 overflow-hidden">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
                 {product.image ? (
                   <Image
                     src={product.image}
@@ -158,37 +161,39 @@ export function ProductGrid({
 
               {/* Product Info */}
               <div className="flex-1 space-y-1 min-w-0">
-                <h4 className="font-medium text-foreground text-sm leading-tight truncate">
-                  {product.name}
-                </h4>
-                <p className="text-sm font-bold text-data-mono text-primary">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-sm font-medium leading-tight text-foreground truncate">
+                    {product.name}
+                  </h4>
+                  {/* Stock status + vial indicator — pharmacy signature element */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
+                    <StockVial quantity={product.quantity} lowStock={product.lowStock} />
+                  </div>
+                </div>
+
+                {/* Price — data-mono for numerical clarity per DESIGN.md */}
+                <p className="text-data-mono text-foreground font-medium">
                   {formatCurrency(product.price)}
                 </p>
-                <p className="text-xs text-on-surface-variant font-mono">SKU: {product.sku}</p>
-                <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
+
+                {/* SKU — data-mono prevents 0/O confusion per DESIGN.md */}
+                <p className="text-data-mono text-on-surface-variant">SKU: {product.sku}</p>
               </div>
             </div>
 
             {/* Quick Add — DESIGN.md: 48px minimum touch target on tablet/POS */}
-            {isOutOfStock ? (
-              <div className="mt-3">
-                <Button variant="ghost" size="tablet" disabled className="h-12 w-full text-xs">
-                  Out of Stock
-                </Button>
-              </div>
-            ) : (
-              <div className="mt-3">
-                <Button
-                  size="tablet"
-                  variant="secondary"
-                  onClick={() => onAddItem(product, 1)}
-                  disabled={!canAddToCart(product, 1)}
-                  className="h-12 w-full text-xs"
-                >
-                  + Add
-                </Button>
-              </div>
-            )}
+            <div className="mt-3">
+              <Button
+                size="tablet"
+                variant={isOutOfStock ? 'ghost' : 'secondary'}
+                onClick={() => onAddItem(product, 1)}
+                disabled={!canAddToCart(product, 1) || isOutOfStock}
+                className="h-12 w-full text-xs"
+              >
+                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              </Button>
+            </div>
           </Card>
         );
       })}

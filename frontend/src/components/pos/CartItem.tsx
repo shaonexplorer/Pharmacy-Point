@@ -41,7 +41,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
   return (
     <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 last:border-b-0 border-b border-border">
       {/* Product Image or Placeholder */}
-      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-muted/30 overflow-hidden">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
         {product.image ? (
           <Image
             src={product.image}
@@ -57,7 +57,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
 
       {/* Product Details */}
       <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-foreground text-sm truncate">{product.name}</h4>
+        <h4 className="text-sm font-medium text-foreground truncate">{product.name}</h4>
         <p className="text-xs text-on-surface-variant">
           SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each
         </p>
@@ -70,10 +70,10 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           size="sm"
           onClick={handleDecrement}
           disabled={quantity <= 1}
-          className="h-8 w-8 p-0"
+          className="h-10 w-10 p-0"
           aria-label="Decrease quantity"
         >
-          <Minus className="h-3 w-3" />
+          <Minus className="h-4 w-4" />
         </Button>
         <Input
           min={1}
@@ -81,8 +81,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           value={quantity}
           onChange={handleQuantityChange}
           className={cn(
-            'w-12 text-center text-sm',
-            'focus-visible:ring-[3px] focus-visible:ring-ring/50'
+            'w-12 text-center text-data-mono focus-visible:ring-[3px] focus-visible:ring-ring/50'
           )}
           aria-label="Quantity"
         />
@@ -91,30 +90,30 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           size="sm"
           onClick={handleIncrement}
           disabled={quantity >= product.quantity}
-          className="h-8 w-8 p-0"
+          className="h-10 w-10 p-0"
           aria-label="Increase quantity"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Line Total — data-mono for numerical clarity per DESIGN.md */}
-      <div className="w-20 text-right font-medium text-data-mono text-foreground">
+      <div className="w-20 text-right text-data-mono font-medium text-foreground">
         {formatCurrency(lineTotal)}
       </div>
 
-      {/* Remove Button */}
+      {/* Remove Button — secondary action, keep quiet until needed */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onRemove(product.id)}
         className={cn(
-          'h-8 w-8 p-0 text-muted-foreground hover:text-destructive',
+          'h-9 w-9 p-0 text-muted-foreground hover:text-destructive',
           'hover:bg-destructive/10'
         )}
         aria-label="Remove from cart"
       >
-        <Trash2 className="h-3 w-3" />
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );

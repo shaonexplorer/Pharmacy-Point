@@ -34,9 +34,9 @@ export function ProductSearch({
   placeholder = 'Search products by name or SKU...',
 }: ProductSearchProps) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
       {/* Category filter — DESIGN.md: "top bar with text input and category filters" */}
-      <div className="w-full sm:w-48">
+      <div className="w-full sm:w-52">
         <Select
           value={selectedCategory}
           onValueChange={onCategoryChange}
@@ -74,11 +74,11 @@ export function ProductSearch({
         {value && (
           <button
             onClick={onClear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
+            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200"
             aria-label="Clear search"
             type="button"
           >
-            <X className="h-3 w-3" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>

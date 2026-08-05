@@ -208,7 +208,7 @@ export default function DashboardPage() {
       {/* Subtle prescription-grid texture: evokes medical prescription pads */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(var(--outline-variant)_1px,transparent_1px)] bg-size-[24px_24px] mask-[linear-gradient(to_bottom,black,transparent_20%,transparent_80%,black)]" />
 
-      <div className="container-max mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+      <div className="sm:container-max mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
         <div className="w-full space-y-6">
           {/* ── Header ── */}
           <div className="flex items-start justify-between">
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                   <Warehouse className="h-5 w-5 text-primary" />
                 </div>
-                <h1 className="text-display-lg text-foreground">Pharmacy Dashboard</h1>
+                <h1 className="sm:text-display-lg text-foreground">Pharmacy Dashboard</h1>
               </div>
               <p className="text-body-md text-on-surface-variant">
                 {new Date().toLocaleDateString('en-US', {

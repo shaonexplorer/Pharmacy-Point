@@ -167,10 +167,10 @@ function PosContent() {
   // Main POS interface
   return (
     <div className="bg-background p-4 sm:p-6">
-      <div className="">
-        {/* ── Header ────────────────────────────────────────────────────── */}
-        <div className="prescription-border-l pl-4 mb-6">
-          <div className="flex items-center justify-between gap-4">
+      <div className="container-max space-y-6">
+        {/* ── Header (the POS "vitals" — live transaction total) ─────────── */}
+        <header className="prescription-border-l pl-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-tertiary/10">
                 <ShoppingCart className="h-5 w-5 text-tertiary" />
@@ -198,14 +198,11 @@ function PosContent() {
               )}
             </div>
           </div>
-        </div>
+        </header>
 
         {/* ── Mutation Error ───────────────────────────────────────────── */}
         {createOrderMutation.isError && (
-          <Card
-            id="checkout-error"
-            className="border-error bg-error/5 shadow-[var(--shadow-md)] p-4 mb-4"
-          >
+          <Card className="border-error bg-error/5 shadow-[var(--shadow-md)] p-4">
             <div className="flex items-start gap-3 text-error">
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
               <p className="text-body-md">
@@ -216,10 +213,10 @@ function PosContent() {
         )}
 
         {/* ── Main Layout (Product Search + Grid | Cart + Checkout) ───── */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-[2fr_1fr]">
           {/* Left Column: Products */}
-          <div className="space-y-4">
-            {/* Product Search + Category Filter — DESIGN.md: top bar with text input and category filters */}
+          <div className="min-w-0 space-y-4">
+            {/* Product Search + Category Filter — DESIGN.md: top bar with text input */}
             <ProductSearch
               value={searchQuery}
               onChange={setSearchQuery}
@@ -272,7 +269,7 @@ function PosContent() {
           </div>
 
           {/* Right Column: Cart & Checkout */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4 min-w-[20rem]">
             <Cart
               items={items}
               subtotal={subtotal}

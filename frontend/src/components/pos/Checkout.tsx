@@ -49,53 +49,55 @@ export function Checkout({
   const isEmpty = items.length === 0;
 
   return (
-    <Card className="border-border bg-card card-elevated">
+    <Card className="card-elevated">
       <CardHeader className="pb-3">
-        <CardTitle className="text-card-foreground flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5 text-primary" />
           Checkout
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4 pb-4">
+      <CardContent className="flex flex-col gap-4 pb-4">
         {/* Order Summary — data-mono for numerical clarity per DESIGN.md */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-body-md">
-            <span className="text-on-surface-variant">Subtotal</span>
-            <span className="text-data-mono text-foreground font-medium">
-              {formatCurrency(subtotal)}
-            </span>
-          </div>
-          <div className="flex justify-between text-body-md">
-            <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
-            <span className="text-data-mono text-foreground font-medium">
-              {formatCurrency(taxAmount)}
-            </span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-2 text-xl font-bold">
-            <span className="text-foreground">Total</span>
-            <span className="text-primary text-data-mono">{formatCurrency(total)}</span>
+        <div className="rounded-md border border-border bg-surface-container-low/60 p-4">
+          <div className="flex flex-col gap-2 text-body-md">
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant">Subtotal</span>
+              <span className="text-data-mono font-medium text-foreground">
+                {formatCurrency(subtotal)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
+              <span className="text-data-mono font-medium text-foreground">
+                {formatCurrency(taxAmount)}
+              </span>
+            </div>
+            <div className="flex justify-between border-t border-border pt-2 text-xl font-bold">
+              <span className="text-foreground">Total</span>
+              <span className="text-data-mono text-primary">{formatCurrency(total)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Payment Method Selection — DESIGN.md: secondary actions use Medi-Blue */}
-        <div className="space-y-2">
+        {/* Payment Method Selection — DESIGN.md: secondary uses Medi-Blue */}
+        <div className="flex flex-col gap-2">
           <p className="text-label-md text-foreground">Payment Method</p>
           <div className="flex gap-2">
-            {/* Cash — secondary (Medi-Blue) when inactive, primary (Pharma Teal) when active */}
             <Button
               variant={paymentMethod === 'cash' ? 'default' : 'secondary'}
               size="tablet"
+              disabled={isProcessing}
               onClick={() => onPaymentMethodChange('cash')}
               className="flex-1"
             >
               <Banknote className="mr-2 h-4 w-4" />
               Cash
             </Button>
-            {/* Card — secondary (Medi-Blue) when inactive, primary (Pharma Teal) when active */}
             <Button
               variant={paymentMethod === 'card' ? 'default' : 'secondary'}
               size="tablet"
+              disabled={isProcessing}
               onClick={() => onPaymentMethodChange('card')}
               className="flex-1"
             >
@@ -106,14 +108,14 @@ export function Checkout({
         </div>
 
         {/* Customer Selection */}
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label className="text-label-md text-foreground">Customer (optional)</Label>
           <Select
             value={customerId ?? undefined}
             onValueChange={onCustomerChange}
-            disabled={isLoadingCustomers}
+            disabled={isLoadingCustomers || isProcessing}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Walk-in Customer" />
             </SelectTrigger>
             <SelectContent>
@@ -127,7 +129,7 @@ export function Checkout({
           </Select>
         </div>
 
-        {/* Process Sale Button — DESIGN.md: primary action, large-format with rounded-lg */}
+        {/* Process Sale — primary action, large-format with rounded-lg per spec */}
         <Button
           size="tablet"
           variant="default"

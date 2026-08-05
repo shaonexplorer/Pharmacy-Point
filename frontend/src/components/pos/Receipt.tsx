@@ -15,7 +15,7 @@ interface ReceiptProps {
 
 export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) {
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank', 'width=320,height=600');
+    const printWindow = window.open('', '_blank', 'width=360,height=720');
     if (printWindow) {
       const receiptHtml = `
         <!DOCTYPE html>
@@ -23,25 +23,27 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
         <head>
           <title>Receipt #${order.id.slice(0, 8)}</title>
           <style>
-            body { font-family: 'Courier New', monospace; margin: 0; padding: 20px; font-size: 12px; }
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+            body { font-family: 'JetBrains Mono', 'Courier New', monospace; margin: 0; padding: 20px; font-size: 12px; color: #0b1c30; background: #f8f9ff; }
             .receipt { max-width: 280px; margin: 0 auto; }
-            .header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 10px; margin-bottom: 10px; }
-            .shop-name { font-size: 16px; font-weight: bold; }
-            .shop-info { font-size: 11px; color: #666; }
-            .section { margin: 10px 0; }
+            .header { text-align: center; border-bottom: 2px solid #00685f; padding-bottom: 10px; margin-bottom: 14px; }
+            .shop-name { font-size: 16px; font-weight: 700; color: #00685f; }
+            .shop-info { font-size: 11px; color: #5b6b6b; }
+            .section { margin: 12px 0; }
             .item { display: flex; justify-content: space-between; margin: 5px 0; }
             .item-name { flex: 2; }
             .item-qty { flex: 1; text-align: center; }
-            .item-price { flex: 1; text-align: right; }
-            .total-row { border-top: 1px solid #000; font-weight: bold; margin-top: 5px; padding-top: 5px; }
-            .footer { text-align: center; margin-top: 10px; font-size: 11px; color: #666; }
+            .item-price { flex: 1; text-align: right; font-weight: 600; }
+            .total-row { border-top: 2px solid #00685f; font-weight: 700; margin-top: 6px; padding-top: 6px; }
+            .footer { text-align: center; margin-top: 14px; font-size: 11px; color: #5b6b6b; }
+            .divider { border-top: 1px dashed #bcc9c6; }
           </style>
         </head>
         <body>
           <div class="receipt">
             <div class="header">
               <div class="shop-name">Pharmacy Point</div>
-              <div class="shop-info">Receipt • ${new Date(order.createdAt).toLocaleDateString()}</div>
+              <div class="shop-info">${new Date(order.createdAt).toLocaleDateString()}</div>
               <div class="shop-info">Order #${order.id.slice(0, 8)}</div>
             </div>
             <div class="section">
@@ -58,11 +60,13 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
                 )
                 .join('')}
             </div>
+            <div class="divider"></div>
             <div class="section">
               <div class="item"><span>Subtotal</span><span></span><span class="item-price">${formatCurrency(order.subtotal ?? order.total)}</span></div>
               <div class="item"><span>Tax</span><span></span><span class="item-price">${formatCurrency(order.tax ?? 0)}</span></div>
               <div class="total-row"><span>Total</span><span></span><span class="item-price">${formatCurrency(order.total)}</span></div>
             </div>
+            <div class="divider"></div>
             <div class="footer">
               Customer: ${order.customer?.name ?? 'Walk-in'}<br/>
               Payment: ${(order.paymentMethod ?? 'cash').toUpperCase()}<br/>
@@ -117,11 +121,11 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
           <span className="w-20 text-right">Price</span>
         </div>
         {order.items.map((item) => (
-          <div key={item.id} className="flex justify-between text-xs py-1">
+          <div key={item.id} className="flex justify-between text-body-sm py-1">
             <span className="flex-1 text-foreground">
               {item.product?.name ?? 'Unknown Product'}
             </span>
-            <span className="w-12 text-center text-muted-foreground">{item.quantity}</span>
+            <span className="w-12 text-center text-on-surface-variant">{item.quantity}</span>
             <span className="w-20 text-right text-data-mono text-foreground">
               {formatCurrency(item.price * item.quantity)}
             </span>
@@ -131,19 +135,19 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
 
       {/* Totals — data-mono for numerical clarity per DESIGN.md */}
       <div className="border-t border-border pt-3 space-y-1">
-        <div className="flex justify-between text-xs">
+        <div className="flex justify-between text-body-sm">
           <span className="text-on-surface-variant">Subtotal</span>
           <span className="text-data-mono text-foreground">
             {formatCurrency(order.subtotal ?? order.total)}
           </span>
         </div>
-        <div className="flex justify-between text-xs">
+        <div className="flex justify-between text-body-sm">
           <span className="text-on-surface-variant">Tax</span>
           <span className="text-data-mono text-foreground">{formatCurrency(order.tax ?? 0)}</span>
         </div>
         <div className="flex justify-between text-lg font-bold border-t border-border pt-2">
           <span className="text-foreground">Total</span>
-          <span className="text-primary text-data-mono">{formatCurrency(order.total)}</span>
+          <span className="text-data-mono text-primary">{formatCurrency(order.total)}</span>
         </div>
       </div>
 
@@ -169,13 +173,13 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
   );
 
   return (
-    <Card className="border-border bg-card card-elevated">
+    <Card className="card-elevated">
       <CardContent className="px-6">
         <div className="flex flex-col items-center gap-4">
           {/* Success confirmation — DESIGN.md: tertiary (Safety Green) for success states */}
-          <div className="flex items-center justify-center gap-2 text-tertiary">
+          <div className="flex items-center justify-center gap-2 text-tertiary pt-2">
             <ReceiptIcon className="h-8 w-8" />
-            <span className="text-display-lg font-bold">Sale Complete!</span>
+            <span className="text-headline-lg font-bold">Sale Complete!</span>
           </div>
 
           {receiptRef}
