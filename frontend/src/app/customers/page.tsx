@@ -134,7 +134,7 @@ export default function CustomersPage() {
         {/* Empty State */}
         {!isLoading && !error && customers.length === 0 && (
           <Card className="border-border bg-card card-elevated border-dashed">
-            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
+            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center px-8">
               <User className="h-12 w-12 text-muted-foreground/50" />
               <h3 className="mt-4 text-headline-md text-foreground">No customers found</h3>
               <p className="mt-2 text-body-md text-on-surface-variant">

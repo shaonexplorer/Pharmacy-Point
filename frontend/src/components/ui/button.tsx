@@ -61,13 +61,17 @@ const buttonVariants = cva(
         ghostIcon: 'p-1.5',
       },
       size: {
-        default: 'h-10 px-4 has-[>svg]:px-3',
-        sm: 'h-9 px-3 text-xs has-[>svg]:px-2.5',
-        lg: 'h-12 rounded-lg px-8 py-3 text-lg has-[>svg]:px-6',
-        xl: 'h-14 rounded-lg px-10 py-4 text-xl has-[>svg]:px-8',
-        icon: 'h-10 w-10 p-0',
+        /* 40px height — 4px taller than shadcn v4 default for pharmacy touch targets */
+        default: 'h-10 px-4 py-2 has-[>svg]:px-3',
+        /* 32px height — matches shadcn v4 sm */
+        sm: 'h-8 px-3 text-xs has-[>svg]:px-2.5',
+        /* 40px height with rounded-lg for large actions */
+        lg: 'h-10 rounded-lg px-6 py-2 text-lg has-[>svg]:px-4',
+        /* 48px height — prominent call-to-action */
+        xl: 'h-12 rounded-lg px-8 py-3 text-xl has-[>svg]:px-6',
+        icon: 'h-9 w-9 p-0',
         iconSm: 'h-8 w-8 p-0',
-        iconLg: 'h-12 w-12 p-0 rounded-lg',
+        iconLg: 'h-10 w-10 p-0 rounded-lg',
         /* Tablet/POS — 48px minimum touch target per spec */
         tablet: 'h-12 rounded-lg px-6 has-[>svg]:px-4',
         /* Compact for tight layouts */

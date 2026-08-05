@@ -170,7 +170,7 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
 
   return (
     <Card className="border-border bg-card card-elevated">
-      <CardContent className="p-6">
+      <CardContent className="px-6">
         <div className="flex flex-col items-center gap-4">
           {/* Success confirmation — DESIGN.md: tertiary (Safety Green) for success states */}
           <div className="flex items-center justify-center gap-2 text-tertiary">

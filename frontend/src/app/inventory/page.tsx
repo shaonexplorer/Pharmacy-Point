@@ -159,7 +159,7 @@ export default function InventoryPage() {
           {/* ── Summary Row ─────────────────────────────────────────── */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="px-4">
                 <div className="flex items-center gap-3">
                   <Package className="h-5 w-5 text-secondary" />
                   <div>
@@ -170,7 +170,7 @@ export default function InventoryPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="px-4">
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="h-5 w-5 text-warning" />
                   <div>
@@ -181,7 +181,7 @@ export default function InventoryPage() {
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="px-4">
                 <div className="flex items-center gap-3">
                   <TrendingDown className="h-5 w-5 text-destructive" />
                   <div>

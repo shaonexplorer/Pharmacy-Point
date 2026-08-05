@@ -124,7 +124,7 @@ function KpiCard({
 }) {
   return (
     <Card className="border-border bg-card card-elevated group">
-      <CardContent className="p-4">
+      <CardContent className="px-4">
         <div className="flex items-center gap-3">
           <div
             className={cn(
@@ -171,7 +171,7 @@ function QuickActionCard({
 }) {
   return (
     <Card className="border-border bg-card card-elevated transition-shadow duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
-      <CardContent className="p-4">
+      <CardContent className="px-4">
         <Link href={href} className="group block">
           <div className="flex items-start gap-3">
             <div
@@ -474,7 +474,7 @@ export default function DashboardPage() {
 
           {/* ── Hero Metric: Total Inventory Value ── */}
           <Card className="border-border bg-card card-elevated">
-            <CardContent className="p-6">
+            <CardContent className="px-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
                   <p className="text-label-md text-on-surface-variant">Total Inventory Value</p>
@@ -646,7 +646,7 @@ export default function DashboardPage() {
               </div>
             ) : lowStockItems.length === 0 ? (
               <Card className="border-border bg-card card-elevated">
-                <CardContent className="flex min-h-30 flex-col items-center justify-center text-center p-6">
+                <CardContent className="flex min-h-30 flex-col items-center justify-center text-center px-6">
                   <AlertTriangle className="h-8 w-8 text-tertiary mb-2" />
                   <p className="text-body-md text-on-surface-variant">
                     All stock levels are healthy. No low-stock items to display.
@@ -660,7 +660,7 @@ export default function DashboardPage() {
                   const statusVariant = isCritical ? 'destructive' : 'warning';
                   return (
                     <Card key={product.id} className="border-border bg-card card-elevated">
-                      <CardContent className="p-4">
+                      <CardContent className="px-4">
                         <div className="flex items-center gap-3">
                           {/* Medication bottle visualisation */}
                           <StockVial

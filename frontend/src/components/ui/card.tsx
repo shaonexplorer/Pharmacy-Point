@@ -21,8 +21,10 @@ const Card = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'di
       data-slot="card"
       ref={ref}
       className={cn(
-        /* Surface container — level 1 */
-        'rounded-lg border bg-card text-card-foreground',
+        /* Surface container — level 1, vertical padding only (sections handle horizontal) */
+        'rounded-lg border bg-card py-6 text-card-foreground',
+        /* Consistent gap between card sections (header, content, footer) */
+        'flex flex-col gap-6',
         /* Elevation: Blur 12px, Y 4px, 4-6% opacity via CSS variable */
         'shadow-[var(--shadow-card)]',
         /* Hover lift: subtle shadow increase + Y lift (-2px) */
@@ -41,7 +43,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutR
     <div
       data-slot="card-header"
       ref={ref}
-      className={cn('flex flex-col space-y-2 p-6', '[.border-b]:pb-6', className)}
+      className={cn('flex flex-col space-y-2 px-6', '[.border-b]:pb-6', className)}
       {...props}
     />
   )
@@ -89,7 +91,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutR
     <div
       data-slot="card-footer"
       ref={ref}
-      className={cn('flex items-center pt-6', '[.border-t]:pt-6', className)}
+      className={cn('flex items-center px-6', '[.border-t]:pt-6', className)}
       {...props}
     />
   )

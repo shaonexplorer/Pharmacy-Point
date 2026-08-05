@@ -315,14 +315,14 @@ function SidebarGroupContent({ className, ...props }: React.ComponentProps<'div'
   return (
     <div
       data-slot="sidebar-group-content"
-      className={cn('flex flex-col gap-y-1', className)}
+      className={cn('flex flex-col gap-y-1.5', className)}
       {...props}
     />
   );
 }
 
 const sidebarMenuButtonVariants = {
-  base: 'group/menu-button flex w-full items-center gap-3 overflow-hidden rounded-lg px-3 py-2.5 text-left text-sm font-medium outline-hidden transition-all duration-200',
+  base: 'group/menu-button flex w-full items-center gap-3 overflow-hidden rounded-lg px-3 py-2 text-left text-sm font-medium outline-hidden transition-all duration-200',
   variants: {
     default: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
     outline:

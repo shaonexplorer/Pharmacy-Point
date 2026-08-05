@@ -71,7 +71,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-4xl">
           <Card className="border-destructive bg-destructive/5">
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-4 w-4" />
                 <p>{errorMessage}</p>
@@ -91,7 +91,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-4xl">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent>
               <p className="text-muted-foreground">Product not found.</p>
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/products">← Back to Products</Link>
@@ -142,7 +142,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Image / Media */}
           <Card className="bg-card border-border card-elevated">
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="aspect-video relative overflow-hidden rounded-md bg-muted">
                 {product.image ? (
                   // eslint-disable-next-line @next/next/no-img-element

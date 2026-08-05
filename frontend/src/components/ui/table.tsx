@@ -86,7 +86,7 @@ const TableHead = React.forwardRef<
     data-slot="table-head"
     ref={ref}
     className={cn(
-      'h-12 px-4 py-2.5',
+      'h-12 px-4 py-2',
       'text-left align-middle',
       /* label-md per DESIGN.md: 12px, 600 weight, uppercase, 0.05em tracking */
       'text-xs font-semibold uppercase tracking-[0.05em]',

@@ -59,7 +59,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="container-max">
           <Card className="border-destructive bg-destructive/5">
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-4 w-4" />
                 <p>{errorMessage}</p>
@@ -79,7 +79,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="container-max">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent>
               <p className="text-muted-foreground">Company not found.</p>
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/companies">← Back to Companies</Link>

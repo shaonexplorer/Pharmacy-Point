@@ -119,7 +119,7 @@ export default function ProductsPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Card className="w-full max-w-md border-border bg-card card-elevated">
-          <CardContent className="p-6">
+          <CardContent className="px-6">
             <AlertCircle className="h-8 w-8 text-destructive mb-3" />
             <h3 className="text-headline-md text-foreground">Not Authenticated</h3>
             <p className="mt-2 text-body-md text-on-surface-variant">
@@ -205,7 +205,7 @@ export default function ProductsPage() {
         {/* ── Error State ── */}
         {!isLoading && error && (
           <Card className="border-destructive bg-card card-elevated">
-            <CardContent className="flex items-center gap-3 p-4">
+            <CardContent className="flex items-center gap-3 px-4">
               <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
               <p className="text-body-md text-destructive">
                 {error instanceof Error ? error.message : 'Failed to load products'}
@@ -217,7 +217,7 @@ export default function ProductsPage() {
         {/* ── Empty State ── */}
         {!isLoading && !error && products.length === 0 && (
           <Card className="border-border bg-card card-elevated border-dashed">
-            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
+            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center px-8">
               {hasActiveFilters ? (
                 <>
                   <Search className="h-12 w-12 text-muted-foreground/50" />

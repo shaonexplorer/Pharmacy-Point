@@ -164,7 +164,7 @@ function LiquidFillIndicator({ active }: { active: boolean }) {
 
 function SidebarBrand() {
   return (
-    <div className="flex items-center gap-3 px-2 py-3">
+    <div className="flex items-center gap-3 px-3 py-3">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
         <PharmaVial className="h-6 w-6 text-primary" />
       </div>
@@ -192,7 +192,7 @@ function NavItem({ item }: { item: NavItem }) {
         isActive={isActive}
         tooltip={isCollapsed ? item.name : undefined}
         className={cn(
-          'relative group/item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+          'relative group/item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           isActive
             ? 'text-primary'
@@ -273,7 +273,7 @@ function UserCard() {
   const initials = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? 'U';
 
   return (
-    <div className="border-t border-sidebar-border p-4">
+    <div className="border-t border-sidebar-border p-3">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <span className="text-sm font-bold">{initials}</span>

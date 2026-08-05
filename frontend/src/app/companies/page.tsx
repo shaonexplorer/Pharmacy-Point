@@ -131,7 +131,7 @@ export default function CompaniesPage() {
         {/* Empty State */}
         {!isLoading && !error && companies.length === 0 && (
           <Card className="border-border bg-card card-elevated border-dashed">
-            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center p-8">
+            <CardContent className="flex min-h-75 flex-col items-center justify-center text-center px-8">
               <Store className="h-12 w-12 text-muted-foreground/50" />
               <h3 className="mt-4 text-headline-md text-foreground">No companies found</h3>
               <p className="mt-2 text-body-md text-on-surface-variant">
