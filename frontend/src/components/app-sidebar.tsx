@@ -195,12 +195,12 @@ function NavItem({ item }: { item: NavItem }) {
           'relative group/item flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           isActive
-            ? 'text-primary'
+            ? 'text-primary-foreground'
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
-          isCollapsed && 'justify-center px-2'
+          isCollapsed && 'justify-center px-2 gap-0'
         )}
       >
-        <Link href={item.href} className="flex w-full items-center gap-3">
+        <Link href={item.href} className="flex w-full items-center">
           {/* Liquid fill — the signature active indicator */}
           <LiquidFillIndicator active={isActive} />
 
