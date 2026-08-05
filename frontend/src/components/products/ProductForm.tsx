@@ -244,61 +244,66 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           {errors.price && <p className="text-sm text-error">{errors.price}</p>}
         </div>
 
-        {/* Category */}
-        <div className="space-y-2">
-          <Label htmlFor="category" className="text-body-md text-foreground">
-            Category <span className="text-destructive">*</span>
-          </Label>
-          <Select value={formData.category} onValueChange={(val) => handleChange('category', val)}>
-            <SelectTrigger
-              id="category"
-              className={cn(
-                'transition-all duration-200',
-                errors.category && 'border-error focus:ring-error/50'
-              )}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Category */}
+          <div className="space-y-2 flex-1">
+            <Label htmlFor="category" className="text-body-md text-foreground">
+              Category <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.category}
+              onValueChange={(val) => handleChange('category', val)}
             >
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Select a category</SelectItem>
-              {PRODUCT_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.category && <p className="text-sm text-error">{errors.category}</p>}
-        </div>
+              <SelectTrigger
+                id="category"
+                className={cn(
+                  'transition-all duration-200 w-full',
+                  errors.category && 'border-error focus:ring-error/50'
+                )}
+              >
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Select a category</SelectItem>
+                {PRODUCT_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.category && <p className="text-sm text-error">{errors.category}</p>}
+          </div>
 
-        {/* Company */}
-        <div className="space-y-2">
-          <Label htmlFor="companyId" className="text-body-md text-foreground">
-            Company
-          </Label>
-          <Select
-            value={formData.companyId ?? undefined}
-            onValueChange={(val) => handleChange('companyId', val || '')}
-          >
-            <SelectTrigger
-              id="companyId"
-              className={cn(
-                'transition-all duration-200',
-                errors.companyId && 'border-error focus:ring-error/50'
-              )}
+          {/* Company */}
+          <div className="space-y-2">
+            <Label htmlFor="companyId" className="text-body-md text-foreground">
+              Company
+            </Label>
+            <Select
+              value={formData.companyId ?? undefined}
+              onValueChange={(val) => handleChange('companyId', val || '')}
             >
-              <SelectValue placeholder="Select a company" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Select a company</SelectItem>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.companyId && <p className="text-sm text-error">{errors.companyId}</p>}
+              <SelectTrigger
+                id="companyId"
+                className={cn(
+                  'transition-all duration-200 w-full',
+                  errors.companyId && 'border-error focus:ring-error/50'
+                )}
+              >
+                <SelectValue placeholder="Select a company" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Select a company</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.companyId && <p className="text-sm text-error">{errors.companyId}</p>}
+          </div>
         </div>
 
         {/* Quantity */}
