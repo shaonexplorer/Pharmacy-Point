@@ -86,13 +86,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - `POST /api/orders` - Create order (Prisma transaction: create order + items + decrement stock + STOCK_OUT transactions)
   - `PATCH /api/orders/:id/status` - Update order status
 - Frontend POS implementation:
-  - `/frontend/src/app/pos/page.tsx` - Main POS interface with auth guard
+  - `/frontend/src/app/pos/page.tsx` - Main POS interface with auth guard and Clinical Precision redesign
   - `/frontend/src/context/PosContext.tsx` - Cart state management (React Context + useReducer)
   - `/frontend/src/hooks/useOrders.ts` - React Query hooks for orders
-  - Components: `ProductSearch`, `ProductGrid`, `Cart`, `CartItem`, `Checkout`, `Receipt`
+  - Components (Clinical Precision themed, `/frontend/src/components/pos/`):
+    - `ProductSearch` - search input + category `Select`, responsive gap layout, enlarged clear-icon hit area
+    - `ProductGrid` - responsive grid (`sm:grid-cols-2 lg:grid-cols-3`), `Skeleton` loading, signature medication-vial (`StockVial`) stock indicator next to each status chip, `data-mono` pricing/SKU, clearer out-of-stock disabled state
+    - `Cart` — `CardHeader`/`CardContent`/`CardFooter` structure, pharmacy-specific empty state, "Clear Cart" de-emphasized to `outline`
+    - `CartItem` — 40px minimum quantity touch targets, `data-mono` quantity input
+    - `Checkout` — full-width customer `Select`, payment toggles disabled while processing, order summary in a `surface-container-low` surface, primary Process Sale CTA (`primary` teal)
+    - `Receipt` — print CSS redesigned to the Clinical Precision palette with JetBrains Mono, success heading scaled to `text-headline-lg`, all rows on design-system typography tokens
+  - Page layout: `container-max` (1440px cap + 40px desktop margins), persistent hero "Order Total" vitals panel in the header with the `prescription-border-l` stripe, `items-start` grid so the cart column no longer stretches to match the product column, cart column pinned to `min-w-[20rem]`
   - Cart with stock validation, quantity controls, tax calculation (8.5% default)
   - Receipt with print support (clean print window)
   - Staff attribution via session user
+  - Responsive design: single column → two-column on `lg+`, 48px touch targets on tablet/POS
+  - Numerical pricing and SKUs rendered in `data-mono` (JetBrains Mono) per DESIGN.md
 - Added `POS` entry to navigation sidebar
 - Shared types extended: `OrderWithItems`, `OrderItemWithProduct`, `CreateOrderInput`, `CreateOrderItemInput`, `PaymentMethod`, `OrderStatus`
 

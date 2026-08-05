@@ -56,7 +56,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       </div>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-[60px]">
         <h4 className="text-sm font-medium text-foreground truncate">{product.name}</h4>
         <p className="text-xs text-on-surface-variant">
           SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each

@@ -167,7 +167,7 @@ function PosContent() {
   // Main POS interface
   return (
     <div className="bg-background p-4 sm:p-6">
-      <div className="container-max space-y-6">
+      <div className="sm:container-max space-y-6">
         {/* ── Header (the POS "vitals" — live transaction total) ─────────── */}
         <header className="prescription-border-l pl-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -269,7 +269,7 @@ function PosContent() {
           </div>
 
           {/* Right Column: Cart & Checkout */}
-          <div className="flex flex-col gap-4 min-w-[20rem]">
+          <div className="flex flex-col gap-4 min-w-[30rem]">
             <Cart
               items={items}
               subtotal={subtotal}
