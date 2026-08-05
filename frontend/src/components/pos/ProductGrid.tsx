@@ -134,7 +134,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
       {products.map((product) => {
         const isOutOfStock = product.quantity <= 0;
 
@@ -145,13 +145,13 @@ export function ProductGrid({
           >
             <div className="flex gap-3">
               {/* Product Image or Placeholder */}
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
                 {product.image ? (
                   <Image
                     src={product.image}
                     alt={product.name}
-                    width={64}
-                    height={64}
+                    width={54}
+                    height={54}
                     className="rounded-md object-cover"
                   />
                 ) : (
@@ -160,16 +160,17 @@ export function ProductGrid({
               </div>
 
               {/* Product Info */}
-              <div className="flex-1 space-y-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 space-y-2 min-w-0">
+                <div className="flex flex-col items-start justify-between gap-1">
                   <h4 className="text-sm font-medium leading-tight text-foreground truncate">
                     {product.name}
                   </h4>
+                  <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
                   {/* Stock status + vial indicator — pharmacy signature element */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  {/* <div className="flex items-center gap-1.5 shrink-0">
                     <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
                     <StockVial quantity={product.quantity} lowStock={product.lowStock} />
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Price — data-mono for numerical clarity per DESIGN.md */}
@@ -183,7 +184,7 @@ export function ProductGrid({
             </div>
 
             {/* Quick Add — DESIGN.md: 48px minimum touch target on tablet/POS */}
-            <div className="mt-3">
+            <div className="sm:mt-3">
               <Button
                 size="tablet"
                 variant={isOutOfStock ? 'ghost' : 'secondary'}

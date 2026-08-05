@@ -42,7 +42,7 @@ export function ProductSearch({
           onValueChange={onCategoryChange}
           disabled={isLoadingCategories}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full bg-background border-input text-foreground">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>

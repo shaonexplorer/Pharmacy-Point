@@ -39,9 +39,9 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 last:border-b-0 border-b border-border">
+    <div className="flex items-center gap-2 py-3 first:pt-0 last:pb-0 last:border-b-0 border-b border-border">
       {/* Product Image or Placeholder */}
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
+      <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted/30">
         {product.image ? (
           <Image
             src={product.image}
@@ -56,7 +56,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       </div>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-[60px]">
+      <div className="w-[110px] sm:flex-1 sm:min-w-[60px]">
         <h4 className="text-sm font-medium text-foreground truncate">{product.name}</h4>
         <p className="text-xs text-on-surface-variant">
           SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each
@@ -64,7 +64,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       </div>
 
       {/* Quantity Controls — DESIGN.md: 48px minimum touch target on tablet/POS */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2 ">
         <Button
           variant="outline"
           size="sm"
@@ -98,7 +98,7 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
       </div>
 
       {/* Line Total — data-mono for numerical clarity per DESIGN.md */}
-      <div className="w-20 text-right text-data-mono font-medium text-foreground">
+      <div className="sm:w-20 text-right text-data-mono font-medium text-foreground">
         {formatCurrency(lineTotal)}
       </div>
 

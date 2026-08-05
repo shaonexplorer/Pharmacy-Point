@@ -176,7 +176,7 @@ function PosContent() {
                 <ShoppingCart className="h-5 w-5 text-tertiary" />
               </div>
               <div>
-                <h1 className="text-display-lg text-foreground">Point of Sale</h1>
+                <h1 className="sm:text-display-lg text-foreground">Point of Sale</h1>
                 <p className="text-body-md text-on-surface-variant">
                   {sessionData?.user?.name
                     ? `Signed in as ${sessionData.user.name}`
@@ -269,7 +269,7 @@ function PosContent() {
           </div>
 
           {/* Right Column: Cart & Checkout */}
-          <div className="flex flex-col gap-4 min-w-[30rem]">
+          <div className="flex flex-col gap-4 sm:min-w-[30rem]">
             <Cart
               items={items}
               subtotal={subtotal}

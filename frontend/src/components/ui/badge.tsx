@@ -46,7 +46,7 @@ const badgeVariants = cva(
         warning: 'bg-warning-container/20 text-warning',
 
         /* Out of Stock / Error — Error red */
-        destructive: 'bg-error/10 text-error',
+        destructive: 'bg-red-500/30 text-red-500',
 
         /* Pending / Processing — Secondary (Medi-Blue) */
         secondary: 'bg-secondary/10 text-secondary',
