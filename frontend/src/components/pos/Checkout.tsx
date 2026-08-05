@@ -4,7 +4,13 @@ import { Customer, PaymentMethod } from '@pharmacy-point/types';
 import { CartItem } from '@/context/PosContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
@@ -103,17 +109,21 @@ export function Checkout({
         <div className="space-y-2">
           <Label className="text-label-md text-foreground">Customer (optional)</Label>
           <Select
-            value={customerId ?? ''}
-            onChange={(e) => onCustomerChange(e.target.value)}
+            value={customerId ?? undefined}
+            onValueChange={onCustomerChange}
             disabled={isLoadingCustomers}
           >
-            <option value="">Walk-in Customer</option>
-            {customers.map((customer) => (
-              <option key={customer.id} value={customer.id}>
-                {customer.name}
-                {customer.phone ? ` (${customer.phone})` : ''}
-              </option>
-            ))}
+            <SelectTrigger>
+              <SelectValue placeholder="Walk-in Customer" />
+            </SelectTrigger>
+            <SelectContent>
+              {customers.map((customer) => (
+                <SelectItem key={customer.id} value={customer.id}>
+                  {customer.name}
+                  {customer.phone ? ` (${customer.phone})` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
 

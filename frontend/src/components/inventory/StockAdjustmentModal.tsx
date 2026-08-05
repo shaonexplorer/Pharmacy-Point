@@ -15,7 +15,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import type { Product } from '@pharmacy-point/types';
 
@@ -92,7 +98,9 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="current-stock" className="text-body-md text-foreground">Current Stock</Label>
+            <Label htmlFor="current-stock" className="text-body-md text-foreground">
+              Current Stock
+            </Label>
             <Input
               id="current-stock"
               type="number"
@@ -103,16 +111,22 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="adjustment-type" className="text-body-md text-foreground">Type</Label>
+            <Label htmlFor="adjustment-type" className="text-body-md text-foreground">
+              Type
+            </Label>
             <Select
-              id="adjustment-type"
               value={adjustmentType}
-              onChange={(e) => setAdjustmentType(e.target.value as typeof adjustmentType)}
+              onValueChange={(val) => setAdjustmentType(val as typeof adjustmentType)}
               disabled={isPending}
             >
-              <option value="ADJUSTMENT">Manual Adjustment (Set absolute value)</option>
-              <option value="STOCK_IN">Stock In (Purchase Receipt)</option>
-              <option value="STOCK_OUT">Stock Out (Sale)</option>
+              <SelectTrigger id="adjustment-type">
+                <SelectValue placeholder="Manual Adjustment (Set absolute value)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADJUSTMENT">Manual Adjustment (Set absolute value)</SelectItem>
+                <SelectItem value="STOCK_IN">Stock In (Purchase Receipt)</SelectItem>
+                <SelectItem value="STOCK_OUT">Stock Out (Sale)</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
@@ -138,7 +152,9 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-body-md text-foreground">Notes (optional)</Label>
+            <Label htmlFor="notes" className="text-body-md text-foreground">
+              Notes (optional)
+            </Label>
             <Textarea
               id="notes"
               value={notes}

@@ -3,7 +3,13 @@
 import { PRODUCT_CATEGORIES } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Filter, X } from 'lucide-react';
 import type { Company } from '@pharmacy-point/types';
 
@@ -43,17 +49,18 @@ export function ProductFilters({
           <Label htmlFor="category-filter" className="text-label-md text-on-surface-variant">
             Category
           </Label>
-          <Select
-            id="category-filter"
-            value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
+          <Select value={selectedCategory} onValueChange={onCategoryChange}>
+            <SelectTrigger id="category-filter">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
 
@@ -61,17 +68,18 @@ export function ProductFilters({
           <Label htmlFor="company-filter" className="text-label-md text-on-surface-variant">
             Company
           </Label>
-          <Select
-            id="company-filter"
-            value={selectedCompany}
-            onChange={(e) => onCompanyChange(e.target.value)}
-          >
-            <option value="">All Companies</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
+          <Select value={selectedCompany} onValueChange={onCompanyChange}>
+            <SelectTrigger id="company-filter">
+              <SelectValue placeholder="All Companies" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Companies</SelectItem>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
       </div>

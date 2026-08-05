@@ -10,7 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader2, Save, X, Trash2 } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '@/lib/formatters';
 import Link from 'next/link';
@@ -221,18 +227,18 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           <Label htmlFor="category" className="text-body-md text-foreground">
             Category <span className="text-destructive">*</span>
           </Label>
-          <Select
-            id="category"
-            value={formData.category}
-            onChange={(e) => handleChange('category', e.target.value)}
-            className={errors.category ? 'border-destructive' : ''}
-          >
-            <option value="">Select a category</option>
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
+          <Select value={formData.category} onValueChange={(val) => handleChange('category', val)}>
+            <SelectTrigger id="category" className={errors.category ? 'border-destructive' : ''}>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Select a category</SelectItem>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
         </div>
@@ -243,17 +249,20 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             Company
           </Label>
           <Select
-            id="companyId"
-            value={formData.companyId ?? ''}
-            onChange={(e) => handleChange('companyId', e.target.value || '')}
-            className={errors.companyId ? 'border-destructive' : ''}
+            value={formData.companyId ?? undefined}
+            onValueChange={(val) => handleChange('companyId', val || '')}
           >
-            <option value="">Select a company</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
+            <SelectTrigger id="companyId" className={errors.companyId ? 'border-destructive' : ''}>
+              <SelectValue placeholder="Select a company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Select a company</SelectItem>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           {errors.companyId && <p className="text-sm text-destructive">{errors.companyId}</p>}
         </div>

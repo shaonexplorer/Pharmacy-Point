@@ -2,7 +2,13 @@
 
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { Category } from '@pharmacy-point/types';
 
@@ -33,15 +39,20 @@ export function ProductSearch({
       <div className="w-full sm:w-48">
         <Select
           value={selectedCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
+          onValueChange={onCategoryChange}
           disabled={isLoadingCategories}
         >
-          <option value="all">All Categories</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
+          <SelectTrigger>
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       </div>
 
