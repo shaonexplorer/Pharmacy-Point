@@ -91,7 +91,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger ?? <button>Adjust</button>}</AlertDialogTrigger>
-      <AlertDialogContent className="sm:max-w-md">
+      <AlertDialogContent className="max-w-[90%] sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Adjust Stock - {product.name}</AlertDialogTitle>
         </AlertDialogHeader>
@@ -119,7 +119,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
               onValueChange={(val) => setAdjustmentType(val as typeof adjustmentType)}
               disabled={isPending}
             >
-              <SelectTrigger id="adjustment-type">
+              <SelectTrigger id="adjustment-type" className="w-full">
                 <SelectValue placeholder="Manual Adjustment (Set absolute value)" />
               </SelectTrigger>
               <SelectContent>
@@ -167,8 +167,14 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleSubmit} disabled={isPending || !quantity}>
+          <AlertDialogCancel className="w-full  py-2 px-4" disabled={isPending}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className="w-full  py-2 px-4"
+            onClick={handleSubmit}
+            disabled={isPending || !quantity}
+          >
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

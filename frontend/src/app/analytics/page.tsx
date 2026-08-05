@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="flex-1 p-4 sm:p-6">
-      <div className="w-full space-y-6">
+      <div className=" space-y-6">
         {/* ── Page Header (signature: prescription-border-l accent) ── */}
         <div className="flex items-start justify-between">
           <div className="prescription-border-l pl-4">
@@ -214,14 +214,14 @@ export default function AnalyticsPage() {
         </div>
 
         {/* ── Charts & Insights ── */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 w-full">
           {/* Monthly Sales Chart */}
           <Card className="border-border bg-card card-elevated">
             <CardHeader>
               <CardTitle className="text-headline-md">Monthly Sales vs Targets</CardTitle>
               <CardDescription>January through June performance</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full">
               <div className="space-y-4">
                 {/* Chart placeholder with Clinical Precision styling */}
                 <div className="relative h-44 w-full rounded-lg bg-surface-container-low border border-border flex items-end gap-1 p-3 overflow-hidden">

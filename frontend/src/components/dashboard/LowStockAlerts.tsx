@@ -63,10 +63,10 @@ export function LowStockAlerts({ items, isLoading }: LowStockAlertsProps) {
             key={product.id}
             className="border-border bg-card transition-all duration-200 hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5"
           >
-            <CardContent className="px-4 py-4">
+            <CardContent className="px-4 ">
               <div className="flex items-center gap-3">
                 {/* Medication bottle visualisation */}
-                <StockVial quantity={product.quantity} lowStock={product.lowStock || 10} />
+                {/* <StockVial quantity={product.quantity} lowStock={product.lowStock || 10} /> */}
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
