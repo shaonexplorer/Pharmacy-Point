@@ -326,7 +326,7 @@
 @theme inline {
   /* Fonts */
   --font-sans: var(--font-inter, Inter, system-ui, sans-serif);
-  --font-mono: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  --font-mono: var(--font-jetbrains-mono, 'JetBrains Mono', ui-monospace, monospace);
 
   /* Semantic color aliases (mapped to CSS variables) */
   --color-background: var(--background);
