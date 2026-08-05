@@ -582,6 +582,48 @@
   animation: spin-slow 1s linear infinite;
 }
 
+/* Subtle pulse — for critical stock alerts (less aggressive than default pulse) */
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Draw-in — path drawing animation for sparklines */
+@keyframes draw-in {
+  from {
+    stroke-dashoffset: var(--tw-svg-path-length, 100);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-in {
+  animation: draw-in 0.6s ease-out forwards;
+}
+
+/* Breath — subtle pulsing for the hero metric "vitals" bar */
+@keyframes breath {
+  0%,
+  100% {
+    width: 75%;
+    opacity: 0.6;
+  }
+  50% {
+    width: 90%;
+    opacity: 1;
+  }
+}
+
 /* Gradient text for headings */
 .gradient-text {
   background-clip: text;
