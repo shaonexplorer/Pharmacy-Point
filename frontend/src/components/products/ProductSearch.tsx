@@ -54,7 +54,7 @@ export function ProductSearch({
   return (
     <div className="relative w-full max-w-md">
       <Search
-        className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+        className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant/50"
         aria-hidden="true"
       />
       <Input
@@ -63,7 +63,11 @@ export function ProductSearch({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="pl-10 pr-10"
+        className={cn(
+          'pl-10 pr-10',
+          'transition-all duration-200',
+          'focus:ring-2 focus:ring-primary/30 focus:border-primary'
+        )}
         aria-label="Search products"
       />
       {value && (
@@ -71,7 +75,8 @@ export function ProductSearch({
           onClick={handleClear}
           className={cn(
             'absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1',
-            'text-muted-foreground hover:bg-muted hover:text-foreground transition-colors duration-200',
+            'text-on-surface-variant/50 hover:text-foreground hover:bg-muted',
+            'transition-all duration-200',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
           )}
           aria-label="Clear search"

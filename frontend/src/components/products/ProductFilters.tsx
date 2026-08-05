@@ -40,7 +40,7 @@ export function ProductFilters({
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-border bg-card card-elevated p-4">
       <div className="flex items-center gap-3">
-        <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Filter className="h-4 w-4 text-on-surface-variant/50 flex-shrink-0" />
         <span className="text-label-md text-on-surface-variant">Filter by:</span>
       </div>
 
@@ -50,7 +50,10 @@ export function ProductFilters({
             Category
           </Label>
           <Select value={selectedCategory} onValueChange={onCategoryChange}>
-            <SelectTrigger id="category-filter">
+            <SelectTrigger
+              id="category-filter"
+              className="border-border focus:ring-2 focus:ring-primary/30"
+            >
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -69,7 +72,10 @@ export function ProductFilters({
             Company
           </Label>
           <Select value={selectedCompany} onValueChange={onCompanyChange}>
-            <SelectTrigger id="company-filter">
+            <SelectTrigger
+              id="company-filter"
+              className="border-border focus:ring-2 focus:ring-primary/30"
+            >
               <SelectValue placeholder="All Companies" />
             </SelectTrigger>
             <SelectContent>

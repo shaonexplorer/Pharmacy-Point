@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   flexRender,
   type ColumnDef,
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertCircle,
+  AlertTriangle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -46,6 +47,16 @@ interface ProductTableProps {
   onDelete?: (product: Product) => void;
   isLoading?: boolean;
   error?: Error | null;
+}
+
+/**
+ * Resolve stock status from a Product.
+ * Returns 'out' | 'low' | 'ok' based on quantity and lowStock threshold.
+ */
+function getStockStatus(product: Product): 'out' | 'low' | 'ok' {
+  if (product.quantity === 0) return 'out';
+  if (product.quantity <= product.lowStock) return 'low';
+  return 'ok';
 }
 
 export function ProductTable({
@@ -90,18 +101,16 @@ export function ProductTable({
         accessorKey: 'quantity',
         header: 'Stock',
         cell: ({ row }) => {
-          const quantity = row.original.quantity;
-          const lowStock = row.original.lowStock ?? 0;
-          const isLowStock = quantity <= lowStock;
-          const isOutOfStock = quantity === 0;
+          const product = row.original;
+          const status = getStockStatus(product);
 
           let badgeVariant: 'success' | 'warning' | 'destructive';
           let badgeLabel: string;
 
-          if (isOutOfStock) {
+          if (status === 'out') {
             badgeVariant = 'destructive';
             badgeLabel = 'Out of Stock';
-          } else if (isLowStock) {
+          } else if (status === 'low') {
             badgeVariant = 'warning';
             badgeLabel = 'Low Stock';
           } else {
@@ -111,7 +120,9 @@ export function ProductTable({
 
           return (
             <div className="flex items-center gap-2">
-              <span className="text-data-mono font-medium text-foreground">{quantity} units</span>
+              <span className="text-data-mono font-medium text-foreground">
+                {product.quantity} units
+              </span>
               <Badge variant={badgeVariant} size="sm">
                 {badgeLabel}
               </Badge>
@@ -131,18 +142,11 @@ export function ProductTable({
         header: 'Actions',
         cell: ({ row }) => {
           const product = row.original;
+          const status = getStockStatus(product);
+
           return (
             <div className="flex items-center justify-end gap-1">
-              <Button asChild variant="ghostIcon" size="sm">
-                <Link href={`/products/${product.id}`} aria-label="View product">
-                  <Eye className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="ghostIcon" size="sm">
-                <Link href={`/products/${product.id}/edit`} aria-label="Edit product">
-                  <Edit className="h-4 w-4" />
-                </Link>
-              </Button>
+              {status === 'low' && <AlertTriangle className="h-4 w-4 text-warning" />}
               {onDelete && (
                 <Button
                   variant="ghostIcon"
@@ -154,6 +158,16 @@ export function ProductTable({
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
+              <Button asChild variant="ghostIcon" size="sm" title="Edit">
+                <Link href={`/products/${product.id}/edit`} aria-label="Edit product">
+                  <Edit className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghostIcon" size="sm" title="View">
+                <Link href={`/products/${product.id}`} aria-label="View product">
+                  <Eye className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           );
         },
@@ -194,8 +208,8 @@ export function ProductTable({
 
   if (error) {
     return (
-      <div className="rounded-lg border border-destructive bg-destructive/5 p-4 card-elevated">
-        <div className="flex items-center gap-2 text-destructive">
+      <div className="rounded-lg border border-error bg-error/5 p-4 card-elevated">
+        <div className="flex items-center gap-2 text-error">
           <AlertCircle className="h-4 w-4" />
           <p className="text-body-md">{error.message}</p>
         </div>
@@ -251,7 +265,11 @@ export function ProductTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className="group transition-colors"
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

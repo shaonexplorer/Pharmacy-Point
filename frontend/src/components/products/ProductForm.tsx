@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, Save, X, Trash2 } from 'lucide-react';
 import { PRODUCT_CATEGORIES } from '@/lib/formatters';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 // Zod schema for product validation
@@ -165,9 +166,19 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {apiError && (
-        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
-          {apiError}
+      {(apiError || Object.keys(errors).length > 0) && (
+        <div className="rounded-lg border border-error bg-error/5 p-4 card-elevated">
+          <div className="flex items-center gap-2 text-error">
+            <X className="h-4 w-4" />
+            <div className="space-y-1">
+              {apiError && <p className="text-body-md">{apiError}</p>}
+              {Object.entries(errors).map(([field, message]) => (
+                <p key={field} className="text-body-sm">
+                  {field}: {message}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -183,9 +194,12 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="e.g., Paracetamol 500mg"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
-            className={errors.name ? 'border-destructive' : ''}
+            className={cn(
+              'transition-all duration-200',
+              errors.name && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+          {errors.name && <p className="text-sm text-error">{errors.name}</p>}
         </div>
 
         {/* SKU */}
@@ -199,9 +213,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="e.g., PARA-500-001"
             value={formData.sku}
             onChange={(e) => handleChange('sku', e.target.value)}
-            className={errors.sku ? 'border-destructive' : ''}
+            className={cn(
+              'font-mono text-sm',
+              'transition-all duration-200',
+              errors.sku && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.sku && <p className="text-sm text-destructive">{errors.sku}</p>}
+          {errors.sku && <p className="text-sm text-error">{errors.sku}</p>}
         </div>
 
         {/* Price */}
@@ -217,9 +235,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             step="0.01"
             value={formData.price}
             onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-            className={errors.price ? 'border-destructive' : ''}
+            className={cn(
+              'font-mono text-lg',
+              'transition-all duration-200',
+              errors.price && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.price && <p className="text-sm text-destructive">{errors.price}</p>}
+          {errors.price && <p className="text-sm text-error">{errors.price}</p>}
         </div>
 
         {/* Category */}
@@ -228,7 +250,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             Category <span className="text-destructive">*</span>
           </Label>
           <Select value={formData.category} onValueChange={(val) => handleChange('category', val)}>
-            <SelectTrigger id="category" className={errors.category ? 'border-destructive' : ''}>
+            <SelectTrigger
+              id="category"
+              className={cn(
+                'transition-all duration-200',
+                errors.category && 'border-error focus:ring-error/50'
+              )}
+            >
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
@@ -240,7 +268,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
+          {errors.category && <p className="text-sm text-error">{errors.category}</p>}
         </div>
 
         {/* Company */}
@@ -252,7 +280,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             value={formData.companyId ?? undefined}
             onValueChange={(val) => handleChange('companyId', val || '')}
           >
-            <SelectTrigger id="companyId" className={errors.companyId ? 'border-destructive' : ''}>
+            <SelectTrigger
+              id="companyId"
+              className={cn(
+                'transition-all duration-200',
+                errors.companyId && 'border-error focus:ring-error/50'
+              )}
+            >
               <SelectValue placeholder="Select a company" />
             </SelectTrigger>
             <SelectContent>
@@ -264,7 +298,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {errors.companyId && <p className="text-sm text-destructive">{errors.companyId}</p>}
+          {errors.companyId && <p className="text-sm text-error">{errors.companyId}</p>}
         </div>
 
         {/* Quantity */}
@@ -279,9 +313,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             min="0"
             value={formData.quantity}
             onChange={(e) => handleChange('quantity', parseInt(e.target.value) || 0)}
-            className={errors.quantity ? 'border-destructive' : ''}
+            className={cn(
+              'font-mono',
+              'transition-all duration-200',
+              errors.quantity && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
+          {errors.quantity && <p className="text-sm text-error">{errors.quantity}</p>}
         </div>
 
         {/* Low Stock Threshold */}
@@ -296,9 +334,13 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             min="0"
             value={formData.lowStock ?? 10}
             onChange={(e) => handleChange('lowStock', parseInt(e.target.value) || 0)}
-            className={errors.lowStock ? 'border-destructive' : ''}
+            className={cn(
+              'font-mono',
+              'transition-all duration-200',
+              errors.lowStock && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.lowStock && <p className="text-sm text-destructive">{errors.lowStock}</p>}
+          {errors.lowStock && <p className="text-sm text-error">{errors.lowStock}</p>}
         </div>
 
         {/* Image URL */}
@@ -312,9 +354,12 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="https://example.com/image.png"
             value={formData.image}
             onChange={(e) => handleChange('image', e.target.value)}
-            className={errors.image ? 'border-destructive' : ''}
+            className={cn(
+              'transition-all duration-200',
+              errors.image && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.image && <p className="text-sm text-destructive">{errors.image}</p>}
+          {errors.image && <p className="text-sm text-error">{errors.image}</p>}
         </div>
 
         {/* Description */}
@@ -327,9 +372,12 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="Enter product description..."
             value={formData.description}
             onChange={(e) => handleChange('description', e.target.value)}
-            className={errors.description ? 'border-destructive' : ''}
+            className={cn(
+              'transition-all duration-200',
+              errors.description && 'border-error focus:ring-error/50'
+            )}
           />
-          {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+          {errors.description && <p className="text-sm text-error">{errors.description}</p>}
         </div>
       </div>
 
@@ -355,7 +403,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             </Button>
           )}
         </div>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} variant="default">
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

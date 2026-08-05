@@ -37,16 +37,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (error) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="mx-auto max-w-4xl">
-          <Card className="border-destructive bg-destructive/5">
-            <CardContent>
-              <div className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                <p>{errorMessage}</p>
-              </div>
-              <Button asChild className="mt-4" variant="outline">
-                <Link href="/products">← Back to Products</Link>
-              </Button>
+        <div className="container-max mx-auto">
+          <Card className="border-error bg-error/5 card-elevated">
+            <CardContent className="flex items-center gap-3 px-6 py-8">
+              <AlertCircle className="h-5 w-5 text-error shrink-0" />
+              <p className="text-body-md text-error">{errorMessage}</p>
             </CardContent>
           </Card>
         </div>
@@ -57,10 +52,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (!product) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="mx-auto max-w-4xl">
-          <Card>
-            <CardContent>
-              <p className="text-muted-foreground">Product not found.</p>
+        <div className="container-max mx-auto">
+          <Card className="border-border bg-card card-elevated">
+            <CardContent className="flex min-h-[120px] flex-col items-center justify-center text-center px-8 py-8">
+              <p className="text-body-md text-on-surface-variant">Product not found.</p>
               <Button asChild className="mt-4" variant="outline">
                 <Link href="/products">← Back to Products</Link>
               </Button>
@@ -73,14 +68,19 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
+      <div className="container-max mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
               <Link href={`/products/${product.id}`}>← Product Details</Link>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Edit Product</h1>
+            <div className="flex items-center gap-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10">
+                <Edit className="h-4 w-4 text-secondary" />
+              </div>
+              <h1 className="text-headline-lg text-foreground">Edit Product</h1>
+            </div>
           </div>
         </div>
 
