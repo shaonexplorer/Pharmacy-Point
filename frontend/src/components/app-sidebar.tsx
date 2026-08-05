@@ -367,13 +367,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         variant="sidebar"
         collapsible="icon"
         {...props}
-        className="border-r border-sidebar-border bg-sidebar "
+        className="border-r border-sidebar-border bg-sidebar pt-4"
       >
         <SidebarHeader>
           <SidebarBrand />
         </SidebarHeader>
 
-        <SidebarContent className="px-4 sm:px-6">
+        <SidebarContent className="pr-4 sm:pr-6 pl-[10px] ">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-2">
