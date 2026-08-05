@@ -384,7 +384,7 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 
 **Symptom**: `Parsing CSS source code failed` in `globals.css` with `BadUrl("data:image/svg+xml_(ASCII)")`.
 **Root cause**: A JSX syntax error in `frontend/src/components/inventory/StockAdjustmentModal.tsx` — the shadcn/ui `Select` component was opened with `<Select` but closed with `</select>` (lowercase HTML tag). JSX component tags are case-sensitive.
-**Fix**: Changed `</select>` → `</Select>` on line 116.
+**Fix**: Changed `</select>` → `</Select>` on line 116. (The Select component is now the proper Radix UI Select from `shadcn/ui`, not a native HTML `<select>`.)
 
 **Symptom**: `Cannot find name 'CardContent'` TypeScript error during build.
 **Root cause**: Several pages use `CardContent` from `@/components/ui/card` but only imported `Card`.
@@ -422,8 +422,18 @@ The application uses a modern, shadcn/ui-compatible sidebar system built on `Sid
 
 **Requirement**: All `Tooltip` components must be wrapped in a `TooltipProvider`. The `AuthShell` in `navigation/index.tsx` provides this automatically for authenticated routes. If adding `Tooltip` outside this shell, wrap it in `<TooltipProvider>`.
 
-### Tailwind config
+### shadcn/ui & Tailwind Configuration
 
 - The project uses **Tailwind CSS v4** (`@tailwindcss/postcss` and `tailwindcss` `^4`).
-- `tailwind.config.js` is a **new file** (added but not yet committed) — it imports design tokens from `src/lib/theme.ts`.
-- The project now uses the PostCSS approach (`@import "tailwindcss"` in `globals.css`) rather than the legacy Tailwind CLI.
+- The project uses the PostCSS approach (`@import "tailwindcss"` in `globals.css`) rather than the legacy Tailwind CLI.
+- `tailwind.config.js` imports design tokens from `src/lib/theme.ts` — extends Tailwind's `@theme inline` block in `globals.css` with programmatic access to Clinical Precision color tokens.
+- **`components.json`** is configured for shadcn v4 with:
+  - `"style": "radix-nova"` — Radix UI base library + Nova design style
+  - `"rsc": false` — components use `'use client'` directives (matches existing component implementation)
+  - `"tailwind": { "config": "" }` — empty for v4 (no `tailwind.config.js` needed by shadcn CLI; the file on disk is still used by PostCSS)
+- The project uses `@radix-ui/react-*` packages for Radix UI primitives (Slot, Dialog, Tooltip, etc.) alongside the `radix-ui` umbrella package for shadcn-installed components (Select).
+- The **`Select` component** is the proper shadcn Radix UI version (`Select`, `SelectTrigger`, `SelectContent`, `SelectItem`), not a native HTML `<select>`. When migrating from native select to Radix UI Select:
+  - Replace `onChange={(e) => fn(e.target.value)}` with `onValueChange={fn}`
+  - Replace `<option value="x">Label</option>` with `<SelectItem value="x">Label</SelectItem>`
+  - Wrap trigger content in `<SelectTrigger><SelectValue placeholder="..." /></SelectTrigger>`
+  - Wrap options in `<SelectContent>...</SelectContent>`
