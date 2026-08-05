@@ -12,7 +12,19 @@ import {
 } from '@tanstack/react-table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Edit, Trash2, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Edit,
+  Eye,
+  Trash2,
+  User,
+  Calendar,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { Customer } from '@pharmacy-point/types';
 import {
@@ -22,7 +34,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableCellMono,
 } from '@/components/ui/table';
+
+/* ──────────────────────────────────────────────────────────────────────────── *
+ * Clinical Precision — Customer Data Table
+ *
+ * Design spec (DESIGN.md → Data Tables):
+ *  - Zebra-striping: dark mode, 5% luminosity difference between rows
+ *  - Headers: label-md (uppercase, 12px, 600 weight, 0.05em tracking)
+ *  - Borders: Subtle bottom border only — NO vertical borders allowed.
+ *  - Data cells: body-md (14px, 400 weight)
+ *  - Numerical data: data-mono (JetBrains Mono, 14px, 500 weight) for precise alignment
+ *  - Row hover: subtle background change
+ *
+ * Sorting indicators use ChevronUp / ChevronDown (proper Lucide icons) with
+ * aria-sort attributes for accessibility. The "View" action uses Eye and the
+ * "Edit" action uses Edit — distinct icons prevent confusion.
+ * ──────────────────────────────────────────────────────────────────────────── */
 
 interface CustomerTableProps {
   customers: Customer[];
@@ -86,15 +115,15 @@ export function CustomerTable({
         accessorKey: 'dueAmount',
         header: 'Due Amount',
         cell: ({ row }) => {
-          const amount = row.original.dueAmount;
+          const amount = Number(row.original.dueAmount);
           const formatted = new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'USD',
           }).format(amount);
           return (
-            <span className={amount > 0 ? 'text-destructive font-medium text-data-mono' : 'text-on-surface-variant text-data-mono'}>
+            <TableCellMono className={cn(amount > 0 ? 'text-error' : 'text-on-surface-variant')}>
               {formatted}
-            </span>
+            </TableCellMono>
           );
         },
       },
@@ -103,19 +132,25 @@ export function CustomerTable({
         header: 'Created',
         cell: ({ row }) => {
           const date = new Date(row.original.createdAt);
-          return <span className="text-on-surface-variant">{date.toLocaleDateString()}</span>;
+          return (
+            <TableCellMono>
+              <Calendar className="mb-0.5 mr-1 h-3 w-3 inline" />
+              {date.toLocaleDateString()}
+            </TableCellMono>
+          );
         },
       },
       {
         id: 'actions',
         header: 'Actions',
+        enableSorting: false,
         cell: ({ row }) => {
           const customer = row.original;
           return (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-end gap-1">
               <Button asChild variant="ghostIcon" size="sm">
                 <Link href={`/customers/${customer.id}`} aria-label="View customer">
-                  <Edit className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="ghostIcon" size="sm">
@@ -174,49 +209,51 @@ export function CustomerTable({
 
   if (error) {
     return (
-      <Card className="border-destructive bg-destructive/5 p-4">
-        <div className="flex items-center gap-2 text-destructive">
+      <Card className="border-error/30 bg-error/10 card-elevated">
+        <div className="flex items-center gap-2 p-4 text-error">
           <AlertCircle className="h-4 w-4" />
-          <p>{error.message}</p>
+          <p className="text-body-md">{error.message}</p>
         </div>
       </Card>
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-75 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (customers.length === 0) {
+  if (isLoading || customers.length === 0) {
     return null;
   }
 
   return (
     <>
-      {/* TanStack Table */}
+      {/* ── TanStack Table ── */}
       <div className="rounded-xl border border-border bg-card card-elevated">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="whitespace-nowrap">
                     {header.isPlaceholder ? null : (
                       <div
-                        className={`flex items-center gap-1 ${
-                          header.column.getCanSort() ? 'cursor-pointer select-none' : ''
-                        }`}
+                        className={cn(
+                          'flex items-center gap-1',
+                          header.column.getCanSort() && 'cursor-pointer select-none'
+                        )}
                         onClick={header.column.getToggleSortingHandler()}
+                        aria-sort={
+                          header.column.getIsSorted() === 'asc'
+                            ? 'ascending'
+                            : header.column.getIsSorted() === 'desc'
+                              ? 'descending'
+                              : 'none'
+                        }
                       >
                         {flexRender(header.column.columnDef.header, header.getContext())}
-                        {{
-                          asc: ' 🔼',
-                          desc: ' 🔽',
-                        }[header.column.getIsSorted() as string] ?? null}
+                        {header.column.getIsSorted() === 'asc' && (
+                          <ChevronUp className="h-3 w-3 text-primary" />
+                        )}
+                        {header.column.getIsSorted() === 'desc' && (
+                          <ChevronDown className="h-3 w-3 text-primary" />
+                        )}
                       </div>
                     )}
                   </TableHead>
@@ -238,10 +275,10 @@ export function CustomerTable({
         </Table>
       </div>
 
-      {/* Pagination */}
+      {/* ── Pagination ── */}
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
+          <div className="text-body-sm text-on-surface-variant">
             Showing {customers.length} of {totalItems} customers
           </div>
           <div className="flex items-center gap-1">

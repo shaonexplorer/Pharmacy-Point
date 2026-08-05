@@ -7,11 +7,22 @@ import { useCustomers, useDeleteCustomer } from '@/hooks/useCustomers';
 import { CustomerTable } from '@/components/customers/CustomerTable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Plus, AlertCircle, Search, User } from 'lucide-react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Loader2, Plus, User, AlertCircle, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { ConfirmDialog } from '@/components/common';
 import type { Customer } from '@pharmacy-point/types';
+
+/* ─────────────────────────────────────────────────────────────────────────── *
+ * Clinical Precision — Customers Management Page
+ *
+ * Design spec (DESIGN.md → Brand & Style):
+ *  - Corporate / Modern with Minimalism — expansive whitespace, functional color.
+ *
+ * Signature element: prescription-border-l (4px Pharma Teal left accent)
+ * on the page header reinforces the clinical identity.
+ * ────────────────────────────────────────────────────────────────────────── */
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -55,6 +66,11 @@ export default function CustomersPage() {
     setCurrentPage(1);
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -62,7 +78,7 @@ export default function CustomersPage() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isPending && !session) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [session, isPending, router]);
 
@@ -79,59 +95,84 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
+    <div className="flex-1 p-4 sm:p-6">
+      <div className="w-full space-y-6">
+        {/* ── Page Header (signature: prescription-border-l accent) ── */}
+        <div className="flex items-start justify-between">
+          <div className="prescription-border-l pl-4">
             <h1 className="text-headline-lg text-foreground flex items-center gap-2">
               <User className="h-6 w-6 text-primary" />
               Customers
             </h1>
-            <p className="text-body-md text-on-surface-variant">
-              Manage your customer records and profiles
+            <p className="mt-1 text-body-md text-on-surface-variant">
+              Manage your customer records, contact details, and order history.
             </p>
           </div>
-          <Button asChild>
-            <Link href="/customers/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Customer
-            </Link>
-          </Button>
-        </div>
-
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 bg-background"
-            />
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="hidden md:flex" />
+            <Button asChild>
+              <Link href="/customers/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Customer
+              </Link>
+            </Button>
           </div>
         </div>
 
-        {/* Error State */}
-        {error && (
-          <Card className="border-destructive bg-destructive/5 p-4 mb-4">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              <p>{error instanceof Error ? error.message : 'Failed to load customers'}</p>
-            </div>
+        {/* ── Search ── */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search customers..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pl-9 pr-4"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
+        {/* ── Delete Mutation Error ── */}
+        {deleteCustomerMutation.isError && (
+          <Card className="border-error/30 bg-error/10 card-elevated">
+            <CardContent className="flex items-center gap-3 px-4">
+              <AlertCircle className="h-5 w-5 text-error shrink-0" />
+              <p className="text-body-md text-error">
+                {deleteCustomerMutation.error?.message || 'Failed to delete customer'}
+              </p>
+            </CardContent>
           </Card>
         )}
 
-        {/* Loading State */}
+        {/* ── Error State ── */}
+        {!isLoading && error && (
+          <Card className="border-error/30 bg-error/10 card-elevated">
+            <CardContent className="flex items-center gap-3 px-4">
+              <AlertCircle className="h-5 w-5 text-error shrink-0" />
+              <p className="text-body-md text-error">
+                {error instanceof Error ? error.message : 'Failed to load customers'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Loading State ── */}
         {isLoading && (
           <div className="flex min-h-75 items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         )}
 
-        {/* Empty State */}
+        {/* ── Empty State ── */}
         {!isLoading && !error && customers.length === 0 && (
           <Card className="border-border bg-card card-elevated border-dashed">
             <CardContent className="flex min-h-75 flex-col items-center justify-center text-center px-8">
@@ -139,7 +180,7 @@ export default function CustomersPage() {
               <h3 className="mt-4 text-headline-md text-foreground">No customers found</h3>
               <p className="mt-2 text-body-md text-on-surface-variant">
                 {searchQuery
-                  ? 'Try adjusting your search query.'
+                  ? 'No customers match your search. Try adjusting your query.'
                   : 'Get started by adding your first customer.'}
               </p>
               {!searchQuery && (
@@ -154,7 +195,7 @@ export default function CustomersPage() {
           </Card>
         )}
 
-        {/* Customer Table */}
+        {/* ── Customer Table ── */}
         {!isLoading && !error && customers.length > 0 && (
           <CustomerTable
             customers={customers}
@@ -166,7 +207,7 @@ export default function CustomersPage() {
           />
         )}
 
-        {/* Delete Confirmation Dialog */}
+        {/* ── Delete Confirmation Dialog ── */}
         <ConfirmDialog
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}

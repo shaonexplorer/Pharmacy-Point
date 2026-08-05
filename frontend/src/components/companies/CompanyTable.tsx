@@ -22,6 +22,7 @@ import {
   Edit,
   Trash2,
   Calendar,
+  Eye,
 } from 'lucide-react';
 import Link from 'next/link';
 import type { Company } from '@pharmacy-point/types';
@@ -112,7 +113,7 @@ export function CompanyTable({
             <div className="flex items-center justify-end gap-1">
               <Button asChild variant="ghostIcon" size="sm">
                 <Link href={`/companies/${company.id}`} aria-label="View company">
-                  <Edit className="h-4 w-4" />
+                  <Eye className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="ghostIcon" size="sm">
