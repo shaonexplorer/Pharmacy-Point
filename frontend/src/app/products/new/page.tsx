@@ -44,13 +44,13 @@ export default function CreateProductPage() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10">
                 <Plus className="h-4 w-4 text-secondary" />
               </div>
-              <h1 className="text-headline-lg text-foreground">Add New Product</h1>
+              <h1 className="sm:text-headline-lg text-foreground">Add New Product</h1>
             </div>
           </div>
         </div>
 
         {/* Form */}
-        <div className="rounded-lg border border-border bg-card card-elevated p-6">
+        <div className="rounded-lg border border-border bg-card card-elevated p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2 text-label-md text-on-surface-variant">
             <Plus className="h-4 w-4" />
             <span>Fill in the product details below</span>

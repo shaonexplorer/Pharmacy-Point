@@ -37,7 +37,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (error) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="container-max mx-auto">
+        <div className="sm:container-max mx-auto">
           <Card className="border-error bg-error/5 card-elevated">
             <CardContent className="flex items-center gap-3 px-6 py-8">
               <AlertCircle className="h-5 w-5 text-error shrink-0" />
@@ -52,7 +52,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (!product) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="container-max mx-auto">
+        <div className="sm:container-max mx-auto">
           <Card className="border-border bg-card card-elevated">
             <CardContent className="flex min-h-[120px] flex-col items-center justify-center text-center px-8 py-8">
               <p className="text-body-md text-on-surface-variant">Product not found.</p>
@@ -68,7 +68,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max mx-auto">
+      <div className="sm:container-max mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -79,13 +79,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-secondary/10">
                 <Edit className="h-4 w-4 text-secondary" />
               </div>
-              <h1 className="text-headline-lg text-foreground">Edit Product</h1>
+              <h1 className="sm:text-headline-lg text-foreground">Edit Product</h1>
             </div>
           </div>
         </div>
 
         {/* Form */}
-        <div className="rounded-lg border border-border bg-card card-elevated p-6">
+        <div className="rounded-lg border border-border bg-card card-elevated p-4 sm:p-6">
           <div className="mb-4 flex items-center gap-2 text-label-md text-on-surface-variant">
             <Edit className="h-4 w-4" />
             <span>Update the product details below</span>

@@ -52,7 +52,7 @@ export function ProductFilters({
           <Select value={selectedCategory} onValueChange={onCategoryChange}>
             <SelectTrigger
               id="category-filter"
-              className="border-border focus:ring-2 focus:ring-primary/30"
+              className="border-border focus:ring-2 focus:ring-primary/30 w-full"
             >
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
@@ -74,7 +74,7 @@ export function ProductFilters({
           <Select value={selectedCompany} onValueChange={onCompanyChange}>
             <SelectTrigger
               id="company-filter"
-              className="border-border focus:ring-2 focus:ring-primary/30"
+              className="border-border focus:ring-2 focus:ring-primary/30 w-full"
             >
               <SelectValue placeholder="All Companies" />
             </SelectTrigger>

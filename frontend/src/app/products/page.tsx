@@ -140,7 +140,7 @@ export default function ProductsPage() {
       {/* Subtle prescription-grid texture: evokes medical prescription pads */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(var(--outline-variant)_1px,transparent_1px)] bg-size-[24px_24px] mask-[linear-gradient(to_bottom,black,transparent_20%,transparent_80%,black)]" />
 
-      <div className="container-max mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
+      <div className="sm:container-max mx-auto px-4 sm:px-6 lg:px-8 py-6 relative">
         <div className="w-full space-y-6">
           {/* ── Header ── */}
           <div className="flex flex-col gap-1">

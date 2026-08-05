@@ -97,7 +97,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="container-max mx-auto">
+      <div className="sm:container-max mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -110,7 +110,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
                 <Package className="h-4 w-4 text-primary" />
               </div>
-              <h1 className="text-headline-lg text-foreground">{product.name}</h1>
+              <h1 className="sm:text-headline-lg text-foreground">{product.name}</h1>
             </div>
           </div>
           <div className="flex gap-2">

@@ -387,11 +387,11 @@ export function ProductForm({ product, mode }: ProductFormProps) {
       </div>
 
       {/* Form Actions */}
-      <div className="flex items-center justify-between border-t border-border pt-6">
+      <div className="flex items-center justify-between  border-t border-border pt-6">
         <div className="flex gap-2">
           <Button asChild variant="outline" type="button">
             <Link href={mode === 'edit' && product ? `/products/${product.id}` : '/products'}>
-              <X className="mr-2 h-4 w-4" />
+              <X className="mr-1 h-4 w-4" />
               Cancel
             </Link>
           </Button>
@@ -403,7 +403,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
               onClick={handleDelete}
               className="border-destructive text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-1 h-4 w-4" />
               Delete
             </Button>
           )}
@@ -411,12 +411,12 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         <Button type="submit" disabled={isSubmitting} variant="default">
           {isSubmitting ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
               Saving...
             </>
           ) : (
             <>
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="mr-1 h-4 w-4" />
               {mode === 'create' ? 'Create Product' : 'Save Changes'}
             </>
           )}
