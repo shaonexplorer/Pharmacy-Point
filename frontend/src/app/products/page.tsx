@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
@@ -39,6 +39,7 @@ export default function ProductsPage() {
   const {
     data: productsData,
     isLoading,
+    isFetching,
     error,
   } = useProducts({
     page: currentPage,
@@ -50,9 +51,13 @@ export default function ProductsPage() {
 
   const deleteProductMutation = useDeleteProduct();
 
-  const products = useMemo(() => productsData?.data ?? [], [productsData?.data]);
-  const totalPages = productsData?.pagination.totalPages ?? 1;
-  const totalItems = productsData?.pagination.total ?? 0;
+  // In React Query v5, `placeholderData: keepPreviousData` automatically
+  // populates `data` with the previous page's data while the new page
+  // is being fetched. So `productsData` already contains the fallback.
+  const productsResponse = productsData;
+  const products = useMemo(() => productsResponse?.data ?? [], [productsResponse?.data]);
+  const totalPages = productsResponse?.pagination.totalPages ?? 1;
+  const totalItems = productsResponse?.pagination.total ?? 0;
 
   // Derive low-stock count from current page data
   const lowStockCount = useMemo(() => {
@@ -76,33 +81,36 @@ export default function ProductsPage() {
     }
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = useCallback((category: string) => {
     setSelectedCategory(category);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleCompanyChange = (company: string) => {
+  const handleCompanyChange = useCallback((company: string) => {
     setSelectedCompany(company);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSelectedCategory('');
     setSelectedCompany('');
     setSearchQuery('');
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      if (newPage >= 1 && newPage <= totalPages) {
+        setCurrentPage(newPage);
+      }
+    },
+    [totalPages]
+  );
 
   const hasActiveFilters = !!searchQuery || !!selectedCategory || !!selectedCompany;
 
@@ -209,14 +217,22 @@ export default function ProductsPage() {
 
           {/* ── Product Table ── */}
           {!isLoading && !error && products.length > 0 && (
-            <ProductTable
-              products={products}
-              totalItems={totalItems}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              onDelete={handleDeleteClick}
-            />
+            <>
+              {isFetching && (
+                <div className="mb-3 flex items-center gap-2 text-body-sm text-on-surface-variant">
+                  <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                  <span>Updating…</span>
+                </div>
+              )}
+              <ProductTable
+                products={products}
+                totalItems={totalItems}
+                totalPages={totalPages}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+                onDelete={handleDeleteClick}
+              />
+            </>
           )}
 
           {/* ── Loading State ── */}

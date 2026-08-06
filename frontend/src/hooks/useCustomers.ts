@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Customer, CustomerWithOrders, ApiResponse } from '@pharmacy-point/types';
 
@@ -18,6 +18,7 @@ export function useCustomers(params?: { page?: number; limit?: number; search?: 
     queryKey: [...customerKeys.lists(), params],
     queryFn: () => api.customers.list(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: keepPreviousData, // keep previous page data visible during transitions
   });
 }
 

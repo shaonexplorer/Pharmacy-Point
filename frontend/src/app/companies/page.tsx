@@ -42,9 +42,12 @@ export default function CompaniesPage() {
 
   const deleteCompanyMutation = useDeleteCompany();
 
-  const companies = response?.data ?? [];
-  const totalItems = response?.pagination.total ?? 0;
-  const totalPages = response?.pagination.totalPages ?? 1;
+  // In React Query v5, `placeholderData: keepPreviousData` automatically
+  // populates `data` with the previous page's data while fetching the new page.
+  const companiesResponse = response;
+  const companies = companiesResponse?.data ?? [];
+  const totalItems = companiesResponse?.pagination.total ?? 0;
+  const totalPages = companiesResponse?.pagination.totalPages ?? 1;
 
   const handleDeleteClick = (company: { id: string; name: string }) => {
     setCompanyToDelete(company);

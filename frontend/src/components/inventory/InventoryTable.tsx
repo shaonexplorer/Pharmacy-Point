@@ -7,6 +7,7 @@ import {
   type Updater,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
   type SortingState,
@@ -15,6 +16,7 @@ import {
 import type { InventoryItem } from '@pharmacy-point/types';
 import { Card } from '@/components/ui/card';
 import { Loader2, AlertCircle, Package } from 'lucide-react';
+import { DataTablePagination } from '@/components/common/DataTablePagination';
 import {
   Table,
   TableBody,
@@ -45,6 +47,12 @@ interface InventoryTableProps {
   onGlobalFilterChange: (updater: Updater<string | undefined>) => void;
   isLoading?: boolean;
   error?: Error | null;
+  /** Server-side pagination state (mirrors CompanyTable / CustomerTable / ProductTable) */
+  totalItems?: number;
+  totalPages?: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function InventoryTable({
@@ -54,19 +62,47 @@ export function InventoryTable({
   onGlobalFilterChange,
   isLoading = false,
   error = null,
+  totalItems = 0,
+  totalPages = 1,
+  currentPage = 1,
+  pageSize = 20,
+  onPageChange,
 }: InventoryTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter },
+    state: {
+      sorting,
+      globalFilter,
+      pagination: {
+        pageIndex: currentPage - 1,
+        pageSize,
+      },
+    },
     onSortingChange: setSorting,
     onGlobalFilterChange,
+    onPaginationChange: onPageChange
+      ? (updater) => {
+          if (typeof updater === 'function') {
+            const newPagination = updater({
+              pageIndex: currentPage - 1,
+              pageSize,
+            });
+            onPageChange(newPagination.pageIndex + 1);
+          } else {
+            onPageChange(updater.pageIndex + 1);
+          }
+        }
+      : undefined,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     enableSorting: true,
+    manualPagination: true,
+    pageCount: totalPages,
   });
 
   if (error) {
@@ -106,44 +142,58 @@ export function InventoryTable({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card card-elevated">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder ? null : (
-                    <div
-                      className={`flex items-center gap-1 ${
-                        header.column.getCanSort() ? 'cursor-pointer select-none' : ''
-                      }`}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {{
-                        asc: ' 🔼',
-                        desc: ' 🔽',
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </div>
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <div className="rounded-xl border border-border bg-card card-elevated">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <div
+                        className={`flex items-center gap-1 ${
+                          header.column.getCanSort() ? 'cursor-pointer select-none' : ''
+                        }`}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {{
+                          asc: ' 🔼',
+                          desc: ' 🔽',
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </div>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* ── Pagination ── */}
+      {onPageChange && (
+        <DataTablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={data.length}
+          itemLabel="items"
+          onPageChange={onPageChange}
+        />
+      )}
+    </>
   );
 }

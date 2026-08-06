@@ -46,7 +46,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
     - `frontend/src/components/inventory/StockChip.tsx` — stock status chip + `getStockStatus` helper
     - `frontend/src/components/inventory/inventory-columns.tsx` — typed `ColumnDef<InventoryItem>[]` column definitions
     - `frontend/src/components/inventory/InventoryTable.tsx` — TanStack Table instance with sorting, filtering, and empty state
-    - `frontend/src/components/inventory/InventoryPagination.tsx` — reusable pagination controls
+    - `frontend/src/components/common/DataTablePagination.tsx` — shared pagination controls for all TanStack tables
   - Server-side search param removed from `useInventory` — client-side search via TanStack Table's `globalFilter`
 
 **Phase 2: Customer Management - COMPLETED ✅**
@@ -153,8 +153,9 @@ pharmacy-point/
 │   │           ├── companies/ # Company components
 │   │           ├── products/ # Product components
 │   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
-│   │           ├── inventory/ # Inventory components (StockAdjustmentModal, StockChip, InventoryTable, InventoryPagination, inventory-columns)
+│   │           ├── inventory/ # Inventory components (StockAdjustmentModal, StockChip, InventoryTable, inventory-columns)
 │   │           └── pos/ # POS components (ProductSearch, ProductGrid, Cart, Checkout, Receipt)
+│   │           └── common/ # Shared components (ConfirmDialog, DataTablePagination)
 │   │           ├── ui/sidebar.tsx # shadcn Sidebar primitives (SidebarProvider, Sidebar, SidebarTrigger, etc.)
 │   │           ├── ui/sheet.tsx # Sheet/Dialog for mobile sidebar drawer
 │   │           ├── ui/tooltip.tsx # Tooltip via Radix UI
@@ -404,6 +405,23 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 
 **Note**: CSS parsing errors like `BadUrl("data:image/svg+xml")` are almost always a cascading failure from an upstream JSX or TypeScript error. Always fix the JSX/TS error first and rebuild — the CSS error typically resolves itself.
 
+### Pagination resets to page 1 after clicking "Next"
+
+**Symptom**: Clicking the "Next" (or any page number) button on a paginated table causes the page to reset back to page 1, losing the user's position.
+
+**Root cause**: A `useEffect` in `ProductSearch` had `onSearch` (the debounced search callback) in its dependency array. Since the parent page's `handleSearch` function was **not wrapped in `useCallback`**, it got a new function reference on every parent re-render. So when the user clicked pagination "Next":
+
+1. `setCurrentPage(N)` → parent re-renders → `handleSearch` gets a new reference
+2. `ProductSearch` receives the new `onSearch` prop → `useEffect` fires (dependency changed)
+3. Since the search box was empty, `onSearch('')` was called → `handleSearch('')` calls `setCurrentPage(1)` → **page resets to 1**
+
+This only affected the products page because it's the only page using the debounced `ProductSearch` component. The companies and customers pages use a plain `<Input>` with inline `onChange`.
+
+**Fix**:
+- `ProductSearch` now uses a `useRef` to store the latest `onSearch` callback and updates the ref in a separate `useEffect`. The debounce `useEffect` only depends on `[value, delay]`, so it doesn't re-fire when the parent re-renders for unrelated reasons (like pagination state changes).
+- All parent handlers that are passed to `ProductSearch` are wrapped in `useCallback` for stable references.
+- `DataTablePagination` buttons now have `type="button"` to prevent accidental form submissions.
+
 ### TanStack Table Global Filter
 
 The inventory page uses TanStack Table's native `globalFilter` for client-side search (replacing server-side `search` query param). Key conventions:
@@ -446,3 +464,28 @@ The application uses a modern, shadcn/ui-compatible sidebar system built on `Sid
   - Replace `<option value="x">Label</option>` with `<SelectItem value="x">Label</SelectItem>`
   - Wrap trigger content in `<SelectTrigger><SelectValue placeholder="..." /></SelectTrigger>`
   - Wrap options in `<SelectContent>...</SelectContent>`
+
+### React Query v5 `keepPreviousData` / `placeholderData` Pattern
+
+The project uses React Query v5 with `placeholderData: keepPreviousData` on all paginated queries. **Important v5 behavioral difference from v4**: `placeholderData` is a **query option**, not a property returned from `useQuery`. In v5, when `placeholderData` is set, the placeholder data is automatically placed in the `data` field of the result — you do **not** need to destructure or use `placeholderData` from the result.
+
+**Correct pattern**:
+```tsx
+const { data, isFetching, isLoading, error } = useQuery({
+  queryKey: ['items', { page }],
+  queryFn: () => fetchItems({ page }),
+  placeholderData: keepPreviousData,
+});
+
+// data already contains placeholder (previous page) data during transitions
+const items = data?.items ?? [];
+```
+
+**Anti-pattern** (causes type errors and unnecessary fallback logic):
+```tsx
+// ❌ placeholderData is NOT a property of UseQueryResult in v5
+const { data, placeholderData, isLoading } = useQuery({...});
+const response = data ?? placeholderData; // placeholderData is always undefined
+```
+
+When using `keepPreviousData`, `isLoading` remains `false` during page transitions (because placeholder data fills `data`), but `isFetching` is `true`. Use `isFetching` to show a subtle "Updating…" indicator while the table stays visible.

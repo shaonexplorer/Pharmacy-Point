@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { StockInInput, StockOutInput, StockAdjustInput } from '@pharmacy-point/types';
 
@@ -32,6 +32,7 @@ export function useInventory(params?: InventoryListParams) {
     queryKey: inventoryKeys.list(params),
     queryFn: () => api.inventory.list(params),
     staleTime: 30 * 1000, // 30 seconds
+    placeholderData: keepPreviousData, // keep previous page data visible during transitions
   });
 }
 

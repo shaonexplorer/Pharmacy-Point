@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,23 +19,33 @@ export function ProductSearch({
   const [value, setValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Keep a ref to the latest onSearch so the debounced effect doesn't need
+  // to re-fire every time the parent passes a new callback reference (which
+  // happens on every parent re-render when the callback isn't memoised).
+  // Without this, changing the page (or any parent state) would trigger the
+  // effect and fire onSearch('') — resetting the page to 1.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
   // Debounce search to avoid excessive API calls
   useEffect(() => {
     const handler = setTimeout(() => {
       if (value.trim() !== '') {
         setIsSearching(true);
-        onSearch(value.trim());
+        onSearchRef.current(value.trim());
         setIsSearching(false);
       }
     }, delay);
 
     // Only call onSearch when value is empty (clear) or after debounce
     if (value === '') {
-      onSearch('');
+      onSearchRef.current('');
     }
 
     return () => clearTimeout(handler);
-  }, [value, onSearch, delay]);
+  }, [value, delay]);
 
   const handleClear = () => {
     setValue('');

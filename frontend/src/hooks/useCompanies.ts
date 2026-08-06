@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Company, ApiResponse } from '@pharmacy-point/types';
 
@@ -18,6 +18,7 @@ export function useCompanies(params?: { page?: number; limit?: number; search?: 
     queryKey: [...companyKeys.lists(), params],
     queryFn: () => api.companies.list(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: keepPreviousData, // keep previous page data visible during transitions
   });
 }
 

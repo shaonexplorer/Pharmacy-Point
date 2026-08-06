@@ -15,8 +15,6 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   ChevronDown,
   Edit,
@@ -36,6 +34,7 @@ import {
   TableRow,
   TableCellMono,
 } from '@/components/ui/table';
+import { DataTablePagination } from '@/components/common/DataTablePagination';
 
 /* ──────────────────────────────────────────────────────────────────────────── *
  * Clinical Precision — Customer Data Table
@@ -276,61 +275,14 @@ export function CustomerTable({
       </div>
 
       {/* ── Pagination ── */}
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-body-sm text-on-surface-variant">
-            Showing {customers.length} of {totalItems} customers
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Previous page</span>
-            </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum = i + 1;
-              if (totalPages > 5) {
-                const half = Math.floor(5 / 2);
-                if (currentPage > totalPages - half) {
-                  pageNum = totalPages - 4 + i;
-                } else if (currentPage > half) {
-                  pageNum = currentPage - half + i;
-                }
-              }
-              if (pageNum < 1 || pageNum > totalPages) return null;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={pageNum === currentPage ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => onPageChange(pageNum)}
-                  aria-current={pageNum === currentPage ? 'page' : undefined}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
-            {totalPages > 5 && currentPage > 3 && currentPage < totalPages - 2 && (
-              <span className="text-muted-foreground" aria-hidden="true">
-                ...
-              </span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Next page</span>
-            </Button>
-          </div>
-        </div>
-      )}
+      <DataTablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={customers.length}
+        itemLabel="customers"
+        onPageChange={onPageChange}
+      />
     </>
   );
 }

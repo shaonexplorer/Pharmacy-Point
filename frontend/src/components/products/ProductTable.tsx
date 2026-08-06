@@ -16,8 +16,6 @@ import {
   AlertCircle,
   AlertTriangle,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   Edit,
   Eye,
@@ -37,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { DataTablePagination } from '@/components/common/DataTablePagination';
 
 interface ProductTableProps {
   products: Product[];
@@ -281,63 +280,15 @@ export function ProductTable({
         </Table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="text-body-sm text-on-surface-variant">
-            Showing {products.length} of {totalItems} products
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum = i + 1;
-              if (totalPages > 5) {
-                const half = Math.floor(5 / 2);
-                if (currentPage > totalPages - half) {
-                  pageNum = totalPages - 4 + i;
-                } else if (currentPage > half) {
-                  pageNum = currentPage - half + i;
-                }
-              }
-              if (pageNum < 1 || pageNum > totalPages) return null;
-              return (
-                <Button
-                  key={pageNum}
-                  variant={pageNum === currentPage ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => onPageChange(pageNum)}
-                  aria-current={pageNum === currentPage ? 'page' : undefined}
-                  aria-label={`Page ${pageNum}`}
-                >
-                  {pageNum}
-                </Button>
-              );
-            })}
-            {totalPages > 5 && currentPage > 3 && currentPage < totalPages - 2 && (
-              <span className="text-body-sm text-on-surface-variant" aria-hidden="true">
-                …
-              </span>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              aria-label="Next page"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* ── Pagination ── */}
+      <DataTablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={products.length}
+        itemLabel="products"
+        onPageChange={onPageChange}
+      />
     </>
   );
 }

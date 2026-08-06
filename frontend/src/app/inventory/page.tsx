@@ -9,7 +9,6 @@ import { useCategories } from '@/hooks/useCategories';
 import { getStockStatus } from '@/components/inventory/StockChip';
 import { getInventoryColumns } from '@/components/inventory/inventory-columns';
 import { InventoryTable } from '@/components/inventory/InventoryTable';
-import { InventoryPagination } from '@/components/inventory/InventoryPagination';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,7 +36,7 @@ import {
  * Table and pagination are delegated to dedicated components:
  *  - InventoryTable     — TanStack Table instance + rendering
  *  - inventory-columns  — typed ColumnDef<InventoryItem>[] definitions
- *  - InventoryPagination — page navigation controls
+ *  - DataTablePagination — page navigation controls
  *  - StockChip          — stock status chip + getStockStatus helper
  *
  * Signature element: prescription-border-l (4px Pharma Teal) on the page header
@@ -80,9 +79,12 @@ export default function InventoryPage() {
   const { data: categories } = useCategories();
 
   /* ── Derived data ─────────────────────────────────────────────────── */
-  const products = useMemo(() => inventoryData?.data ?? [], [inventoryData?.data]);
-  const totalPages = inventoryData?.pagination?.totalPages ?? 1;
-  const totalItems = inventoryData?.pagination?.total ?? 0;
+  // In React Query v5, `placeholderData: keepPreviousData` automatically
+  // populates `data` with the previous page's data while fetching the new page.
+  const inventoryResponse = inventoryData;
+  const products = useMemo(() => inventoryResponse?.data ?? [], [inventoryResponse?.data]);
+  const totalPages = inventoryResponse?.pagination?.totalPages ?? 1;
+  const totalItems = inventoryResponse?.pagination?.total ?? 0;
 
   // Client-side category filter (inventory API doesn't accept a `category` param)
   const displayedProducts = useMemo(() => {
@@ -126,9 +128,7 @@ export default function InventoryPage() {
   };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
+    setCurrentPage(newPage);
   };
 
   /* ── Loading / auth guards ────────────────────────────────────────── */
@@ -338,12 +338,10 @@ export default function InventoryPage() {
             onGlobalFilterChange={setGlobalFilter}
             isLoading={isLoading}
             error={error instanceof Error ? error : null}
-          />
-
-          {/* ── Pagination ─────────────────────────────────────────── */}
-          <InventoryPagination
-            currentPage={currentPage}
+            totalItems={totalItems}
             totalPages={totalPages}
+            currentPage={currentPage}
+            pageSize={20}
             onPageChange={handlePageChange}
           />
         </div>
