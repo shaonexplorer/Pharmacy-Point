@@ -44,3 +44,9 @@ backend/generated
 # Frontend specific
 frontend/.next
 frontend/out
+
+# Claude memory (user-local, never commit)
+memory/
+
+# Windows null device artifact
+nul
