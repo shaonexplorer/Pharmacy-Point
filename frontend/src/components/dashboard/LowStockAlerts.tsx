@@ -68,7 +68,7 @@ export function LowStockAlerts({ items, isLoading }: LowStockAlertsProps) {
                 {/* Medication bottle visualisation */}
                 {/* <StockVial quantity={product.quantity} lowStock={product.lowStock || 10} /> */}
 
-                <div className="flex-1 min-w-0">
+                <div className=" min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-foreground truncate">{product.name}</p>
                     <Badge variant={statusVariant} size="sm">
