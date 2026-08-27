@@ -151,7 +151,7 @@ function PosContent() {
   if (showReceipt && completedOrder) {
     const staffName = sessionData?.user?.name ?? undefined;
     return (
-      <div className="bg-background p-4 sm:p-6">
+      <div className="bg-background p-4 sm:p-6 sm:max-w-7xl mx-auto">
         <div className="container-max">
           <Receipt
             order={completedOrder}
@@ -166,7 +166,7 @@ function PosContent() {
 
   // Main POS interface
   return (
-    <div className="bg-background p-4 sm:p-6">
+    <div className="bg-background p-4 sm:p-6 sm:max-w-7xl mx-auto">
       <div className="sm:container-max space-y-6">
         {/* ── Header (the POS "vitals" — live transaction total) ─────────── */}
         <header className="prescription-border-l pl-4">

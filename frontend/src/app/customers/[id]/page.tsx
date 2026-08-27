@@ -121,7 +121,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const totalOrderValue = orders.reduce((sum, order) => sum + Number(order.total), 0);
 
   return (
-    <div className="flex-1 p-4 sm:p-6">
+    <div className="flex-1 p-4 sm:p-6 sm:max-w-7xl mx-auto">
       <div className="w-full space-y-6">
         {/* ── Page Header (signature: prescription-border-l accent) ── */}
         <div className="flex items-start justify-between">

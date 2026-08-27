@@ -144,7 +144,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background sm:max-w-7xl mx-auto">
       {/* Subtle prescription-grid texture: evokes medical prescription pads */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(var(--outline-variant)_1px,transparent_1px)] bg-size-[24px_24px] mask-[linear-gradient(to_bottom,black,transparent_20%,transparent_80%,black)]" />
 

@@ -83,7 +83,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6">
+    <div className="flex-1 p-4 sm:p-6 sm:max-w-7xl mx-auto">
       <div className="w-full space-y-6">
         {/* ── Header (signature: prescription-border-l accent) ── */}
         <div className="flex items-start justify-between">

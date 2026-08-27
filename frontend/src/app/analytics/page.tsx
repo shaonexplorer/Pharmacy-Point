@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-6">
+    <div className="flex-1 p-4 sm:p-6 sm:max-w-7xl mx-auto">
       <div className=" space-y-6">
         {/* ── Page Header (signature: prescription-border-l accent) ── */}
         <div className="flex items-start justify-between">

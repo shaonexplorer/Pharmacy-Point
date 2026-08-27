@@ -96,7 +96,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6 sm:max-w-7xl mx-auto">
       <div className="sm:container-max mx-auto">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
