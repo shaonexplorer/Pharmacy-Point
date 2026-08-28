@@ -7,11 +7,21 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const prisma = globalForPrisma.prisma || new PrismaClient();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
+// Resolve application base URL dynamically
+const appUrl =
+  process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
-  baseURL: 'http://localhost:3000',
+  baseURL: appUrl,
+  // Expressly trust both production and local origins
+  trustedOrigins: [
+    appUrl,
+    'http://localhost:3000',
+    ...(process.env.BETTER_AUTH_URL ? [process.env.BETTER_AUTH_URL] : []),
+  ],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
