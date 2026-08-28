@@ -1,44 +1,16 @@
+/**
+ * Server bootstrap — entry point.
+ *
+ * Loads environment configuration, creates the Express app,
+ * and starts the HTTP server. All app configuration lives in app.ts.
+ */
 import 'dotenv/config';
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import { productRouter } from './routes/products';
-import { companyRouter } from './routes/companies';
-import { inventoryRouter } from './routes/inventory';
-import { customerRouter } from './routes/customers';
-import { orderRouter } from './routes/orders';
-import { statsRouter } from './routes/stats';
+import { createApp } from './app';
 
-const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
-app.use(helmet());
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const app = createApp();
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({ message: 'Pharmacy Point API', version: '1.0.0' });
-});
-
-// API routes
-app.use('/api/products', productRouter);
-app.use('/api/companies', companyRouter);
-app.use('/api/customers', customerRouter);
-app.use('/api/inventory', inventoryRouter);
-app.use('/api/orders', orderRouter);
-app.use('/api/stats', statsRouter);
-
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

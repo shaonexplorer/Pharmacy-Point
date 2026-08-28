@@ -80,7 +80,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
-- Backend `orders` router (`/backend/src/routes/orders.ts`):
+- Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):
   - `GET /api/orders` - List with pagination, status/customer/staff filters
   - `GET /api/orders/:id` - Get order with items and product details
   - `POST /api/orders` - Create order (Prisma transaction: create order + items + decrement stock + STOCK_OUT transactions)
@@ -107,70 +107,80 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 
 ## Project Structure
 
-```markdown
-pharmacy-point/
-├── DESIGN.md # Complete design system from Stitch (Clinical Precision)
-├── specs/ # Specification documents
-│ ├── mission.md # Vision, goals, and success metrics
-│ ├── techstack.md # Technology stack and architecture decisions
-│ ├── roadmap.md # Development phases and milestones
-│ └── phase-1-project-setup/
-│   └── plan.md # Phase 1 implementation plan (COMPLETED)
-│ └── phase-1-inventory-tracking/
-│   └── plan.md # Phase 1 inventory tracking plan (COMPLETED)
-│ └── phase-1-customer-management/
-│   └── plan.md # Phase 1 customer management plan (COMPLETED)
-├── backend/ # Express.js API server
-│   ├── src/ # Source code
-│   │   └── routes/ # API route handlers
-│   │       ├── products.ts # Product CRUD with TanStack Table patterns
-│   │       ├── companies.ts # Company CRUD endpoints
-│   │       ├── customers.ts # Customer CRUD endpoints
-│   │       ├── inventory.ts # Inventory tracking & stock management
-│   │       ├── orders.ts # Order processing & stock-out transactions
-│   │       └── stats.ts # Statistics aggregation endpoint
-│   ├── prisma/ # Prisma schema and migrations
-│   ├── prisma.config.ts # Prisma configuration
-│   ├── .env # Environment variables
-│   └── package.json # Backend dependencies
-├── frontend/ # Next.js application
-│   ├── src/ # Source code
-│   │   └── app/ # App Router structure
-│   │       ├── layout.tsx # Root layout with Navigation
-│       │   ├── page.tsx # Home page
-│       │   ├── dashboard/page.tsx # Dashboard with KPI cards
-│       │   ├── inventory/page.tsx # Inventory management
-│       │   ├── analytics/page.tsx # Analytics & reports
-│   │       ├── products/ # Product pages
-│   │       ├── companies/ # Company pages
-│   │       └── customers/ # Customer pages
-│   │       ├── inventory/ # Inventory management
-│   │       ├── analytics/ # Analytics & reports
-│   │       ├── pos/ # Point of Sale interface
-│   │       └── components/ # UI components
-│   │           ├── navigation/index.tsx # Responsive sidebar navigation (SidebarProvider + AuthShell)
-│   │           ├── app-sidebar.tsx # Clinical Precision AppSidebar (Pharma vial brand, liquid-fill indicators)
-│   │           ├── companies/ # Company components
-│   │           ├── products/ # Product components
-│   │           ├── customers/ # Customer components (CustomerTable, CustomerForm)
-│   │           ├── inventory/ # Inventory components (StockAdjustmentModal, StockChip, InventoryTable, inventory-columns)
-│   │           └── pos/ # POS components (ProductSearch, ProductGrid, Cart, Checkout, Receipt)
-│   │           └── common/ # Shared components (ConfirmDialog, DataTablePagination)
-│   │           ├── ui/sidebar.tsx # shadcn Sidebar primitives (SidebarProvider, Sidebar, SidebarTrigger, etc.)
-│   │           ├── ui/sheet.tsx # Sheet/Dialog for mobile sidebar drawer
-│   │           ├── ui/tooltip.tsx # Tooltip via Radix UI
-│   │           ├── ui/skeleton.tsx # Loading skeleton component
-│   │           └── ui/badge.tsx # Status chip badges (default, success, warning, destructive, secondary, outline, muted)
-│   ├── components.json # shadcn/ui configuration
-│   └── package.json # Frontend dependencies
-├── packages/ # Shared packages
-│   ├── types/ # Shared TypeScript types
-│   └── config/ # Shared configuration
-├── package.json # Root package.json with workspaces
-├── turbo.json # Turborepo configuration
-├── CLAUDE.md # This file
-└── DESIGN.md # Design system (from Stitch)
+The backend has been refactored from a flat route-centric structure to a
+**modular MVC pattern** — each feature is self-contained in its own module
+folder with DTO, service, controller, and routes.
+
 ```
+backend/src/
+  index.ts              # Server bootstrap (app.listen)
+  app.ts                # Express app factory (middleware, routes, error handlers)
+  config/
+    database.ts         # Prisma client singleton
+    auth.ts             # BetterAuth (stubbed)
+  middleware/
+    asyncHandler.ts     # Async handler wrapper
+    errorHandler.ts     # Central error handler (Prisma/Zod/AppError)
+    notFound.ts         # 404 catch-all
+    validate.ts         # Zod DTO validation middleware
+  utils/
+    pagination.ts       # Shared pagination helpers
+    serializers.ts      # Shared Decimal to Number serialization
+  routes/
+    index.ts            # Aggregates all module routers under /api
+  modules/              # Each feature is self-contained (MVC)
+    products/
+      product.dto.ts        # Zod schemas
+      product.service.ts    # Business logic (CRUD, soft delete)
+      product.controller.ts # HTTP handlers
+      product.routes.ts     # URL to controller mapping
+    companies/
+      company.dto.ts
+      company.service.ts
+      company.controller.ts
+      company.routes.ts
+    customers/
+      customer.dto.ts
+      customer.service.ts
+      customer.controller.ts
+      customer.routes.ts
+    inventory/
+      inventory.dto.ts
+      inventory.service.ts   # Stock transactions
+      inventory.controller.ts
+      inventory.routes.ts
+    orders/
+      order.dto.ts
+      order.service.ts       # Multi-step creation
+      order.controller.ts
+      order.routes.ts
+    stats/
+      stats.service.ts
+      stats.controller.ts
+      stats.routes.ts
+    categories/
+      category.dto.ts
+      category.service.ts
+      category.controller.ts
+      category.routes.ts     # Now wired up (was dead code)
+`
+
+### Backend module layer responsibilities
+
+| Layer | Responsibility |
+|-------|---------------|
+| DTO (*.dto.ts) | Zod validation schemas for type-safe input |
+| Service (*.service.ts) | Business logic: Prisma queries, transactions, uniqueness checks, AppError |
+| Controller (*.controller.ts) | HTTP handling: request parsing, response serialization, status codes |
+| Routes (*.routes.ts) | Thin URL to controller mapping with validate() middleware |
+
+### Backend cross-cutting layers
+
+| Layer | Purpose |
+|-------|---------|
+| Middleware | asyncHandler, errorHandler, notFound, validate |
+| Utils | pagination, serializers |
+| Config | database (Prisma singleton), auth (stubbed) |
 
 ## Architecture
 
@@ -178,9 +188,13 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 
 - **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS, shadcn/ui
 - **Backend**: Express.js 5.x with TypeScript, PostgreSQL via Prisma ORM
+  - Backend uses **modular MVC**: each feature (products, companies, customers,
+    inventory, orders, stats, categories) is a self-contained module with
+    DTO + Service + Controller + Routes (under `src/modules/`). Cross-cutting
+    concerns (validation, error handling, serialization) are shared middleware/utils.
 - **Database**: PostgreSQL 15+ with Prisma migrations
 - **State Management**: React Query (TanStack Query) for server state
-- **Validation**: Zod for form validation
+- **Validation**: Zod for both frontend forms and backend API input validation
 
 ## Data Models
 

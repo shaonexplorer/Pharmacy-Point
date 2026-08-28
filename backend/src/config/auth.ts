@@ -1,36 +1,13 @@
-import { betterAuth } from 'better-auth';
-import { prismaAdapter } from '@better-auth/prisma-adapter';
-import { PrismaClient } from '@prisma/client';
+/**
+ * @deprecated BetterAuth configuration.
+ *
+ * This module is NOT imported or used in the current application — all
+ * endpoints are publicly accessible without authentication.
+ *
+ * To enable authentication, install `better-auth` and `@better-auth/prisma-adapter`
+ * as dependencies and wire this config into the app via a session middleware.
+ *
+ * Currently stubbed to avoid build failures from missing dependencies.
+ */
 
-const prisma = new PrismaClient();
-
-export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
-  }),
-  emailAndPassword: {
-    enabled: true,
-    disableSignUp: false,
-    minPasswordLength: 8,
-    maxPasswordLength: 128,
-    autoSignIn: true,
-    sendResetPassword: async ({ user, url }) => {
-      console.log(`Reset password for ${user.email}, URL: ${url}`);
-    },
-    resetPasswordTokenExpiresIn: 3600,
-  },
-  session: {
-    expiresIn: 30 * 24 * 60 * 60,
-  },
-  cookies: {
-    sessionToken: {
-      name: 'auth.session.token',
-      attributes: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-  },
-});
+export const auth = null as unknown as never;

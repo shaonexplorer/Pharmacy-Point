@@ -184,7 +184,7 @@ export function ProductGrid({
             </div>
 
             {/* Quick Add — DESIGN.md: 48px minimum touch target on tablet/POS */}
-            <div className="sm:mt-3">
+            <div className="mt-auto">
               <Button
                 size="tablet"
                 variant={isOutOfStock ? 'ghost' : 'secondary'}
