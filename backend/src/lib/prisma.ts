@@ -1,10 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-// Prevent multiple Prisma instances in development (HMR)
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
-
-export const prisma = globalForPrisma.prisma || new PrismaClient();
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-export default prisma;
+/**
+ * @deprecated Use `src/config/database.ts` instead.
+ * This file re-exports the Prisma singleton for backward compatibility.
+ */
+export { prisma, default } from '../config/database';
