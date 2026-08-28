@@ -13,11 +13,33 @@ import { apiRouter } from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
+const allowedOrigins = [
+  process.env.CORS_ORIGIN ?? 'https://pharmacy-point.netlify.app',
+  'http://localhost:3000',
+  'http://localhost:5000',
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 export function createApp(): Application {
   const app = express();
 
   // Global middleware
-  app.use(cors());
+  app.use(cors(corsOptions));
   app.use(helmet());
   app.use(morgan('dev'));
   app.use(express.json());
