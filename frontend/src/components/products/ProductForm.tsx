@@ -59,6 +59,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     lowStock: product?.lowStock ?? 10,
     barcode: product?.barcode ?? '',
     batchNo: product?.batchNo ?? '',
+    expiryDate: product?.expiryDate ? (product.expiryDate as unknown as string).split('T')[0] : '',
     companyId: product?.companyId ?? null,
     description: product?.description ?? '',
     image: product?.image ?? '',
@@ -377,6 +378,17 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             placeholder="B001"
             value={formData.batchNo}
             onChange={(e) => handleChange('batchNo', e.target.value)}
+          />
+        </div>
+
+        {/* Expiry Date */}
+        <div className="space-y-2">
+          <Label htmlFor="expiryDate" className="text-body-md text-foreground">Expiry Date</Label>
+          <Input
+            id="expiryDate"
+            type="date"
+            value={formData.expiryDate}
+            onChange={(e) => handleChange('expiryDate', e.target.value)}
           />
         </div>
 
