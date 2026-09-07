@@ -104,6 +104,10 @@ export async function createProduct(data: ProductCreateInput): Promise<PrismaRes
       price: data.price,
       quantity: data.quantity ?? 0,
       lowStock: data.lowStock ?? 10,
+      barcode: data.barcode ?? undefined,
+      batchNo: data.batchNo ?? undefined,
+      lowStockThreshold: data.lowStockThreshold ?? undefined,
+      expiryDate: data.expiryDate ? new Date(data.expiryDate as string) : undefined,
       category: data.category,
       image: data.image ?? undefined,
     },
@@ -147,6 +151,10 @@ export async function updateProduct(id: string, data: ProductUpdateInput): Promi
       lowStock: data.lowStock,
       category: data.category,
       image: data.image ?? undefined,
+      barcode: data.barcode ?? undefined,
+      batchNo: data.batchNo ?? undefined,
+      lowStockThreshold: data.lowStockThreshold ?? undefined,
+      expiryDate: data.expiryDate ? new Date(data.expiryDate as string) : undefined,
     },
     include: { company: true },
   });
@@ -171,4 +179,13 @@ export async function deleteProduct(id: string): Promise<void> {
     where: { id },
     data: { deletedAt: new Date() },
   });
+}
+
+export async function getProductByBarcode(barcode: string): Promise<PrismaResult> {
+  const product = await prisma.product.findUnique({
+    where: { barcode },
+    include: { company: true, inventoryTransactions: true },
+  });
+  if (!product) throw new AppError(404, 'Product not found');
+  return product;
 }

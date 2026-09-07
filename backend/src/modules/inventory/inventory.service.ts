@@ -130,8 +130,16 @@ export async function listTransactions(
  * an STOCK_IN transaction record.
  */
 export async function recordStockIn(data: StockInInput): Promise<StockOperationResult> {
+  let productId = data.productId;
+  if (!productId && data.barcode) {
+    const productByBarcode = await prisma.product.findUnique({
+      where: { barcode: data.barcode, deletedAt: null },
+    });
+    if (!productByBarcode) throw new AppError(404, 'Product not found by barcode');
+    productId = productByBarcode.id;
+  }
   const product = await prisma.product.findFirst({
-    where: { id: data.productId, deletedAt: null },
+    where: { id: productId, deletedAt: null },
   });
 
   if (!product) {
@@ -140,13 +148,13 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
 
   return await prisma.$transaction(async (tx) => {
     const updatedProduct = await tx.product.update({
-      where: { id: data.productId },
+      where: { id: productId! },
       data: { quantity: { increment: data.quantity } },
     });
 
     const transaction = await tx.inventoryTransaction.create({
       data: {
-        productId: data.productId,
+        productId: productId!,
         type: 'STOCK_IN',
         quantity: data.quantity,
         notes: data.notes,
@@ -165,8 +173,16 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
  * Uses a Prisma transaction for atomicity.
  */
 export async function recordStockOut(data: StockOutInput): Promise<StockOperationResult> {
+  let productId = data.productId;
+  if (!productId && data.barcode) {
+    const productByBarcode = await prisma.product.findUnique({
+      where: { barcode: data.barcode, deletedAt: null },
+    });
+    if (!productByBarcode) throw new AppError(404, 'Product not found by barcode');
+    productId = productByBarcode.id;
+  }
   const product = await prisma.product.findFirst({
-    where: { id: data.productId, deletedAt: null },
+    where: { id: productId, deletedAt: null },
   });
 
   if (!product) {
@@ -182,13 +198,13 @@ export async function recordStockOut(data: StockOutInput): Promise<StockOperatio
 
   return await prisma.$transaction(async (tx) => {
     const updatedProduct = await tx.product.update({
-      where: { id: data.productId },
+      where: { id: productId! },
       data: { quantity: { decrement: data.quantity } },
     });
 
     const transaction = await tx.inventoryTransaction.create({
       data: {
-        productId: data.productId,
+        productId: productId!,
         type: 'STOCK_OUT',
         quantity: data.quantity,
         notes: data.notes,
@@ -222,7 +238,7 @@ export async function adjustStock(
 
   return await prisma.$transaction(async (tx) => {
     const updatedProduct = await tx.product.update({
-      where: { id: productId },
+      where: { id: productId! },
       data: { quantity: data.quantity },
     });
 

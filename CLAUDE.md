@@ -78,7 +78,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Analytics/Reports page with sales insights and charts
 - Navigation component with responsive sidebar
 
-**Phase 2: Inventory Management - Step 1 IN PROGRESS 🔄**
+**Phase 2: Inventory Management - Step 1 COMPLETED ✅**
 - Added new fields to Product model:
   - `barcode` (String?) - Unique barcode for product identification
   - `batchNo` (String?) - Batch number for expiration tracking
@@ -91,7 +91,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - `newQuantity` (Int?) - Quantity after transaction
 - Added User > inventoryTransactions relation
 - Database migration applied and Prisma Client regenerated
-- [IN PROGRESS] Update backend inventory service to use new fields
+- Backend inventory service updated to use new fields (create/update include barcode, batchNo, lowStockThreshold, expiryDate)
+- Serializers updated (`serializeProduct`, `serializeInventoryItem`) to expose new fields
+
+**Phase 2: Inventory Management - Step 2 COMPLETED ✅**
+- `GET /api/products/barcode/:barcode` endpoint implemented (`product.controller.ts`, `product.routes.ts`, `product.service.ts`)
+- Barcode lookup integrated into stock-in (`POST /api/inventory/stock-in`) and stock-out (`POST /api/inventory/stock-out`) flows — accepts either `productId` or `barcode`; resolves barcode via `prisma.product.findUnique`
+- Barcode input added to `ProductForm` (`frontend/src/components/products/ProductForm.tsx`) with validation in `productSchema`
+- `product.dto.ts` extended with `barcode`, `batchNo`, `lowStockThreshold`, `expiryDate`
+- Frontend `inventory-columns.tsx` updated with `barcode` column (`TableCellMono`)
+- `inventory.service.ts` updated to resolve `barcode` -> `productId` before transaction
 
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields

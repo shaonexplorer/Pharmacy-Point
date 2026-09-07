@@ -15,19 +15,27 @@ const nonNegativeQuantitySchema = z
 const optionalStringSchema = z.string().optional();
 
 export const stockInSchema = z.object({
-  productId: productIdSchema,
+  productId: productIdSchema.optional(),
+  barcode: optionalStringSchema,
   quantity: positiveQuantitySchema,
   batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+}).refine((data) => data.productId || data.barcode, {
+  message: 'Either productId or barcode is required',
+  path: ['productId'],
 });
 
 export const stockOutSchema = z.object({
-  productId: productIdSchema,
+  productId: productIdSchema.optional(),
+  barcode: optionalStringSchema,
   quantity: positiveQuantitySchema,
   batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+}).refine((data) => data.productId || data.barcode, {
+  message: 'Either productId or barcode is required',
+  path: ['productId'],
 });
 
 export const stockAdjustSchema = z.object({
