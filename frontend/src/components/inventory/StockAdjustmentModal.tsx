@@ -37,6 +37,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   );
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
 
   const stockInMutation = useStockIn();
   const stockOutMutation = useStockOut();
@@ -48,6 +49,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   const resetForm = () => {
     setQuantity('');
     setNotes('');
+    setExpiryDate('');
     setAdjustmentType('ADJUSTMENT');
     setOpen(false);
   };
@@ -65,6 +67,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           productId: product.id,
           quantity: qty,
           notes: notes || undefined,
+          expiryDate: expiryDate || undefined,
         });
       } else if (adjustmentType === 'STOCK_OUT') {
         await stockOutMutation.mutateAsync({
@@ -164,6 +167,23 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
               rows={3}
             />
           </div>
+
+          {adjustmentType === 'STOCK_IN' && (
+            <div className="space-y-2">
+              <Label htmlFor="expiry-date" className="text-body-md text-foreground">
+                Expiry Date (optional)
+              </Label>
+              <Input
+                id="expiry-date"
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                disabled={isPending}
+                min={new Date().toISOString().split('T')[0]}
+              />
+              <p className="text-xs text-on-surface-variant">Required for medication products. Cannot be in the past.</p>
+            </div>
+          )}
         </div>
 
         <AlertDialogFooter>

@@ -29,6 +29,10 @@ export interface Product {
   price: number;
   quantity: number;
   lowStock: number;
+  barcode?: string | null;
+  batchNo?: string | null;
+  lowStockThreshold?: number | null;
+  expiryDate?: string | null;
   category: string;
   image?: string | null;
   deletedAt?: string | null;
@@ -166,8 +170,11 @@ export interface InventoryItem extends Product {
 }
 
 export interface StockInInput {
-  productId: string;
+  productId?: string;
+  barcode?: string;
   quantity: number;
+  batchNo?: string;
+  expiryDate?: string;
   notes?: string;
   referenceId?: string;
 }

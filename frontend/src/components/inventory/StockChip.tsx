@@ -9,6 +9,17 @@ import type { InventoryItem } from '@pharmacy-point/types';
  * - 'low'  → isLowStock && quantity > 0            (warning amber)
  * - 'ok'   → otherwise                            (tertiary / Safety Green)
  */
+export function getExpiryStatus(expiryDate?: string | null): 'expired' | 'critical' | 'warning' | 'ok' | 'none' {
+  if (!expiryDate) return 'none';
+  const expiry = new Date(expiryDate);
+  const now = new Date();
+  if (expiry < now) return 'expired';
+  const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft <= 7) return 'critical';
+  if (daysLeft <= 30) return 'warning';
+  return 'ok';
+}
+
 export function getStockStatus(product: InventoryItem): 'out' | 'low' | 'ok' {
   if (product.quantity === 0) return 'out';
   if (product.isLowStock) return 'low';
@@ -28,6 +39,18 @@ export function getStockStatus(product: InventoryItem): 'out' | 'low' | 'ok' {
  */
 interface StockChipProps {
   status: 'out' | 'low' | 'ok';
+}
+
+interface ExpiryChipProps {
+  status: 'expired' | 'critical' | 'warning' | 'ok' | 'none';
+}
+
+export function ExpiryChip({ status }: ExpiryChipProps) {
+  if (status === 'expired') return <Badge variant="destructive" size="sm">Expired</Badge>;
+  if (status === 'critical') return <Badge variant="destructive" size="sm">Expires Soon</Badge>;
+  if (status === 'warning') return <Badge variant="warning" size="sm">Expiring</Badge>;
+  if (status === 'ok') return <Badge variant="success" size="sm">Fresh</Badge>;
+  return null;
 }
 
 export function StockChip({ status }: StockChipProps) {

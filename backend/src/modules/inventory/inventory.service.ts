@@ -10,6 +10,78 @@ import type { StockInInput, StockOutInput, StockAdjustInput } from './inventory.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PrismaResult = any;
 
+export interface ExpiringListParams {
+  page?: string | undefined;
+  limit?: string | undefined;
+  days?: number;
+}
+
+export async function listExpiring(params: ExpiringListParams): Promise<PaginatedInventory> {
+  const { page, limit, skip } = parsePagination({ page: params.page, limit: params.limit });
+  const days = params.days ?? 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() + days);
+
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        deletedAt: null,
+        expiryDate: { lte: cutoff, gte: new Date() },
+        quantity: { gt: 0 },
+      },
+      skip,
+      take: limit,
+      orderBy: { expiryDate: 'asc' },
+      include: { company: true },
+    }),
+    prisma.product.count({
+      where: {
+        deletedAt: null,
+        expiryDate: { lte: cutoff, gte: new Date() },
+        quantity: { gt: 0 },
+      },
+    }),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      ...buildPagination(total, page, limit),
+      total,
+    },
+  };
+}
+
+export async function listExpired(): Promise<PaginatedInventory> {
+  const now = new Date();
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        deletedAt: null,
+        expiryDate: { lt: now },
+        quantity: { gt: 0 },
+      },
+      orderBy: { expiryDate: 'asc' },
+      include: { company: true },
+    }),
+    prisma.product.count({
+      where: {
+        deletedAt: null,
+        expiryDate: { lt: now },
+        quantity: { gt: 0 },
+      },
+    }),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      ...buildPagination(total, 1, 50),
+      total,
+    },
+  };
+}
+
 export interface InventoryListParams {
   page?: string | undefined;
   limit?: string | undefined;
@@ -146,10 +218,20 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
     throw new AppError(404, 'Product not found');
   }
 
+  if (data.expiryDate) {
+    const expiry = new Date(data.expiryDate);
+    if (expiry < new Date()) {
+      throw new AppError(400, 'Expiry date cannot be in the past');
+    }
+  }
+
   return await prisma.$transaction(async (tx) => {
+    const updateData: Record<string, unknown> = { quantity: { increment: data.quantity } };
+    if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate);
+    if (data.batchNo) updateData.batchNo = data.batchNo;
     const updatedProduct = await tx.product.update({
       where: { id: productId! },
-      data: { quantity: { increment: data.quantity } },
+      data: updateData,
     });
 
     const transaction = await tx.inventoryTransaction.create({
@@ -157,6 +239,7 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
         productId: productId!,
         type: 'STOCK_IN',
         quantity: data.quantity,
+        batchNo: data.batchNo,
         notes: data.notes,
         referenceId: data.referenceId,
       },

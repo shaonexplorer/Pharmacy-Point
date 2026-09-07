@@ -102,6 +102,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Frontend `inventory-columns.tsx` updated with `barcode` column (`TableCellMono`)
 - `inventory.service.ts` updated to resolve `barcode` -> `productId` before transaction
 
+**Phase 2: Inventory Management - Step 3 COMPLETED ✅**
+- `GET /api/inventory/expiring` endpoint with `days` query param (default 30) implemented (`inventory.controller.ts`, `inventory.routes.ts`, `inventory.service.ts`)
+- `GET /api/inventory/expired` endpoint for expired products still in stock implemented
+- `expiryDate` field added to `stockInSchema` DTO with date format validation (`inventory.dto.ts`)
+- Validation: `recordStockIn` rejects past expiry dates with `AppError(400)`
+- Stock-in transaction updates product `expiryDate` and `batchNo` when provided; transaction record includes `batchNo`
+- Color-coded expiry status chips (`ExpiryChip`) added to `StockChip.tsx`: Expired (destructive), Critical ≤7 days (destructive), Warning ≤30 days (warning), Fresh (success)
+- `inventory-columns.tsx` updated with `expiryDate` column showing date + `ExpiryChip`
+- `StockAdjustmentModal.tsx` updated with conditional `expiryDate` date input (required for medication products, `min` set to today, past dates blocked by validation)
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

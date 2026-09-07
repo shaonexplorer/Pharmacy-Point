@@ -8,6 +8,34 @@ import { serializeInventoryItem } from '../../utils/serializers';
 import * as inventoryService from './inventory.service';
 
 /**
+ * GET /api/inventory/expiring
+ * List products expiring within N days (default 30).
+ */
+export const expiring = asyncHandler(async (req: Request, res: Response) => {
+  const result = await inventoryService.listExpiring({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+    days: req.query.days ? parseInt(req.query.days as string, 10) : 30,
+  });
+  res.json({
+    data: result.data.map((p: Record<string, unknown>) => serializeInventoryItem(p)),
+    pagination: result.pagination,
+  });
+});
+
+/**
+ * GET /api/inventory/expired
+ * List expired products still in stock.
+ */
+export const expired = asyncHandler(async (req: Request, res: Response) => {
+  const result = await inventoryService.listExpired();
+  res.json({
+    data: result.data.map((p: Record<string, unknown>) => serializeInventoryItem(p)),
+    pagination: result.pagination,
+  });
+});
+
+/**
  * GET /api/inventory
  * List inventory with low stock filter.
  * Query params: page, limit, search, lowStock, companyId
