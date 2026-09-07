@@ -1,0 +1,6 @@
+version = "0"
+src = "migration.sql"
+
+[[morphology]]
+source = "r2dbc:postgresql://ep-aged-cherry-azggg1ox-pooler.c-3.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require"
+output = "20260908000000_phase2_inventory_extensions"

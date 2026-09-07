@@ -78,6 +78,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Analytics/Reports page with sales insights and charts
 - Navigation component with responsive sidebar
 
+**Phase 2: Inventory Management - Step 1 IN PROGRESS 🔄**
+- Added new fields to Product model:
+  - `barcode` (String?) - Unique barcode for product identification
+  - `batchNo` (String?) - Batch number for expiration tracking
+  - `lowStockThreshold` (Int?) - Configurable low stock threshold
+  - `expiryDate` index - Added for performance optimization
+- Extended InventoryTransaction model with:
+  - `batchNo` (String?) - Transaction batch reference
+  - `userId` (String?) - User who performed the transaction
+  - `previousQuantity` (Int?) - Quantity before transaction
+  - `newQuantity` (Int?) - Quantity after transaction
+- Added User > inventoryTransactions relation
+- Database migration applied and Prisma Client regenerated
+- [IN PROGRESS] Update backend inventory service to use new fields
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):
@@ -201,6 +216,24 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 **Schema** (`backend/prisma/schema.prisma`):
 
 ```prisma
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(CUSTOMER)
+  accounts      Account[]
+  orders        Order[]
+  sessions      Session[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("users")
+}
+
 model Company {
   id          String    @id @default(cuid())
   name        String
@@ -211,16 +244,57 @@ model Company {
   products    Product[]
 }
 
+model Product {
+  id                    String                 @id @default(cuid())
+  name                  String
+  description           String?
+  sku                   String                 @unique
+  barcode               String?                @unique
+  price                 Float
+  quantity              Int                    @default(0)
+  lowStock              Int                    @default(10)
+  lowStockThreshold     Int?                   @default(10)
+  batchNo               String?
+  category              String?
+  image                 String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  brandName             String?
+  genericName           String?
+  expiryDate            DateTime?
+  companyId             String?
+  deletedAt             DateTime?
+  inventoryTransactions InventoryTransaction[]
+  orderItems            OrderItem[]
+  company               Company?               @relation(fields: [companyId], references: [id])
+
+  @@index([category])
+  @@index([deletedAt])
+  @@index([companyId])
+  @@index([expiryDate])
+  @@map("products")
+}
+
 model InventoryTransaction {
-  id            String          @id @default(cuid())
-  productId     String
-  type          TransactionType
-  quantity      Int
-  notes         String?
-  referenceId   String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  product       Product         @relation(fields: [productId], references: [id])
+  id             String          @id @default(cuid())
+  productId      String
+  type           TransactionType
+  quantity       Int
+  batchNo        String?
+  userId         String?
+  previousQuantity Int?
+  newQuantity    Int?
+  notes          String?
+  referenceId    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  product        Product         @relation(fields: [productId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("inventory_transactions")
 }
 
 enum TransactionType {

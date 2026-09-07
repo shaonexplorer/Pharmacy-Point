@@ -17,6 +17,7 @@ const optionalStringSchema = z.string().optional();
 export const stockInSchema = z.object({
   productId: productIdSchema,
   quantity: positiveQuantitySchema,
+  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
 });
@@ -24,12 +25,14 @@ export const stockInSchema = z.object({
 export const stockOutSchema = z.object({
   productId: productIdSchema,
   quantity: positiveQuantitySchema,
+  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
 });
 
 export const stockAdjustSchema = z.object({
   quantity: nonNegativeQuantitySchema,
+  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
 });
 
