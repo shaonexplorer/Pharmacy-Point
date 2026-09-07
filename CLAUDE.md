@@ -130,6 +130,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Scheduled check script (`backend/scripts/check-alerts.js`) for cron/interval-based alerts
 - `notificationRouter` wired in `backend/src/routes/index.ts`
 
+**Phase 2: Inventory Management - Step 6 COMPLETED ✅ (Expiration Report)**
+- `GET /api/inventory/expiring` endpoint (default 30 days, configurable via `days` query param) uses `prisma.product.findMany` with `expiryDate` range filter (`lte: cutoff, gte: new Date()`) and `quantity: { gt: 0 }`; ordered by `expiryDate: 'asc'`
+- `GET /api/inventory/expired` endpoint lists products with `expiryDate: { lt: now }` and `quantity: { gt: 0 }`; paginated at 50 items per page
+- Frontend page `/inventory/expiring` (`frontend/src/app/inventory/expiring/page.tsx`) with Clinical Precision design:
+  - KPI cards: expiring count, expired count, estimated waste value (expiring + expired), and lost inventory value
+  - Date window picker (default 90 days) with Refresh button
+  - Two-tab layout: "Expiring Soon" and "Expired" with `Tabs` primitive
+  - Tables show product name, SKU, batch, quantity, unit price, expiry, and computed waste value (`quantity * price`)
+  - CSV export via `downloadCsv` (Blob + `URL.createObjectURL`) with headers: Name, SKU, Barcode, Batch, Category, Qty, Price, Expiry, Waste
+  - PDF export via `window.print()` with embedded `@media print` styles hiding navigation and buttons
+  - Sidebar entry `Expiration Report` (`frontend/src/components/app-sidebar.tsx`) with `Clock` icon and `bg-destructive` dot
+- Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 6 marked implemented
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

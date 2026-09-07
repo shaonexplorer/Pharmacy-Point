@@ -24,6 +24,7 @@ import {
   User,
   BarChart3,
   LogOut,
+  Clock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -354,6 +355,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         lowStockCount && lowStockCount > 0
           ? { label: `${lowStockCount} low`, color: 'warning' }
           : undefined,
+    },
+    {
+      name: 'Expiration Report',
+      href: '/inventory/expiring',
+      icon: Clock,
+      dotColor: 'bg-destructive',
     },
     { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
     { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },

@@ -44,12 +44,13 @@ Enhance the existing Phase 1 inventory tracking with medicine expiration date ma
 - Add `StockAlertSettings` component for threshold and recipient configuration
 - Set up scheduled job (cron or interval-based) to check and send alerts
 
-### 6. Expiration Report
-- Create `/inventory/expiring` frontend page
+### 6. Expiration Report — COMPLETED ✅
+- `/inventory/expiring` frontend page created (`frontend/src/app/inventory/expiring/page.tsx`)
 - Date range picker with default 90-day window
-- Expired products tab
+- Expired products tab (`expired` endpoint integrated)
 - Export to CSV and PDF
-- Estimated waste value calculation
+- Estimated waste value calculation (sum of quantity × price)
+- Sidebar navigation link added
 
 ### 7. Enhanced Search and Filtering
 - Add barcode, batchNo, and expiryDate filters to `GET /api/inventory`
