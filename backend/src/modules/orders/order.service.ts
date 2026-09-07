@@ -162,9 +162,12 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
 
     // 4. Decrement product stock and record STOCK_OUT transactions
     for (const item of data.items) {
-      await tx.product.update({
+      const productBefore = productMap.get(item.productId)!;
+      const previousQuantity = productBefore.quantity;
+      const updatedProduct = await tx.product.update({
         where: { id: item.productId },
         data: { quantity: { decrement: item.quantity } },
+        select: { id: true, quantity: true },
       });
 
       await tx.inventoryTransaction.create({
@@ -174,6 +177,9 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
           quantity: item.quantity,
           referenceId: order.id,
           notes: `Sale — Order #${order.id.slice(0, 8)}`,
+          userId: data.staffId ?? undefined,
+          previousQuantity,
+          newQuantity: updatedProduct.quantity,
         },
       });
     }

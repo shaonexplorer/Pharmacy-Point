@@ -112,6 +112,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `inventory-columns.tsx` updated with `expiryDate` column showing date + `ExpiryChip`
 - `StockAdjustmentModal.tsx` updated with conditional `expiryDate` date input (required for medication products, `min` set to today, past dates blocked by validation)
 
+**Phase 2: Inventory Management - Step 4 COMPLETED ✅ (Enhanced Transaction Auditing)**
+- `userId` populated from authenticated session / `staffId` on all inventory transactions (`inventory.service.ts`, `inventory.dto.ts`)
+- `previousQuantity` and `newQuantity` snapshots captured atomically inside every Prisma transaction (`recordStockIn`, `recordStockOut`, `adjustStock`, `order.service.ts`)
+- `referenceId` links to orders (`STOCK_OUT`) and purchase receipts (`STOCK_IN`); order creation passes `order.id` as reference
+- `batchNo` included in `ADJUSTMENT` transactions (`inventory.dto.ts`, `inventory.service.ts`)
+- Transaction listing (`listTransactions`) includes `user` relation with `id/name/email` for audit display
+- Controller responses expose full auditing fields (`previousQuantity`, `newQuantity`, `userId`, `batchNo`, `referenceId`) for all endpoints
+- Frontend `ActivityTimeline` updated to show quantity change (`qty X→Y`) and user/reference attribution
+- `stockInSchema` / `stockOutSchema` / `stockAdjustSchema` extended with optional `userId`
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

@@ -27,6 +27,7 @@ export const stockInSchema = z.object({
   }, { message: 'Invalid expiry date format' }),
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+  userId: optionalStringSchema,
 }).refine((data) => data.productId || data.barcode, {
   message: 'Either productId or barcode is required',
   path: ['productId'],
@@ -39,6 +40,7 @@ export const stockOutSchema = z.object({
   batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+  userId: optionalStringSchema,
 }).refine((data) => data.productId || data.barcode, {
   message: 'Either productId or barcode is required',
   path: ['productId'],
@@ -48,6 +50,7 @@ export const stockAdjustSchema = z.object({
   quantity: nonNegativeQuantitySchema,
   batchNo: optionalStringSchema,
   notes: optionalStringSchema,
+  userId: optionalStringSchema,
 });
 
 export type StockInInput = z.infer<typeof stockInSchema>;

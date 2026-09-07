@@ -106,6 +106,7 @@ export interface StockOperationResult {
   product: PrismaResult;
   transaction: PrismaResult;
   previousQuantity?: number;
+  newQuantity?: number;
   difference?: number;
 }
 
@@ -182,7 +183,7 @@ export async function listTransactions(
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: { product: true },
+      include: { product: true, user: { select: { id: true, name: true, email: true } } },
     }),
     prisma.inventoryTransaction.count({ where }),
   ]);
@@ -226,6 +227,7 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
   }
 
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
     const updateData: Record<string, unknown> = { quantity: { increment: data.quantity } };
     if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate);
     if (data.batchNo) updateData.batchNo = data.batchNo;
@@ -242,11 +244,14 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
         batchNo: data.batchNo,
         notes: data.notes,
         referenceId: data.referenceId,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
 
-    return { product: updatedProduct, transaction };
+    return { product: updatedProduct, transaction, previousQuantity, newQuantity: updatedProduct.quantity };
   });
 }
 
@@ -280,6 +285,7 @@ export async function recordStockOut(data: StockOutInput): Promise<StockOperatio
   }
 
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
     const updatedProduct = await tx.product.update({
       where: { id: productId! },
       data: { quantity: { decrement: data.quantity } },
@@ -292,11 +298,14 @@ export async function recordStockOut(data: StockOutInput): Promise<StockOperatio
         quantity: data.quantity,
         notes: data.notes,
         referenceId: data.referenceId,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
 
-    return { product: updatedProduct, transaction };
+    return { product: updatedProduct, transaction, previousQuantity, newQuantity: updatedProduct.quantity };
   });
 }
 
@@ -320,6 +329,7 @@ export async function adjustStock(
   const quantityDifference = data.quantity - product.quantity;
 
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
     const updatedProduct = await tx.product.update({
       where: { id: productId! },
       data: { quantity: data.quantity },
@@ -331,6 +341,10 @@ export async function adjustStock(
         type: 'ADJUSTMENT',
         quantity: quantityDifference,
         notes: data.notes,
+        batchNo: data.batchNo,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
@@ -338,7 +352,8 @@ export async function adjustStock(
     return {
       product: updatedProduct,
       transaction,
-      previousQuantity: product.quantity,
+      previousQuantity,
+      newQuantity: updatedProduct.quantity,
       difference: quantityDifference,
     };
   });
