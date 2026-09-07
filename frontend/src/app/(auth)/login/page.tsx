@@ -19,12 +19,12 @@ import { Loader2, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('shaonexplorer@gmail.com');
+  const [password, setPassword] = useState('123456789');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -59,7 +59,9 @@ export default function LoginPage() {
               <Lock className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-headline-lg text-center text-foreground">Welcome Back</CardTitle>
+          <CardTitle className="text-headline-lg text-center text-foreground">
+            Welcome Back
+          </CardTitle>
           <CardDescription className="text-center text-body-md text-on-surface-variant">
             Enter your credentials to access your pharmacy management system
           </CardDescription>
