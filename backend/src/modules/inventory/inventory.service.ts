@@ -379,3 +379,27 @@ export async function adjustStock(
     };
   });
 }
+
+export async function exportInventoryCsv(): Promise<string> {
+  const products = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' }, include: { company: true } });
+  const headers = ['Name','SKU','Barcode','Batch','Category','Qty','Price','Expiry','Company'];
+  const rows = products.map((p: any) => [
+    p.name, p.sku, p.barcode ?? '', p.batchNo ?? '', p.category ?? '', String(p.quantity ?? 0), String(p.price ?? 0), p.expiryDate ? new Date(p.expiryDate).toISOString().split('T')[0] : '', p.company?.name ?? ''
+  ]);
+  const escape = (v: string) => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
+  return lines.join('\r\n');
+}
+
+export async function exportExpiringCsv(days = 30): Promise<string> {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + days);
+  const products = await prisma.product.findMany({ where: { deletedAt: null, expiryDate: { lte: cutoff, gte: new Date() }, quantity: { gt: 0 } }, orderBy: { expiryDate: 'asc' }, include: { company: true } });
+  const headers = ['Name','SKU','Barcode','Batch','Category','Qty','Price','Expiry','Waste','Company'];
+  const rows = products.map((p: any) => {
+    const waste = (p.quantity ?? 0) * (p.price ?? 0);
+    return [p.name, p.sku, p.barcode ?? '', p.batchNo ?? '', p.category ?? '', String(p.quantity ?? 0), String(p.price ?? 0), p.expiryDate ? new Date(p.expiryDate).toISOString().split('T')[0] : '', String(waste.toFixed(2)), p.company?.name ?? ''];
+  });
+  const escape = (v: string) => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
+  return lines.join('\r\n');
+}

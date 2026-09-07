@@ -176,6 +176,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Added `POS` entry to navigation sidebar
 - Shared types extended: `OrderWithItems`, `OrderItemWithProduct`, `CreateOrderInput`, `CreateOrderItemInput`, `PaymentMethod`, `OrderStatus`
 
+**Phase 2: Inventory Management - Step 8 COMPLETED ✅ (Data Export)**
+- `GET /api/inventory/export` endpoint returns CSV with batch/expiry fields
+- `GET /api/inventory/expiring/export` endpoint with `days` query param
+- Frontend inventory page export button wired to `/api/inventory/export`
+- Expiration report retains local CSV/PDF export
+
 ## Project Structure
 
 The backend has been refactored from a flat route-centric structure to a

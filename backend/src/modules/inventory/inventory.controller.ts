@@ -179,3 +179,18 @@ export const adjust = asyncHandler(async (req: Request, res: Response) => {
     message: 'Stock adjusted successfully',
   });
 });
+
+export const exportInventory = asyncHandler(async (req: Request, res: Response) => {
+  const csv = await inventoryService.exportInventoryCsv();
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="inventory.csv"');
+  res.send(csv);
+});
+
+export const exportExpiring = asyncHandler(async (req: Request, res: Response) => {
+  const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+  const csv = await inventoryService.exportExpiringCsv(days);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="expiring.csv"');
+  res.send(csv);
+});
