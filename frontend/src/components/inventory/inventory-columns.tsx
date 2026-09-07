@@ -38,6 +38,13 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       ),
     },
     {
+      accessorKey: 'batchNo',
+      header: 'Batch',
+      cell: ({ row }) => (
+        <TableCellMono>{row.original.batchNo || '—'}</TableCellMono>
+      ),
+    },
+    {
       accessorKey: 'barcode',
       header: 'Barcode',
       cell: ({ row }) => (

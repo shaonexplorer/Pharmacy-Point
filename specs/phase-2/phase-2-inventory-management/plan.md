@@ -52,11 +52,11 @@ Enhance the existing Phase 1 inventory tracking with medicine expiration date ma
 - Estimated waste value calculation (sum of quantity × price)
 - Sidebar navigation link added
 
-### 7. Enhanced Search and Filtering
-- Add barcode, batchNo, and expiryDate filters to `GET /api/inventory`
-- Update frontend InventoryTable with new searchable columns
-- Global filter in TanStack Table includes batchNo and barcode
-- Preserved client-side filtering pattern from Phase 1
+### 7. Enhanced Search and Filtering — COMPLETED ✅
+- `barcode`, `batchNo`, `expiryDate` filters added to `GET /api/inventory` (`inventory.service.ts`, `inventory.controller.ts`)
+- Filter logic uses Prisma `contains` (case-insensitive) for barcode/batchNo; exact-date range for expiryDate
+- Frontend `inventory-columns.tsx` updated with `batchNo` column (`TableCellMono`)
+- TanStack Table `globalFilter` naturally includes new columns via `getFilteredRowModel()`; no server-side search param needed (preserved Phase 1 client-side pattern)
 
 ### 8. Data Export
 - `GET /api/inventory/export` - CSV of full inventory with batch/expiry

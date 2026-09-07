@@ -88,6 +88,9 @@ export interface InventoryListParams {
   search?: string;
   lowStock?: boolean;
   companyId?: string;
+  barcode?: string;
+  batchNo?: string;
+  expiryDate?: string;
 }
 
 export interface InventoryTransactionListParams {
@@ -120,6 +123,9 @@ export async function listInventory(params: InventoryListParams): Promise<Pagina
   const search = params.search ?? '';
   const lowStockOnly = params.lowStock === true;
   const companyId = params.companyId;
+  const barcode = params.barcode;
+  const batchNo = params.batchNo;
+  const expiryDate = params.expiryDate;
 
   const where: Record<string, unknown> = { deletedAt: null };
 
@@ -132,6 +138,21 @@ export async function listInventory(params: InventoryListParams): Promise<Pagina
 
   if (companyId) {
     where.companyId = companyId;
+  }
+
+  if (barcode) {
+    where.barcode = { contains: barcode, mode: 'insensitive' };
+  }
+
+  if (batchNo) {
+    where.batchNo = { contains: batchNo, mode: 'insensitive' };
+  }
+
+  if (expiryDate) {
+    const target = new Date(expiryDate);
+    const end = new Date(target);
+    end.setDate(end.getDate() + 1);
+    where.expiryDate = { gte: target, lt: end };
   }
 
   // Fetch all matching products, then filter + paginate in JS

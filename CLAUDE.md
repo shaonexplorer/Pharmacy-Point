@@ -143,6 +143,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - Sidebar entry `Expiration Report` (`frontend/src/components/app-sidebar.tsx`) with `Clock` icon and `bg-destructive` dot
 - Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 6 marked implemented
 
+**Phase 2: Inventory Management - Step 7 COMPLETED ✅ (Enhanced Search and Filtering)**
+- `barcode`, `batchNo`, `expiryDate` query filters added to `GET /api/inventory` (`inventory.service.ts`, `inventory.controller.ts`): case-insensitive `contains` for barcode/batchNo; date-range filter for expiryDate
+- `InventoryListParams` interface extended with optional `barcode`, `batchNo`, `expiryDate`
+- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
+- Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

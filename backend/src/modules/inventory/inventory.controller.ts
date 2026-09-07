@@ -47,6 +47,9 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
     search: (req.query.search as string) || '',
     lowStock: req.query.lowStock === 'true',
     companyId: (req.query.companyId as string) || undefined,
+    barcode: (req.query.barcode as string) || undefined,
+    batchNo: (req.query.batchNo as string) || undefined,
+    expiryDate: (req.query.expiryDate as string) || undefined,
   });
 
   res.json({
