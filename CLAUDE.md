@@ -122,6 +122,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Frontend `ActivityTimeline` updated to show quantity change (`qty X→Y`) and user/reference attribution
 - `stockInSchema` / `stockOutSchema` / `stockAdjustSchema` extended with optional `userId`
 
+**Phase 2: Inventory Management - Step 5 COMPLETED ✅ (Email Notification System)**
+- SMTP configured via `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
+- Nodemailer integrated (`backend/package.json`); `notification.service.ts` with templates (`lowStockTemplate`, `expiryTemplate`) and `sendBatchAlert`
+- `POST /api/notifications/send` endpoint with Zod validation (`notification.dto.ts`, `notification.routes.ts`, `notification.controller.ts`)
+- `StockAlertSettings` component (`frontend/src/components/inventory/StockAlertSettings.tsx`) for threshold/recipient config
+- Scheduled check script (`backend/scripts/check-alerts.js`) for cron/interval-based alerts
+- `notificationRouter` wired in `backend/src/routes/index.ts`
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

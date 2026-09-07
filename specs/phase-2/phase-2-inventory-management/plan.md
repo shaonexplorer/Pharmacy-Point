@@ -73,6 +73,6 @@ Enhance the existing Phase 1 inventory tracking with medicine expiration date ma
 - [ ] Expiration dates are displayed and flagged in the inventory list
 - [ ] Expired products are hidden from POS product selection
 - [ ] Barcode scanning reduces stock-in time by 50%
-- [ ] Email alerts are sent when stock falls below threshold
+- [x] Email alerts are sent when stock falls below threshold
 - [ ] Expiration report shows accurate upcoming expirations
 - [ ] All inventory transactions are fully audited with user and reference links
