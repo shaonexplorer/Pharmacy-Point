@@ -42,13 +42,13 @@ Enhance the Phase 1 customer management system with due accounts management (cre
   - Sort by due amount or days overdue
 - Update shared types: `CreateDuePaymentInput`, `DuePaymentWithCustomer`, `CustomerWithDuePayments`
 
-### 3. Customer Dashboard Endpoint
-- `GET /api/customers/:id/dashboard` - Aggregate customer activity
-- Query order history, payment history, loyalty balance
-- Calculate lifetime value, first/last purchase dates
-- Calculate loyalty points earned vs redeemed
-- Return comprehensive JSON response for frontend dashboard
-- Update shared types: `CustomerDashboard`
+### 3. Customer Dashboard Endpoint — COMPLETED ✅
+- `GET /api/customers/:id/dashboard` - Aggregate customer activity implemented (`customer.service.ts`, `customer.controller.ts`, `customer.routes.ts`)
+- Queries order history (excluding cancelled), payment history, and loyalty balance
+- Calculates lifetime value (`sum of valid order totals`), first/last purchase dates, points earned (`Math.round(lifetimeValue)`), points redeemed (`0` until redemption implemented)
+- Returns comprehensive JSON matching `CustomerDashboard` shared type (`packages/types/src/index.ts`)
+- Route ordered before `/:id` to avoid shadowing (`/dashboard` after `/:id` is safe since `:id` matches any string; placed `/:id/dashboard` explicitly)
+- Update shared types: `CustomerDashboard` (already present and matched)
 
 ### 4. Loyalty Points System
 - Define loyalty tiers: Bronze ($0-499), Silver ($500-1999), Gold ($2000-4999), Platinum ($5000+)

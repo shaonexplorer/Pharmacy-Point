@@ -198,6 +198,39 @@ export async function listDueAccounts(params: { page?: string; limit?: string; o
 }
 
 /**
+ * Get comprehensive customer dashboard data.
+ */
+export async function getCustomerDashboard(id: string): Promise<Record<string, unknown>> {
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+    include: { orders: { orderBy: { createdAt: 'asc' } }, duePayments: { include: { user: { select: { id: true, name: true, email: true } } } } },
+  });
+  if (!customer) throw new AppError(404, 'Customer not found');
+
+  const orders = customer.orders ?? [];
+  const validOrders = orders.filter((o) => o.status !== 'CANCELLED');
+  const lifetimeValue = validOrders.reduce((sum, o) => sum + Number(o.total ?? 0), 0);
+  const firstPurchaseDate = validOrders.length ? validOrders[0].createdAt.toISOString() : undefined;
+  const lastPurchaseDate = validOrders.length ? validOrders[validOrders.length - 1].createdAt.toISOString() : undefined;
+
+  const pointsEarned = Math.round(lifetimeValue);
+  const pointsRedeemed = 0;
+
+  return {
+    customer,
+    orders: validOrders,
+    payments: customer.duePayments ?? [],
+    lifetimeValue,
+    firstPurchaseDate,
+    lastPurchaseDate,
+    loyaltyPoints: customer.loyaltyPoints ?? 0,
+    loyaltyTier: customer.loyaltyTier ?? 'Bronze',
+    pointsEarned,
+    pointsRedeemed,
+  };
+}
+
+/**
  * Delete a customer. Throws 400 if the customer has orders; 404 if not found.
  */
 export async function deleteCustomer(id: string): Promise<void> {

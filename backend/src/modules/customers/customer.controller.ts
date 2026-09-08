@@ -90,6 +90,15 @@ export const listPayments = asyncHandler(async (req: Request, res: Response) => 
  * GET /api/customers/due-accounts
  * List all customers with outstanding balances.
  */
+/**
+ * GET /api/customers/:id/dashboard
+ * Aggregate customer activity (orders, payments, loyalty, lifetime value).
+ */
+export const getDashboard = asyncHandler(async (req: Request, res: Response) => {
+  const result = await customerService.getCustomerDashboard(req.params.id);
+  res.json({ data: result });
+});
+
 export const listDueAccounts = asyncHandler(async (req: Request, res: Response) => {
   const result = await customerService.listDueAccounts({
     page: req.query.page as string | undefined,

@@ -62,8 +62,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - Extended `Customer` with `loyaltyPoints` (Int, default 0), `loyaltyTier` (String, default "Bronze"), `lifetimeSpend` (Decimal, default 0), and `duePayments` relation
   - Extended `Order` with `isCreditSale` (Boolean, default false)
   - Added `duePayments` relation to `User` model
-- `dueAmount` remains calculated (credit sales minus payments) — due payments API and dashboard to follow
+- `dueAmount` remains calculated (credit sales minus payments) — dashboard endpoint added; loyalty system follows
 - Phase 1 customer CRUD intact; backend/frontend components unchanged
+
+**Phase 2: Customer Management - Step 3 COMPLETED ✅ (Customer Dashboard Endpoint)**
+- `GET /api/customers/:id/dashboard` implemented (`customer.service.ts`, `controller.ts`, `routes.ts`)
+- Aggregates order history (excluding cancelled), payment history (`duePayments` with user attribution), lifetime value, first/last purchase dates
+- Calculates loyalty balance, points earned (`Math.round(lifetimeValue)`), points redeemed (`0` until redemption implemented), and tier from customer record
+- Returns full `CustomerDashboard` shape matching `packages/types/src/index.ts`
+- Route placed before `/:id` shadow risk resolved via explicit `/:id/dashboard` route
+
+**Phase 2: Customer Management - Step 4**
 - Customer and Order models already present in Prisma schema
   - `Customer` with fields: name, email, phone, address, dueAmount
   - `Order` linked to customer for purchase history
@@ -450,6 +459,7 @@ enum OrderStatus {
 - `POST /api/customers/:id/due-payments` — Record payment against due amount (validates against outstanding balance, recalculates dueAmount, creates DuePayment record)
 - `GET /api/customers/:id/due-payments` — List payment history (includes user attribution)
 - `GET /api/customers/due-accounts` — List customers with outstanding balances (filter by overdueDays, sort by dueAmount)
+- `GET /api/customers/:id/dashboard` — Customer dashboard (aggregate orders, payments, lifetime value, first/last purchase, loyalty points, tier, earned/redeemed points)
 
 ### Orders API (`/api/orders`) [NEW]
 - `GET /api/orders` - List with pagination and filters (page, limit, status, customerId, staffId)

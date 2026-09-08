@@ -11,6 +11,7 @@ import {
   create,
   update,
   remove,
+  getDashboard,
   recordPayment,
   listPayments,
   listDueAccounts,
@@ -21,6 +22,7 @@ const router = Router();
 
 router.get('/', list);
 router.get('/due-accounts', listDueAccounts);
+router.get('/:id/dashboard', getDashboard);
 router.get('/:id', getOne);
 router.post('/', validate(customerCreateSchema), create);
 router.put('/:id', validate(customerUpdateSchema), update);
