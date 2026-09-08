@@ -89,11 +89,15 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - `CustomerTable` updated with loyalty tier column (color-coded badges)
 - `CustomerForm` updated to display loyalty info when editing
 
-### 7. Due Account Alerts
-- Email notification when customer due amount exceeds threshold (e.g., $100)
-- Configure threshold in system settings
-- Integrate with email notification system from Phase 2: Inventory Management
-- Send notification to configured admin/manager recipients
+### 7. Due Account Alerts — COMPLETED ✅
+- Email notification when customer due amount exceeds threshold ($100 default) implemented via `POST /api/notifications/send/due-accounts` (`notification.routes.ts`, `notification.controller.ts`, `notification.service.ts`)
+- `dueAccountAlertSchema` DTO defined (`notification.dto.ts`) with `threshold` (number, default 100) and optional `recipients`
+- `sendDueAccountAlerts` controller queries `prisma.customer.findMany` for `dueAmount > threshold`, sends batch alert (`sendBatchAlert` with type `'due_account'`) and individual `sendDueAccountAlert` per overdue customer
+- `dueAccountTemplate` + `sendDueAccountAlert` added to notification service; `sendBatchAlert` extended to handle `due_account` type with `customerName`/`dueAmount`/`threshold` fields
+- Threshold configured via `DueAccountAlertSettings` frontend component (`frontend/src/components/customers/DueAccountAlertSettings.tsx`) with threshold input, recipients input, and save state
+- Integrated with existing email notification system (`SMTP_HOST`, `SMTP_USER`, `SMTP_FROM`, `ALERT_RECIPIENTS`) from Phase 2: Inventory Management
+- Notification route `router.post('/send/due-accounts', ...)` wired in `notification.routes.ts`
+- Success criteria met: due-amount alerts trigger, threshold configurable, recipients configurable, uses SMTP templates
 
 ### 8. Testing and Validation
 - Test due amount calculation (credit sales minus payments)
@@ -117,7 +121,7 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - [ ] Loyalty points are earned on purchases and redeemable for discounts
 - [ ] Loyalty tiers transition correctly based on lifetime spend
 - [ ] Customer dashboard shows comprehensive activity
-- [ ] Due account alerts are sent when threshold is exceeded
+- [x] Due account alerts are sent when threshold is exceeded
 - [ ] Credit sales are correctly linked to customer due amounts
 - [ ] Points expiration follows the 365-day inactivity rule
 - [ ] All due payment and loyalty transactions are auditable

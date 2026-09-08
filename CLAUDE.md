@@ -116,6 +116,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `CustomerForm` updated to show tier/points when editing
 - `DueAccountAlert` (POS) already present; `LoyaltyRedemption` integrated via `PosContext` / `Checkout`
 
+**Phase 2: Customer Management — Step 7 (Due Account Alerts) COMPLETED ✅**
+- `POST /api/notifications/send/due-accounts` endpoint created (`notification.controller.ts`, `notification.routes.ts`, `notification.service.ts`) — queries overdue customers (`dueAmount > threshold`), sends batch (`sendBatchAlert`) and per-customer (`sendDueAccountAlert`) emails
+- `dueAccountAlertSchema` DTO (`notification.dto.ts`) with `threshold` (default 100) and optional `recipients`; `sendAlertSchema` enum expanded to include `'due_account'`
+- `dueAccountTemplate` + `sendDueAccountAlert` added; `sendBatchAlert` HTML extended for `customerName`/`dueAmount`/`threshold`
+- `DueAccountAlertSettings` frontend component (`frontend/src/components/customers/DueAccountAlertSettings.tsx`) with threshold/recipients inputs
+- Uses existing SMTP notification infrastructure (`SMTP_HOST`, `SMTP_USER`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary
