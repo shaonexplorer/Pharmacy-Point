@@ -207,3 +207,19 @@ export interface Stats {
   stockOutThisMonth?: number;
   pendingOrders?: number;
 }
+
+export interface CreatePaymentInput {
+  amount: number;
+  currency?: string;
+  orderId?: string;
+  customerEmail?: string;
+}
+
+export interface PaymentResponse {
+  sessionId: string;
+  url: string;
+}
+
+export interface PaymentIntentUpdate {
+  paymentIntentId?: string | null;
+}

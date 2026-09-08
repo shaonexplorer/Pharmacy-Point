@@ -639,3 +639,12 @@ const response = data ?? placeholderData; // placeholderData is always undefined
 ```
 
 When using `keepPreviousData`, `isLoading` remains `false` during page transitions (because placeholder data fills `data`), but `isFetching` is `true`. Use `isFetching` to show a subtle "Updating…" indicator while the table stays visible.
+**Phase 5: POS System — Stripe Payment Integration (Step 1) — IN PROGRESS ✅**
+- Stripe SDK installed (`stripe` backend / `@stripe/stripe-js` frontend)
+- `paymentIntentId` added to `Order` Prisma model; DB migrated; Prisma Client regenerated
+- Payment endpoints created under `/api/payments`: `POST /checkout` (Stripe Checkout Session), `POST /webhook` (signature verification)
+- `backend/src/modules/payments/` module added (DTO, service, controller, routes); wired in `routes/index.ts`
+- Shared types extended (`CreatePaymentInput`, `PaymentResponse`, `PaymentIntentUpdate` in `packages/types/src/index.ts`)
+- `PaymentForm` component created (`frontend/src/components/pos/PaymentForm.tsx`) with Cash / Card selection
+- `PosContext` updated with `paymentIntentId` state, `setPaymentIntentId` dispatcher, and provider exposure
+- Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 1 partly implemented (Stripe setup + form + context; Checkout integration and webhook order update pending step 7)

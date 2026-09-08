@@ -19,6 +19,7 @@ interface PosState {
   items: CartItem[];
   customerId: string | null;
   paymentMethod: PaymentMethod;
+  paymentIntentId: string | null;
   taxRate: number;
 }
 
@@ -29,12 +30,14 @@ type PosAction =
   | { type: 'CLEAR_CART' }
   | { type: 'SET_CUSTOMER'; customerId: string | null }
   | { type: 'SET_PAYMENT_METHOD'; paymentMethod: PaymentMethod }
+  | { type: 'SET_PAYMENT_INTENT_ID'; paymentIntentId: string | null }
   | { type: 'SET_TAX_RATE'; taxRate: number };
 
 interface PosContextType {
   items: CartItem[];
   customerId: string | null;
   paymentMethod: PaymentMethod;
+  paymentIntentId: string | null;
   taxRate: number;
   subtotal: number;
   taxAmount: number;
@@ -45,6 +48,7 @@ interface PosContextType {
   clearCart: () => void;
   setCustomer: (customerId: string | null) => void;
   setPaymentMethod: (method: PaymentMethod) => void;
+  setPaymentIntentId: (id: string | null) => void;
   getCartItem: (productId: string) => CartItem | undefined;
   canAddToCart: (product: Product, quantity?: number) => boolean;
 }
@@ -55,6 +59,7 @@ const initialState: PosState = {
   items: [],
   customerId: null,
   paymentMethod: 'cash',
+  paymentIntentId: null,
   taxRate: DEFAULT_TAX_RATE,
 };
 
@@ -152,6 +157,12 @@ function posReducer(state: PosState, action: PosAction): PosState {
         paymentMethod: action.paymentMethod,
       };
 
+    case 'SET_PAYMENT_INTENT_ID':
+      return {
+        ...state,
+        paymentIntentId: action.paymentIntentId,
+      };
+
     case 'SET_TAX_RATE':
       return {
         ...state,
@@ -195,6 +206,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_PAYMENT_METHOD', paymentMethod: method });
   }, []);
 
+  const setPaymentIntentId = useCallback((id: string | null) => {
+    dispatch({ type: 'SET_PAYMENT_INTENT_ID', paymentIntentId: id });
+  }, []);
+
   const getCartItem = useCallback(
     (productId: string) => state.items.find((item) => item.productId === productId),
     [state.items]
@@ -215,6 +230,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         items: state.items,
         customerId: state.customerId,
         paymentMethod: state.paymentMethod,
+        paymentIntentId: state.paymentIntentId,
         taxRate: state.taxRate,
         subtotal,
         taxAmount,
@@ -225,6 +241,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         clearCart,
         setCustomer,
         setPaymentMethod,
+        setPaymentIntentId,
         getCartItem,
         canAddToCart,
       }}

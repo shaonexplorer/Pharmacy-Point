@@ -14,15 +14,15 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 ## Implementation Steps
 
 ### 1. Stripe Payment Integration
-- Install Stripe SDK on backend (`stripe` package) and frontend (`@stripe/stripe-js`)
-- Add `paymentIntentId` field to Order model in Prisma schema
-- Create `POST /api/payments/checkout` endpoint to create Checkout Sessions
-- Create `POST /api/payments/webhook` endpoint with signature verification
-- Update order creation flow to optionally create a payment intent
-- Build `PaymentForm` component with Stripe Elements (card number, expiry, CVC)
-- Integrate payment method selection into Checkout component (Cash vs Card)
-- Update PosContext to track paymentIntentId
-- Generate `CreatePaymentInput` and `PaymentResponse` shared types
+- [x] Install Stripe SDK on backend (`stripe`) and frontend (`@stripe/stripe-js`)
+- [x] Add `paymentIntentId` field to Order model in Prisma schema
+- [x] Create `POST /api/payments/checkout` endpoint to create Checkout Sessions
+- [x] Create `POST /api/payments/webhook` endpoint with signature verification
+- [ ] Update order creation flow to optionally create a payment intent
+- [x] Build `PaymentForm` component with payment method selection
+- [ ] Integrate payment method selection into Checkout component (Cash vs Card)
+- [x] Update PosContext to track paymentIntentId
+- [x] Generate `CreatePaymentInput` and `PaymentResponse` shared types
 
 ### 2. Order Model Enhancements
 - Extend `OrderStatus` enum with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`

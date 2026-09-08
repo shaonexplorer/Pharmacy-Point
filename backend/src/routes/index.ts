@@ -11,6 +11,7 @@ import { notificationRouter } from '../modules/notifications/notification.routes
 import { orderRouter } from '../modules/orders/order.routes';
 import { statsRouter } from '../modules/stats/stats.routes';
 import { categoryRouter } from '../modules/categories/category.routes';
+import paymentRouter from '../modules/payments/payment.routes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/notifications', notificationRouter);
 router.use('/orders', orderRouter);
 router.use('/stats', statsRouter);
 router.use('/categories', categoryRouter);
+router.use('/payments', paymentRouter);
 
 export { router as apiRouter };
