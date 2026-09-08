@@ -247,6 +247,14 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
     },
   });
 
+  // Loyalty points: earn 1 point per $1 on COMPLETED orders with customer
+  if (status === 'COMPLETED' && existing.customerId) {
+    try {
+      const { earnPoints } = await import('../customers/customer.service');
+      await earnPoints(existing.customerId, Number(updated.subtotal ?? 0), Number(updated.subtotal ?? 0));
+    } catch (e) { /* non-blocking */ }
+  }
+
   return updated;
 }
 

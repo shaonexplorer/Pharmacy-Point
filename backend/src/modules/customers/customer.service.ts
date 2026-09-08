@@ -249,3 +249,68 @@ export async function deleteCustomer(id: string): Promise<void> {
     throw error;
   }
 }
+
+// --- Loyalty Points System (Step 4) ---
+
+const TIERS = [
+  { tier: 'Bronze', minSpend: 0, maxSpend: 499, benefits: 'Basic points accumulation' },
+  { tier: 'Silver', minSpend: 500, maxSpend: 1999, benefits: '5% discount on orders' },
+  { tier: 'Gold', minSpend: 2000, maxSpend: 4999, benefits: '10% discount + priority service' },
+  { tier: 'Platinum', minSpend: 5000, maxSpend: undefined, benefits: '15% discount + exclusive perks' },
+];
+
+export function getLoyaltyTiers() {
+  return TIERS;
+}
+
+export function calculateTier(lifetimeSpend: number) {
+  for (const t of TIERS) {
+    if (t.maxSpend === undefined) {
+      if (lifetimeSpend >= t.minSpend) return t.tier;
+    } else if (lifetimeSpend >= t.minSpend && lifetimeSpend <= t.maxSpend) {
+      return t.tier;
+    }
+  }
+  return 'Bronze';
+}
+
+export async function earnPoints(customerId: string, amount: number, orderTotal?: number) {
+  const earned = amount > 0 ? Math.round(amount) : 0;
+  // 1 point per $1 spent
+  const points = Math.round(orderTotal ?? amount);
+  const customer = await prisma.customer.update({
+    where: { id: customerId },
+    data: { loyaltyPoints: { increment: points }, lifetimeSpend: { increment: orderTotal ?? amount } },
+  });
+  const tier = calculateTier(Number(customer.lifetimeSpend));
+  await prisma.customer.update({ where: { id: customerId }, data: { loyaltyTier: tier } });
+  return { pointsEarned: points, newTier: tier, loyaltyPoints: customer.loyaltyPoints ?? 0 };
+}
+
+export async function redeemPoints(customerId: string, pointsToRedeem: number) {
+  const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+  if (!customer) throw new AppError(404, 'Customer not found');
+  const current = customer.loyaltyPoints ?? 0;
+  if (current < pointsToRedeem) throw new AppError(400, 'Insufficient points');
+  const discount = pointsToRedeem / 100; // 100 pts = $1
+  await prisma.customer.update({
+    where: { id: customerId },
+    data: { loyaltyPoints: { decrement: pointsToRedeem } },
+  });
+  return { redeemed: pointsToRedeem, discountValue: discount, remainingPoints: current - pointsToRedeem };
+}
+
+export async function adjustLoyaltyPoints(customerId: string, amount: number, notes?: string) {
+  const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+  if (!customer) throw new AppError(404, 'Customer not found');
+  const newPoints = Math.max(0, (customer.loyaltyPoints ?? 0) + amount);
+  const updated = await prisma.customer.update({
+    where: { id: customerId },
+    data: { loyaltyPoints: newPoints },
+  });
+  const tier = calculateTier(Number(updated.lifetimeSpend));
+  if (tier !== updated.loyaltyTier) {
+    await prisma.customer.update({ where: { id: customerId }, data: { loyaltyTier: tier } });
+  }
+  return { customerId, amount, newPoints, notes, tier };
+}

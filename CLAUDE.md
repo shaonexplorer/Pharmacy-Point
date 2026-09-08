@@ -63,6 +63,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - Extended `Order` with `isCreditSale` (Boolean, default false)
   - Added `duePayments` relation to `User` model
 - `dueAmount` remains calculated (credit sales minus payments) — dashboard endpoint added; loyalty system follows
+- **Phase 2: Customer Management — Step 4 (Loyalty Points System) COMPLETED ✅**
+  - Loyalty tiers defined (`getLoyaltyTiers`): Bronze ($0-499), Silver ($500-1999), Gold ($2000-4999), Platinum ($5000+)
+  - Points earning integrated into order completion: `earnPoints` called in `updateOrderStatus` when status → `COMPLETED` (`order.service.ts`); 1 point per $1 spent
+  - Points redemption available (`redeemPoints`): 100 points = $1 discount; checks sufficient balance
+  - Admin manual adjustments endpoint: `POST /api/customers/:id/loyalty/points` via `adjustLoyaltyPoints`; validates `adjustPointsSchema`
+  - Tier definitions endpoint: `GET /api/customers/loyalty-tiers` via `getLoyaltyTiers`; `loyaltyTierSchema` DTO
+  - `calculateTier` updates customer tier based on `lifetimeSpend`; `loyalty.dto.ts` added; routes/controller/service updated
 - Phase 1 customer CRUD intact; backend/frontend components unchanged
 
 **Phase 2: Customer Management - Step 3 COMPLETED ✅ (Customer Dashboard Endpoint)**

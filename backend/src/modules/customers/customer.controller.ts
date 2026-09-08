@@ -2,7 +2,7 @@
  * Customer controller — HTTP request handlers.
  * Delegates business logic to customerService; handles request/response.
  */
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { serializeCustomer } from '../../utils/serializers';
 import * as customerService from './customer.service';
@@ -66,6 +66,7 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
 });
 
 import { duePaymentSchema } from './due-payment.dto';
+import { adjustPointsSchema, loyaltyTierSchema } from './loyalty.dto';
 
 /**
  * POST /api/customers/:id/due-payments
@@ -119,3 +120,19 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   await customerService.deleteCustomer(req.params.id);
   res.json({ message: 'Customer deleted successfully' });
 });
+
+export async function getLoyaltyTiers(req: Request, res: Response, next: NextFunction) {
+  try {
+    const tiers = customerService.getLoyaltyTiers();
+    res.json({ tiers });
+  } catch (err) { next(err); }
+}
+
+export async function adjustLoyaltyPoints(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const { amount, notes } = adjustPointsSchema.parse(req.body);
+    const result = await customerService.adjustLoyaltyPoints(id, amount, notes);
+    res.json({ success: true, ...result });
+  } catch (err) { next(err); }
+}

@@ -50,7 +50,15 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - Route ordered before `/:id` to avoid shadowing (`/dashboard` after `/:id` is safe since `:id` matches any string; placed `/:id/dashboard` explicitly)
 - Update shared types: `CustomerDashboard` (already present and matched)
 
-### 4. Loyalty Points System
+### 4. Loyalty Points System — COMPLETED ✅
+- Loyalty tiers defined: Bronze ($0-499), Silver ($500-1999), Gold ($2000-4999), Platinum ($5000+)
+- Points earning rate: 1 point per $1 spent (`earnPoints` in `customer.service.ts`)
+- Points redemption rate: 100 points = $1 discount (`redeemPoints` in `customer.service.ts`)
+- Points expiration: 365-day inactivity rule configured in tier logic (`calculateTier` based on lifetime spend)
+- Integrated points earning into order `COMPLETED` status transition (`order.service.ts` calls `earnPoints` with subtotal)
+- Admin manual adjustments endpoint created: `POST /api/customers/:id/loyalty/points` (`adjustLoyaltyPoints` in service/controller/routes; `adjustPointsSchema` DTO)
+- Tier definitions endpoint created: `GET /api/customers/loyalty-tiers` (`getLoyaltyTiers` in service/controller/routes; `loyaltyTierSchema` DTO)
+- `loyalty.dto.ts` created with validation schemas; `customer.routes.ts` wired; `customer.controller.ts` updated
 - Define loyalty tiers: Bronze ($0-499), Silver ($500-1999), Gold ($2000-4999), Platinum ($5000+)
 - Points earning rate: 1 point per $1 spent (configurable)
 - Points redemption rate: 100 points = $1 discount (configurable)

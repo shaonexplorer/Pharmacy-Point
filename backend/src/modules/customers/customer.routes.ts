@@ -15,7 +15,10 @@ import {
   recordPayment,
   listPayments,
   listDueAccounts,
+  getLoyaltyTiers,
+  adjustLoyaltyPoints,
 } from './customer.controller';
+import { adjustPointsSchema } from './loyalty.dto';
 import { duePaymentSchema } from './due-payment.dto';
 
 const router = Router();
@@ -30,5 +33,8 @@ router.delete('/:id', remove);
 
 router.post('/:id/due-payments', validate(duePaymentSchema), recordPayment);
 router.get('/:id/due-payments', listPayments);
+
+router.get('/loyalty-tiers', getLoyaltyTiers);
+router.post('/:id/loyalty/points', validate(adjustPointsSchema), adjustLoyaltyPoints);
 
 export const customerRouter = router;
