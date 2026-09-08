@@ -78,16 +78,16 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - Updated `PosContext` with `customerDueAmount`, `customerLoyaltyPoints`, `customerLoyaltyTier`, `redeemedPoints`, `isCreditSale`, and actions (`setRedeemedPoints`, `setCreditSale`, `SET_CUSTOMER` meta)
 - Updated `frontend/src/app/pos/page.tsx` to pass loyalty/credit state to `Checkout`
 
-### 6. Frontend Components
-- `CustomerDashboard` - Profile page with tabbed navigation (Profile | Orders | Payments | Loyalty | Activity)
-- `DuePaymentForm` - Modal/form for recording customer payments
-- `DueAccountsList` - Table of customers with outstanding balances and overdue status
-- `LoyaltyPointsDisplay` - Component showing points, tier, and benefits
-- `LoyaltyRedemption` - Points-to-discount converter in POS checkout
-- `DueAccountAlert` - Badge shown during POS checkout when customer has due amount
-- `CustomerSegmentation` - Filterable customer list by tier and purchase history
-- Update `CustomerTable` to show loyalty tier column
-- Update `CustomerForm` to display loyalty info
+### 6. Frontend Components — COMPLETED ✅
+- `CustomerDashboard` — Profile page with tabbed navigation (Profile | Orders | Payments | Loyalty | Activity) created (`frontend/src/app/customers/[id]/dashboard/page.tsx`)
+- `DuePaymentForm` — Modal/form for recording customer payments (`frontend/src/components/customers/DuePaymentForm.tsx`)
+- `DueAccountsList` - Table of customers with outstanding balances and overdue status (`frontend/src/components/customers/DueAccountsList.tsx`)
+- `LoyaltyPointsDisplay` - Component showing points, tier, and benefits (`frontend/src/components/customers/LoyaltyPointsDisplay.tsx`)
+- `LoyaltyRedemption` - Points-to-discount converter in POS checkout (already integrated in `Checkout` / `PosContext`)
+- `DueAccountAlert` - Badge shown during POS checkout when customer has due amount (already exists in `frontend/src/components/pos/DueAccountAlert.tsx`)
+- `CustomerSegmentation` - Filterable customer list by tier and purchase history (`frontend/src/components/customers/CustomerSegmentation.tsx`)
+- `CustomerTable` updated with loyalty tier column (color-coded badges)
+- `CustomerForm` updated to display loyalty info when editing
 
 ### 7. Due Account Alerts
 - Email notification when customer due amount exceeds threshold (e.g., $100)

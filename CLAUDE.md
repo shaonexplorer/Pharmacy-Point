@@ -106,6 +106,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `frontend/src/components/pos/DueAccountAlert.tsx` created
 - `frontend/src/app/pos/page.tsx` wired to pass loyalty/credit state to `Checkout`
 
+**Phase 2: Customer Management — Step 6 (Frontend Components) COMPLETED ✅**
+- `CustomerDashboard` — tabbed profile page (`frontend/src/app/customers/[id]/dashboard/page.tsx`) with Overview, Orders, Payments, Loyalty tabs
+- `DuePaymentForm` — modal for recording payments (`frontend/src/components/customers/DuePaymentForm.tsx`)
+- `DueAccountsList` — outstanding balances table (`frontend/src/components/customers/DueAccountsList.tsx`)
+- `LoyaltyPointsDisplay` — points/tier/benefits component (`frontend/src/components/customers/LoyaltyPointsDisplay.tsx`)
+- `CustomerSegmentation` — tier/search filter (`frontend/src/components/customers/CustomerSegmentation.tsx`)
+- `CustomerTable` updated with color-coded loyalty tier column
+- `CustomerForm` updated to show tier/points when editing
+- `DueAccountAlert` (POS) already present; `LoyaltyRedemption` integrated via `PosContext` / `Checkout`
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary

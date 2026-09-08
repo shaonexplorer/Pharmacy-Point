@@ -127,6 +127,24 @@ export function CustomerTable({
         },
       },
       {
+        accessorKey: 'loyaltyTier',
+        header: 'Tier',
+        cell: ({ row }) => {
+          const tier = row.original.loyaltyTier || 'Bronze';
+          const tierColors: Record<string, string> = {
+            Bronze: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+            Silver: 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+            Gold: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+            Platinum: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+          };
+          return (
+            <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', tierColors[tier] || tierColors.Bronze)}>
+              {tier}
+            </span>
+          );
+        },
+      },
+      {
         accessorKey: 'createdAt',
         header: 'Created',
         cell: ({ row }) => {
