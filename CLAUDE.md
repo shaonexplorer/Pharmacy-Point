@@ -99,6 +99,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - `/frontend/src/hooks/useCustomers.ts` - React Query hooks
 - Shared types added: `CreateCustomerInput`, `UpdateCustomerInput`, `CustomerWithOrders`
 
+**Phase 2: Customer Management — Step 5 (POS Integration) COMPLETED ✅**
+- `PosContext` extended: `customerDueAmount`, `customerLoyaltyPoints`, `customerLoyaltyTier`, `redeemedPoints`, `isCreditSale`, `customerName`; actions `setRedeemedPoints`, `setCreditSale`, updated `SET_CUSTOMER` meta
+- POS checkout (`Checkout`) shows `DueAccountAlert` when `dueAmount > 0`, loyalty tier/points badge, credit-sale checkbox, points-redemption input (100 pts = $1 discount)
+- Order creation passes `isCreditSale`, `redeemedPoints`; backend handles redemption/award
+- `frontend/src/components/pos/DueAccountAlert.tsx` created
+- `frontend/src/app/pos/page.tsx` wired to pass loyalty/credit state to `Checkout`
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary

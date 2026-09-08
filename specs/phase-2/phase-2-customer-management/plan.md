@@ -68,14 +68,15 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - Create `POST /api/customers/:id/loyalty/points` for admin manual adjustments
 - Create `GET /api/customers/loyalty-tiers` for tier definitions
 
-### 5. POS Integration
-- Update customer selection in POS to show due amount and loyalty points
-- Add "Apply Loyalty Points" option in checkout
-- Add `DueAccountAlert` to show when customer has outstanding balance
-- Update order creation to support credit sales (isCreditSale: true, paymentMethod: "credit")
-- Deduct redeemed points after order completion
-- Award earned points based on final order total
-- Update PosContext to handle loyalty points state
+### 5. POS Integration — COMPLETED ✅
+- Updated customer selection in POS (`Checkout`) to show due amount (`DueAccountAlert`) and loyalty points / tier
+- Added "Apply Loyalty Points" redemption input in checkout (`redeemedPoints` via `PosContext`)
+- Added `DueAccountAlert` component shown when `dueAmount > 0`
+- Updated order creation to support credit sales (`isCreditSale: true`, `paymentMethod: 'credit'`)
+- Deduct redeemed points on checkout (`redeemedPoints` passed to order payload; backend handles redemption)
+- Award earned points on `COMPLETED` (`order.service.ts` calls `earnPoints`)
+- Updated `PosContext` with `customerDueAmount`, `customerLoyaltyPoints`, `customerLoyaltyTier`, `redeemedPoints`, `isCreditSale`, and actions (`setRedeemedPoints`, `setCreditSale`, `SET_CUSTOMER` meta)
+- Updated `frontend/src/app/pos/page.tsx` to pass loyalty/credit state to `Checkout`
 
 ### 6. Frontend Components
 - `CustomerDashboard` - Profile page with tabbed navigation (Profile | Orders | Payments | Loyalty | Activity)

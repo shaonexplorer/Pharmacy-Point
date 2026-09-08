@@ -76,6 +76,12 @@ function PosContent() {
     taxRate,
     paymentMethod,
     customerId,
+    redeemedPoints,
+    isCreditSale,
+    customerName,
+    customerDueAmount,
+    customerLoyaltyPoints,
+    customerLoyaltyTier,
     addItem,
     removeItem,
     updateQuantity,
@@ -83,6 +89,8 @@ function PosContent() {
     setCustomer,
     setPaymentMethod,
     canAddToCart,
+    setRedeemedPoints,
+    setCreditSale,
   } = usePos();
 
   const isProcessing = createOrderMutation.isPending;
@@ -105,8 +113,10 @@ function PosContent() {
         tax: taxAmount,
         taxRate,
         total,
-        paymentMethod,
+        paymentMethod: isCreditSale ? 'credit' : paymentMethod,
         staffId: sessionData?.user?.id ?? null,
+        isCreditSale,
+        redeemedPoints,
       };
 
       const response = await createOrderMutation.mutateAsync(orderData);
@@ -312,9 +322,24 @@ function PosContent() {
               customers={customers}
               isLoadingCustomers={isLoadingCustomers}
               isProcessing={isProcessing}
+              dueAmount={customerDueAmount}
+              loyaltyPoints={customerLoyaltyPoints}
+              loyaltyTier={customerLoyaltyTier}
+              redeemedPoints={redeemedPoints}
+              isCreditSale={isCreditSale}
               onPaymentMethodChange={setPaymentMethod}
-              onCustomerChange={(value) => setCustomer(value || null)}
+              onCustomerChange={(value) => {
+                const c = customers.find((cust) => cust.id === value);
+                setCustomer(value || null, {
+                  name: c?.name ?? null,
+                  dueAmount: (c as any)?.dueAmount ?? 0,
+                  loyaltyPoints: (c as any)?.loyaltyPoints ?? 0,
+                  loyaltyTier: (c as any)?.loyaltyTier ?? 'Bronze',
+                });
+              }}
               onProcessSale={handleProcessSale}
+              onRedeemPoints={setRedeemedPoints}
+              onCreditSaleToggle={setCreditSale}
             />
           </div>
         </div>
