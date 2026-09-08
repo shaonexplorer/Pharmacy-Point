@@ -65,8 +65,29 @@ export default function OrderDetailPage() {
         </CardContent>
       </Card>
 
-      <RefundModal open={refundOpen} onOpenChange={setRefundOpen} orderId={id} />
-      <ReturnModal open={returnOpen} onOpenChange={setReturnOpen} orderId={id} />
+      {refundOpen && (
+        <RefundModal
+          orderId={id}
+          onClose={() => setRefundOpen(false)}
+          onSuccess={() => {
+            // Refetch order data
+          }}
+        />
+      )}
+      {returnOpen && (
+        <ReturnModal
+          orderId={id}
+          items={order?.items?.map((item: any) => ({
+            id: item.id,
+            productName: item.product?.name ?? 'Unknown',
+            quantity: item.quantity,
+          })) ?? []}
+          onClose={() => setReturnOpen(false)}
+          onSuccess={() => {
+            // Refetch order data
+          }}
+        />
+      )}
     </div>
   );
 }

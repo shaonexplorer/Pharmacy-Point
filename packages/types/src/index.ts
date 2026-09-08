@@ -56,6 +56,9 @@ export interface Customer {
   phone?: string | null;
   address?: string | null;
   dueAmount: number;
+  loyaltyPoints: number;
+  loyaltyTier: string;
+  lifetimeSpend: number;
   createdAt: string;
   updatedAt: string;
 }

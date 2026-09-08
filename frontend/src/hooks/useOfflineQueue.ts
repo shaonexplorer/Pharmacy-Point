@@ -3,9 +3,9 @@ import { useEffect, useCallback } from 'react';
 const QUEUE_KEY = 'pharmacy-offline-queue';
 
 export function useOfflineQueue() {
-  const add = useCallback((order: unknown) => {
+  const add = useCallback((order: Record<string, unknown>) => {
     try {
-      const existing = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+      const existing: Record<string, unknown>[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
       existing.push({ ...order, queuedAt: new Date().toISOString() });
       localStorage.setItem(QUEUE_KEY, JSON.stringify(existing));
     } catch { /* ignore */ }
@@ -13,7 +13,7 @@ export function useOfflineQueue() {
 
   const sync = useCallback(async () => {
     try {
-      const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+      const queue: Record<string, unknown>[] = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
       if (!queue.length) return;
       await fetch('/api/orders/offline/sync', {
         method: 'POST',
