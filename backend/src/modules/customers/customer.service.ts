@@ -127,6 +127,76 @@ export async function updateCustomer(id: string, data: CustomerUpdateInput): Pro
   return customer;
 }
 
+export async function listDuePayments(customerId: string): Promise<PrismaResult[]> {
+  const payments = await prisma.duePayment.findMany({
+    where: { customerId },
+    orderBy: { createdAt: 'desc' },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
+  return payments;
+}
+
+export async function recordDuePayment(
+  customerId: string,
+  data: { amount: number; orderId?: string; notes?: string; userId?: string }
+): Promise<PrismaResult> {
+  const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+  if (!customer) throw new AppError(404, 'Customer not found');
+
+  const payments = await prisma.duePayment.findMany({
+    where: { customerId },
+    select: { amount: true },
+  });
+  const paid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+
+  const orders = await prisma.order.findMany({
+    where: { customerId, status: { notIn: ['CANCELLED'] } },
+    select: { total: true, isCreditSale: true },
+  });
+  const totalCredit = orders
+    .filter((o) => o.isCreditSale)
+    .reduce((sum, o) => sum + Number(o.total), 0);
+
+  const dueAmount = totalCredit - paid;
+
+  if (data.amount > dueAmount + 0.01) {
+    throw new AppError(400, `Payment exceeds outstanding balance of ${dueAmount.toFixed(2)}`);
+  }
+
+  const payment = await prisma.duePayment.create({
+    data: {
+      customerId,
+      amount: data.amount,
+      orderId: data.orderId || null,
+      notes: data.notes || null,
+      userId: data.userId || null,
+    },
+    include: { customer: true, user: true },
+  });
+
+  await prisma.customer.update({
+    where: { id: customerId },
+    data: { dueAmount: totalCredit - (paid + data.amount) },
+  });
+
+  return payment;
+}
+
+export async function listDueAccounts(params: { page?: string; limit?: string; overdueDays?: number }) {
+  const { page, limit, skip } = parsePagination({ page: params.page, limit: params.limit });
+  const where: Record<string, unknown> = { dueAmount: { gt: 0 } };
+  if (params.overdueDays) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - params.overdueDays);
+    where.orders = { some: { createdAt: { lt: cutoff } } };
+  }
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({ where, skip, take: limit, orderBy: { dueAmount: 'desc' }, include: { orders: true } }),
+    prisma.customer.count({ where }),
+  ]);
+  return { data: customers, pagination: { ...buildPagination(total, page, limit), total } };
+}
+
 /**
  * Delete a customer. Throws 400 if the customer has orders; 404 if not found.
  */

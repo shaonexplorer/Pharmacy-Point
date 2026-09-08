@@ -25,7 +25,12 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 - Set up foreign key relationships and indexes
 - Generate Prisma migration and apply to database
 
-### 2. Due Accounts API
+### 2. Due Accounts API — COMPLETED ✅
+- `POST /api/customers/:id/due-payments` - Record payment against customer's due amount (validates against outstanding balance; recalculates dueAmount; creates DuePayment record)
+- `GET /api/customers/:id/due-payments` - List payment history for a customer (includes user relation)
+- `GET /api/customers/due-accounts` - List all customers with outstanding balances (filter by overdue status; sort by due amount) — routes ordered before `/:id` to avoid shadowing
+- Updated shared types: `CreateDuePaymentInput`, `DuePayment`, `DuePaymentWithCustomer`, `CustomerWithDuePayments`, `CustomerDashboard`
+- Backend DTO (`due-payment.dto.ts`) and service methods (`recordDuePayment`, `listDuePayments`, `listDueAccounts`) implemented; controller handlers wired; routes validated
 - `POST /api/customers/:id/due-payments` - Record payment against customer's due amount
   - Validates payment amount against outstanding balance
   - Creates DuePayment record

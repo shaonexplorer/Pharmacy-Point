@@ -50,6 +50,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - Server-side search param removed from `useInventory` — client-side search via TanStack Table's `globalFilter`
 
 **Phase 2: Customer Management - Step 1 COMPLETED ✅ (Schema Extensions)**
+- Schema updates applied via `prisma db push`: DuePayment model, loyalty fields, isCreditSale, dueAmount calculated
+
+**Phase 2: Customer Management - Step 2 COMPLETED ✅ (Due Accounts API)**
+- `POST /api/customers/:id/due-payments` — validates against outstanding balance, creates DuePayment, recalculates dueAmount
+- `GET /api/customers/:id/due-payments` — payment history with user attribution
+- `GET /api/customers/due-accounts` — outstanding balances with overdue filter (due-accounts route ordered before `/:id` to prevent shadowing)
+- Shared types updated: `DuePayment`, `CreateDuePaymentInput`, `DuePaymentWithCustomer`, `CustomerWithDuePayments`, `CustomerDashboard`
 - Schema updates applied via `prisma db push`:
   - Added `DuePayment` model (`customerId`, `amount`, `orderId`, `notes`, `userId`, timestamps) with relations to Customer and User
   - Extended `Customer` with `loyaltyPoints` (Int, default 0), `loyaltyTier` (String, default "Bronze"), `lifetimeSpend` (Decimal, default 0), and `duePayments` relation
@@ -440,6 +447,9 @@ enum OrderStatus {
 - `POST /api/customers` - Create customer
 - `PUT /api/customers/:id` - Update customer
 - `DELETE /api/customers/:id` - Delete customer (guarded against customers with orders)
+- `POST /api/customers/:id/due-payments` — Record payment against due amount (validates against outstanding balance, recalculates dueAmount, creates DuePayment record)
+- `GET /api/customers/:id/due-payments` — List payment history (includes user attribution)
+- `GET /api/customers/due-accounts` — List customers with outstanding balances (filter by overdueDays, sort by dueAmount)
 
 ### Orders API (`/api/orders`) [NEW]
 - `GET /api/orders` - List with pagination and filters (page, limit, status, customerId, staffId)

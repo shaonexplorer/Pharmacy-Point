@@ -65,6 +65,43 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+import { duePaymentSchema } from './due-payment.dto';
+
+/**
+ * POST /api/customers/:id/due-payments
+ * Record a payment against customer's due amount.
+ */
+export const recordPayment = asyncHandler(async (req: Request, res: Response) => {
+  const validated = duePaymentSchema.parse(req.body);
+  const result = await customerService.recordDuePayment(req.params.id, validated);
+  res.json({ data: result, message: 'Payment recorded successfully' });
+});
+
+/**
+ * GET /api/customers/:id/due-payments
+ * List payment history for a customer.
+ */
+export const listPayments = asyncHandler(async (req: Request, res: Response) => {
+  const payments = await customerService.listDuePayments(req.params.id);
+  res.json({ data: payments });
+});
+
+/**
+ * GET /api/customers/due-accounts
+ * List all customers with outstanding balances.
+ */
+export const listDueAccounts = asyncHandler(async (req: Request, res: Response) => {
+  const result = await customerService.listDueAccounts({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+    overdueDays: req.query.overdueDays ? Number(req.query.overdueDays) : undefined,
+  });
+  res.json({
+    data: result.data.map((c: Record<string, unknown>) => serializeCustomer(c)),
+    pagination: result.pagination,
+  });
+});
+
 /**
  * DELETE /api/customers/:id
  * Delete a customer (guarded against customers with orders).
