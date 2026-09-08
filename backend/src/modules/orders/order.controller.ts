@@ -192,3 +192,13 @@ ${order.items.map(i => `<tr><td>${i.product?.name ?? 'Unknown'}</td><td style="t
   res.setHeader('Content-Disposition', `attachment; filename="receipt-${order.id.slice(0,8)}.html"`);
   res.send(html);
 });
+
+export const syncOfflineOrders = asyncHandler(async (req: Request, res: Response) => {
+  const { orders } = req.body as import('./offline.dto').OfflineSyncInput;
+  const created: string[] = [];
+  for (const o of orders) {
+    const result = await orderService.createOrder({ ...o, isOffline: false, staffId: o.staffId ?? undefined });
+    created.push(result.id);
+  }
+  res.json({ success: true, synced: created.length, orders: created });
+});

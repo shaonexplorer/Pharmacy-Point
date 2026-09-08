@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
@@ -18,6 +19,7 @@ import { Cart } from '@/components/pos/Cart';
 import { Checkout } from '@/components/pos/Checkout';
 import { Receipt } from '@/components/pos/Receipt';
 import { ReceiptEmailForm } from '@/components/orders/ReceiptEmailForm';
+import { OfflineIndicator } from '@/components/pos/OfflineIndicator';
 import { formatCurrency } from '@/lib/formatters';
 
 const POS_PRODUCT_LIMIT = 24;
@@ -322,8 +324,27 @@ function PosContent() {
 }
 
 export default function PosPage() {
+  const [isOnline, setIsOnline] = React.useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  React.useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    setIsOnline(navigator.onLine);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  React.useEffect(() => {
+    if (isOnline) {
+      try {
+        const q = JSON.parse(localStorage.getItem('pharmacy-offline-queue') || '[]');
+        if (q.length) fetch('/api/orders/offline/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orders: q }) }).then(() => localStorage.removeItem('pharmacy-offline-queue'));
+      } catch {}
+    }
+  }, [isOnline]);
+
   return (
     <PosProvider>
+      {!isOnline && <OfflineIndicator />}
       <PosContent />
     </PosProvider>
   );

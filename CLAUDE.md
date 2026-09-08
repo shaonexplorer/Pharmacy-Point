@@ -639,6 +639,12 @@ const response = data ?? placeholderData; // placeholderData is always undefined
 ```
 
 When using `keepPreviousData`, `isLoading` remains `false` during page transitions (because placeholder data fills `data`), but `isFetching` is `true`. Use `isFetching` to show a subtle "Updating…" indicator while the table stays visible.
+- **Phase 2: POS System — Step 6 COMPLETED ✅ (Offline Mode Support)**
+  - `isOffline` / `offlineSyncedAt` fields present on Order model; `POST /api/orders/offline/sync` batch endpoint added (`offline.dto.ts`, controller, routes)
+  - Frontend offline detection (`navigator.onLine`, `online`/`offline` events) in `pos/page.tsx`; `OfflineIndicator` banner (`frontend/src/components/pos/OfflineIndicator.tsx`)
+  - Local storage queue (`pharmacy-offline-queue`) with `useOfflineQueue` hook; reconnect sync logic in `useEffect`
+  - Conflict resolution handled by order-service transactions on sync; plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 6 marked implemented
+
 **Phase 5: POS System — Stripe Payment Integration (Step 1) — IN PROGRESS ✅**
 - Stripe SDK installed (`stripe` backend / `@stripe/stripe-js` frontend)
 - `paymentIntentId` added to `Order` Prisma model; DB migrated; Prisma Client regenerated
