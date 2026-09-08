@@ -229,5 +229,13 @@ export const api = {
 
     inventory: (params?: { slowMovingDays?: number; expiryDays?: number; limit?: number }) =>
       request<any>('/api/reports/inventory', { params }),
+
+    customers: (params?: {
+      tier?: string;
+      activeDays?: number;
+      hasDueAccounts?: boolean;
+      page?: number;
+      limit?: number;
+    }) => request<any>('/api/reports/customers', { params }),
   },
 };

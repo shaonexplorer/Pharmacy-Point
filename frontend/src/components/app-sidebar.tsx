@@ -27,6 +27,7 @@ import {
   LogOut,
   Clock,
   AlertTriangle,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -373,6 +374,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       href: '/reports/inventory',
       icon: AlertTriangle,
       dotColor: 'bg-warning',
+    },
+    {
+      name: 'Customer Reports',
+      href: '/reports/customers',
+      icon: Users,
+      dotColor: 'bg-primary',
     },
   ];
 

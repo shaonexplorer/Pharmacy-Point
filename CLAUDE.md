@@ -301,8 +301,8 @@ backend/src/
       analytics.routes.ts    # Routes wired in routes/index.ts
     reports/
       reports.dto.ts         # Zod validation for sales report queries
-      reports.service.ts     # Sales aggregation with flexible grouping
-      reports.controller.ts  # GET /api/reports/sales, /sales/summary, /sales/payment-methods
+      reports.service.ts     # Sales aggregation, inventory and customer reports
+      reports.controller.ts  # GET /api/reports/sales, /sales/summary, /sales/payment-methods, /inventory, /customers
       reports.routes.ts      # Routes wired in routes/index.ts
 `
 
@@ -522,6 +522,8 @@ enum OrderStatus {
 - `GET /api/reports/sales` — Sales report with flexible grouping (day/week/month/category/paymentMethod), filters (date range, product, category, payment method, status), pagination
 - `GET /api/reports/sales/summary` — Sales summary metrics for a time period (total revenue, transaction count, avg basket, units, unique products/customers)
 - `GET /api/reports/sales/payment-methods` — Sales breakdown by payment method for a date range
+- `GET /api/reports/inventory` — Inventory report with stock levels, slow-moving, and expiry warnings
+- `GET /api/reports/customers` — Customer report with segmentation, loyalty analytics, and due account metrics (tier, activeDays, hasDueAccounts filters)
 
 ## Development Workflow
 
@@ -856,3 +858,32 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Navigation structure updated:
   - `/reports/inventory` — Inventory Reports page with KPIs, charts, and detailed item tables
 - Plan spec `specs/phase-3/plan.md` step 3 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 4 COMPLETED ✅ (Customer Reports)**
+- Backend `GET /api/reports/customers` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `customerReportSchema` DTO (`reports.dto.ts`) with `tier`, `activeDays`, `hasDueAccounts`, `page`, `limit` params
+  - `getCustomerReport` service (`reports.service.ts`) returns summary metrics, paginated customer list, and tier distribution
+  - Summary: `totalCustomers`, `activeCustomers`, `inactiveCustomers`, `averageSpend`, `totalLifetimeSpend`, `totalDueAccounts`, `totalDueAmount`, `tierDistribution`, `totalPointsEarned`, `totalPointsRedeemed`
+  - Uses raw SQL via `prisma.$queryRaw` for aggregated queries with LEFT JOIN on orders
+  - Customer segmentation by spending patterns, loyalty tier filtering, active/inactive status
+- Shared types extended (`packages/types/src/index.ts`):
+  - `CustomerReportSummary`, `CustomerReportItem`, `TierDistributionItem`, `CustomerReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.customers(params?)` — `GET /api/reports/customers`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useCustomerReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/CustomerReportChart.tsx` — Tier distribution bar chart + spending overview donut
+  - `frontend/src/components/reports/index.ts` — Barrel export updated
+- Frontend page created (`frontend/src/app/reports/customers/page.tsx`):
+  - Filter bar: tier selector, active window, due accounts filter, result limit
+  - KPI cards: Total Customers, Active/Inactive, Lifetime Spend, Due Accounts, Points Earned, Points Redeemed, Tier Distribution
+  - Charts: CustomerReportChart (tier bar + spending donut)
+  - Table: Customer Segmentation (name, email, tier, lifetime spend, orders, due amount, active status)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Customer Reports` nav item with `Users` icon, `bg-primary` dot, `/reports/customers` href
+- Navigation structure updated:
+  - `/reports/customers` — Customer Reports page with KPIs, charts, and detailed segmentation table
+- Plan spec `specs/phase-3/plan.md` step 4 marked implemented

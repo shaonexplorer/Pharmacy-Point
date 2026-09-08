@@ -7,6 +7,7 @@ import type {
   SalesSummaryData,
   SalesByPaymentMethod,
   InventoryReportResponse,
+  CustomerReportResponse,
 } from '@pharmacy-point/types';
 
 /**
@@ -63,6 +64,23 @@ export function useInventoryReport(params?: {
   return useQuery({
     queryKey: ['reports', 'inventory', params],
     queryFn: () => api.reports.inventory(params),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Fetch comprehensive customer report.
+ */
+export function useCustomerReport(params?: {
+  tier?: string;
+  activeDays?: number;
+  hasDueAccounts?: boolean;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ['reports', 'customers', params],
+    queryFn: () => api.reports.customers(params),
     staleTime: 5 * 60 * 1000,
   });
 }

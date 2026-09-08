@@ -30,12 +30,12 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [x] Frontend page at `/frontend/src/app/reports/inventory/page.tsx` — KPIs, charts, tables, CSV/PDF export
 - [x] Low stock vs available inventory comparison chart + inventory status donut
 
-### 4. Customer Reports — PENDING
-- [ ] `GET /api/reports/customers` endpoint
-- [ ] Metrics: customer count, active vs inactive, average spend, due accounts
-- [ ] Loyalty program analytics: tier distribution, points earned/redeemed
-- [ ] Frontend page at `/frontend/src/app/reports/customers/page.tsx`
-- [ ] Customer segmentation by spending patterns
+### 4. Customer Reports — COMPLETED ✅
+- [x] `GET /api/reports/customers` endpoint — summary metrics + paginated customer list + tier distribution
+- [x] Metrics: customer count, active vs inactive, average spend, total lifetime spend, due accounts, loyalty tier distribution, points earned/redeemed
+- [x] Loyalty program analytics: tier distribution, points earned/redeemed
+- [x] Frontend page at `/frontend/src/app/reports/customers/page.tsx` — filters (tier, active window, due accounts), KPI cards, tier bar chart + spending donut, customer segmentation table, CSV/PDF export
+- [x] Customer segmentation by spending patterns
 
 ### 5. Financial Reports — PENDING
 - [ ] `GET /api/reports/financial` endpoint

@@ -48,3 +48,20 @@ export const inventoryReportSchema = z.object({
 });
 
 export type InventoryReportInput = z.infer<typeof inventoryReportSchema>;
+
+/**
+ * Schema for customer report query parameters.
+ */
+export const customerReportSchema = z.object({
+  // Segment by spending tier
+  tier: z.enum(['Bronze', 'Silver', 'Gold', 'Platinum']).optional(),
+  // Filter by active status (has orders in last N days)
+  activeDays: z.coerce.number().int().min(1).max(365).optional(),
+  // Filter by due account status
+  hasDueAccounts: z.boolean().optional(),
+  // Pagination
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+});
+
+export type CustomerReportInput = z.infer<typeof customerReportSchema>;

@@ -334,3 +334,56 @@ export interface InventoryReportResponse {
   slowMovingItems: InventoryReportItem[];
   expiringItems: InventoryReportItem[];
 }
+
+// ─── Customer Report Types ────────────────────────────────────
+
+/** Customer report summary metrics */
+export interface CustomerReportSummary {
+  totalCustomers: number;
+  activeCustomers: number;
+  inactiveCustomers: number;
+  averageSpend: number;
+  totalLifetimeSpend: number;
+  totalDueAccounts: number;
+  totalDueAmount: number;
+  tierDistribution: Record<string, number>;
+  totalPointsEarned: number;
+  totalPointsRedeemed: number;
+}
+
+/** Customer report item — one customer row */
+export interface CustomerReportItem {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  loyaltyTier: string;
+  loyaltyPoints: number;
+  lifetimeSpend: number;
+  dueAmount: number;
+  orderCount: number;
+  lastPurchaseDate?: string | null;
+  isActive: boolean;
+}
+
+/** Tier distribution item */
+export interface TierDistributionItem {
+  tier: string;
+  count: number;
+  percentage: number;
+}
+
+/** Customer report response */
+export interface CustomerReportResponse {
+  summary: CustomerReportSummary;
+  customers: CustomerReportItem[];
+  tierDistribution: TierDistributionItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}

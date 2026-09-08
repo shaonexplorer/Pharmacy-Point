@@ -5,7 +5,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { validate } from '../../middleware/validate';
-import { salesReportSchema, salesSummarySchema, inventoryReportSchema } from './reports.dto';
+import { salesReportSchema, salesSummarySchema, inventoryReportSchema, customerReportSchema } from './reports.dto';
 import * as reportsService from './reports.service';
 
 /**
@@ -69,5 +69,22 @@ export const getInventoryReport = asyncHandler(async (req: Request, res: Respons
   const limit = parseInt(req.query.limit as string) ?? 100;
 
   const result = await reportsService.getInventoryReport({ slowMovingDays, expiryDays, limit });
+  res.json(result);
+});
+
+/**
+ * GET /api/reports/customers
+ * Get comprehensive customer report with segmentation,
+ * loyalty analytics, and due account metrics.
+ * Query params: tier, activeDays, hasDueAccounts, page, limit
+ */
+export const getCustomerReport = asyncHandler(async (req: Request, res: Response) => {
+  const tier = req.query.tier as 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | undefined;
+  const activeDays = parseInt(req.query.activeDays as string) || undefined;
+  const hasDueAccounts = req.query.hasDueAccounts === 'true' ? true : req.query.hasDueAccounts === 'false' ? false : undefined;
+  const page = parseInt(req.query.page as string) ?? 1;
+  const limit = parseInt(req.query.limit as string) ?? 50;
+
+  const result = await reportsService.getCustomerReport({ tier, activeDays, hasDueAccounts, page, limit });
   res.json(result);
 });

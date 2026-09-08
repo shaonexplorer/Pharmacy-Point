@@ -4,7 +4,7 @@
  */
 import { prisma } from '../../config/database';
 import { parsePagination, buildPagination } from '../../utils/pagination';
-import type { SalesReportInput, InventoryReportInput } from './reports.dto';
+import type { SalesReportInput, InventoryReportInput, CustomerReportInput } from './reports.dto';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ReportResult = Record<string, any>;
@@ -237,6 +237,176 @@ export async function getSalesByPaymentMethod(
     totalSales: Number(row.total_sales ?? 0),
     orderCount: Number(row.order_count ?? 0),
   }));
+}
+
+// ─── Customer Report ─────────────────────────────────────
+
+/**
+ * Get comprehensive customer report with segmentation,
+ * loyalty analytics, and due account metrics.
+ */
+export async function getCustomerReport(
+  input: CustomerReportInput
+): Promise<{
+  summary: {
+    totalCustomers: number;
+    activeCustomers: number;
+    inactiveCustomers: number;
+    averageSpend: number;
+    totalLifetimeSpend: number;
+    totalDueAccounts: number;
+    totalDueAmount: number;
+    tierDistribution: Record<string, number>;
+    totalPointsEarned: number;
+    totalPointsRedeemed: number;
+  };
+  customers: RawRow[];
+  tierDistribution: Array<{ tier: string; count: number; percentage: number }>;
+  pagination: ReturnType<typeof buildPagination> & { total: number };
+}> {
+  const { tier, activeDays, hasDueAccounts, page, limit } = input;
+
+  const { skip } = parsePagination({ page: String(page), limit: String(limit) });
+  const now = new Date();
+
+  // Build WHERE conditions
+  const conditions: string[] = [];
+  const params: Record<string, unknown> = { limit, skip };
+
+  if (tier) {
+    conditions.push('c.loyalty_tier = :tier');
+    params.tier = tier;
+  }
+
+  if (activeDays) {
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - activeDays);
+    conditions.push(`EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :activeCutoff AND o.status = 'COMPLETED')`);
+    params.activeCutoff = cutoff;
+  }
+
+  if (hasDueAccounts === true) {
+    conditions.push('c.due_amount > 0');
+  }
+
+  if (hasDueAccounts === false) {
+    conditions.push('c.due_amount <= 0');
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Main query: paginated customers with order stats
+  const query = `
+    SELECT c.id, c.name, c.email, c.phone, c.loyalty_tier as loyaltyTier,
+           c.loyalty_points as loyaltyPoints, c.lifetime_spend as lifetimeSpend,
+           c.due_amount as dueAmount,
+           COUNT(DISTINCT o.id) as orderCount,
+           MAX(o.created_at) as lastPurchaseDate,
+           COUNT(DISTINCT CASE WHEN o.created_at >= :activeCutoff THEN o.id END) > 0 as isActive
+    FROM customers c
+    LEFT JOIN orders o ON o.customer_id = c.id
+    ${whereClause}
+    GROUP BY c.id, c.name, c.email, c.phone, c.loyalty_tier, c.loyalty_points,
+             c.lifetime_spend, c.due_amount
+    ORDER BY c.lifetime_spend DESC
+    LIMIT :limit OFFSET :skip
+  `;
+
+  const activeCutoff = new Date(now);
+  activeCutoff.setDate(activeCutoff.getDate() - (activeDays ?? 30));
+  params.activeCutoff = activeCutoff;
+
+  const [countResult, results] = await Promise.all([
+    prisma.$queryRaw<RawRow[]>(`SELECT COUNT(*) as total FROM customers c ${whereClause}` as any, params),
+    prisma.$queryRaw<RawRow[]>(query as any, { ...params, activeCutoff }),
+  ]);
+
+  const total = Number((countResult as RawRow)[0]?.total ?? 0);
+
+  const customers = (results as RawRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    loyaltyTier: row.loyaltyTier,
+    loyaltyPoints: Number(row.loyaltyPoints ?? 0),
+    lifetimeSpend: Number(row.lifetimeSpend ?? 0),
+    dueAmount: Number(row.dueAmount ?? 0),
+    orderCount: Number(row.orderCount ?? 0),
+    lastPurchaseDate: row.lastPurchaseDate ? (row.lastPurchaseDate as string) : null,
+    isActive: Boolean(row.isActive),
+  }));
+
+  // Summary metrics
+  const [statsResult] = await prisma.$queryRaw<RawRow[]>(
+    `SELECT
+       COUNT(*) as total_customers,
+       COALESCE(SUM(c.lifetime_spend), 0) as total_lifetime_spend,
+       COALESCE(AVG(c.lifetime_spend), 0) as avg_spend,
+       SUM(CASE WHEN c.due_amount > 0 THEN 1 ELSE 0 END) as total_due_accounts,
+       COALESCE(SUM(c.due_amount), 0) as total_due_amount,
+       SUM(CASE WHEN c.loyalty_points > 0 THEN c.loyalty_points ELSE 0 END) as total_points_earned,
+       SUM(CASE WHEN c.loyalty_points < 0 THEN ABS(c.loyalty_points) ELSE 0 END) as total_points_redeemed
+     FROM customers c` as any
+  );
+
+  const totalCustomers = Number((statsResult as RawRow).total_customers ?? 0);
+  const totalLifetimeSpend = Number((statsResult as RawRow).total_lifetime_spend ?? 0);
+  const averageSpend = Number((statsResult as RawRow).avg_spend ?? 0);
+  const totalDueAccounts = Number((statsResult as RawRow).total_due_accounts ?? 0);
+  const totalDueAmount = Number((statsResult as RawRow).total_due_amount ?? 0);
+  const totalPointsEarned = Number((statsResult as RawRow).total_points_earned ?? 0);
+  const totalPointsRedeemed = Number((statsResult as RawRow).total_points_redeemed ?? 0);
+
+  // Active vs inactive counts
+  const [activeResult] = await prisma.$queryRaw<RawRow[]>(
+    `SELECT
+       SUM(CASE WHEN EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :cutoff AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as active_count,
+       SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :cutoff AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as inactive_count
+     FROM customers c` as any,
+    { cutoff: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) }
+  );
+
+  const activeCustomers = Number((activeResult as RawRow).active_count ?? 0);
+  const inactiveCustomers = Number((activeResult as RawRow).inactive_count ?? 0);
+
+  // Tier distribution
+  const tierResults = await prisma.$queryRaw<RawRow[]>(
+    `SELECT c.loyalty_tier as tier, COUNT(*) as count
+     FROM customers c
+     GROUP BY c.loyalty_tier
+     ORDER BY count DESC` as any
+  );
+
+  const tierDistribution = (tierResults as RawRow[]).map((row) => ({
+    tier: row.tier as string,
+    count: Number(row.count ?? 0),
+    percentage: totalCustomers > 0 ? Math.round((Number(row.count ?? 0) / totalCustomers) * 100) : 0,
+  }));
+
+  return {
+    summary: {
+      totalCustomers,
+      activeCustomers,
+      inactiveCustomers,
+      averageSpend,
+      totalLifetimeSpend,
+      totalDueAccounts,
+      totalDueAmount,
+      tierDistribution: tierResults.reduce((acc: Record<string, number>, row: RawRow) => {
+        acc[(row.tier as string) ?? 'Unknown'] = Number(row.count ?? 0);
+        return acc;
+      }, {}),
+      totalPointsEarned,
+      totalPointsRedeemed,
+    },
+    customers,
+    tierDistribution,
+    pagination: {
+      ...buildPagination(total, page, limit),
+      total,
+    },
+  };
 }
 
 // ─── Inventory Report ────────────────────────────────────
