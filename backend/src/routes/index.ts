@@ -12,6 +12,7 @@ import { orderRouter } from '../modules/orders/order.routes';
 import { statsRouter } from '../modules/stats/stats.routes';
 import { categoryRouter } from '../modules/categories/category.routes';
 import { analyticsRouter } from '../modules/analytics/analytics.routes';
+import { reportsRouter } from '../modules/reports/reports.routes';
 import paymentRouter from '../modules/payments/payment.routes';
 
 const router = Router();
@@ -25,6 +26,7 @@ router.use('/orders', orderRouter);
 router.use('/stats', statsRouter);
 router.use('/categories', categoryRouter);
 router.use('/analytics', analyticsRouter);
+router.use('/reports', reportsRouter);
 router.use('/payments', paymentRouter);
 
 export { router as apiRouter };

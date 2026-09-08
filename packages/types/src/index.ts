@@ -242,3 +242,58 @@ export interface PaymentResponse {
 export interface PaymentIntentUpdate {
   paymentIntentId?: string | null;
 }
+
+// ─── Reports Types ────────────────────────────────────────────────
+
+/** Sales report data item — one row per group */
+export interface SalesReportItem {
+  groupLabel: string;
+  totalSales: number;
+  orderCount: number;
+  totalUnits: number;
+}
+
+/** Sales summary metrics */
+export interface SalesSummaryData {
+  totalRevenue: number;
+  transactionCount: number;
+  averageBasketSize: number;
+  totalUnits: number;
+  uniqueProducts: number;
+  uniqueCustomers: number;
+}
+
+/** Sales report response */
+export interface SalesReportResponse {
+  data: SalesReportItem[];
+  summary: SalesSummaryData;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+/** Sales breakdown by payment method */
+export interface SalesByPaymentMethod {
+  paymentMethod: string;
+  totalSales: number;
+  orderCount: number;
+}
+
+/** Grouping options for sales reports */
+export type SalesGroupBy = 'day' | 'week' | 'month' | 'category' | 'paymentMethod';
+
+/** Filters for sales reports */
+export interface SalesReportFilters {
+  startDate?: string;
+  endDate?: string;
+  productId?: string;
+  category?: string;
+  paymentMethod?: 'cash' | 'card';
+  status?: OrderStatus;
+  groupBy?: SalesGroupBy;
+}

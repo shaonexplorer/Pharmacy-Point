@@ -299,6 +299,11 @@ backend/src/
       analytics.service.ts   # Revenue trends, sales by category, inventory status
       analytics.controller.ts# GET /api/analytics/* endpoints
       analytics.routes.ts    # Routes wired in routes/index.ts
+    reports/
+      reports.dto.ts         # Zod validation for sales report queries
+      reports.service.ts     # Sales aggregation with flexible grouping
+      reports.controller.ts  # GET /api/reports/sales, /sales/summary, /sales/payment-methods
+      reports.routes.ts      # Routes wired in routes/index.ts
 `
 
 ### Backend module layer responsibilities
@@ -513,6 +518,11 @@ enum OrderStatus {
 - `GET /api/analytics/inventory-status` — Inventory status summary (inStock, lowStock, outOfStock, totalInventoryValue)
 - `GET /api/analytics/top-products?days=30&limit=5` — Top products by revenue
 
+### Reports API (`/api/reports`) [Phase 3 - NEW]
+- `GET /api/reports/sales` — Sales report with flexible grouping (day/week/month/category/paymentMethod), filters (date range, product, category, payment method, status), pagination
+- `GET /api/reports/sales/summary` — Sales summary metrics for a time period (total revenue, transaction count, avg basket, units, unique products/customers)
+- `GET /api/reports/sales/payment-methods` — Sales breakdown by payment method for a date range
+
 ## Development Workflow
 
 ### Initial Setup
@@ -597,6 +607,7 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── pos/ - Point of Sale interface with cart and checkout
 ├── inventory/ - Product inventory with stock levels
 ├── analytics/ - Sales reports and insights
+├── reports/sales/ - Sales reports with filters and charts
 ├── companies/ - Company list with TanStack Table
 ├── companies/new/ - Add company form
 ├── companies/[id]/ - View company details
@@ -786,3 +797,32 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - Clinical Precision theme integration throughout
 - Recharts library installed and integrated
 - All TypeScript compilation passes (both frontend and backend)
+
+**Phase 3: Analytics & Reporting — Step 2 COMPLETED ✅ (Sales Reports)**
+- Backend reports module created (`backend/src/modules/reports/`):
+  - `reports.dto.ts` — Zod validation schemas for sales report queries (`salesReportSchema`, `salesSummarySchema`) with filters (date range, product, category, payment method, status) and grouping options (day, week, month, category, paymentMethod)
+  - `reports.service.ts` — Sales aggregation logic using Prisma raw SQL with `DATE_FORMAT` grouping, flexible WHERE clause construction, parallel query execution for data + summary + count
+  - `reports.controller.ts` — Three endpoints: `GET /api/reports/sales`, `GET /api/reports/sales/summary`, `GET /api/reports/sales/payment-methods`
+  - `reports.routes.ts` — Routes wired in `routes/index.ts` under `/reports` prefix
+- Shared types extended (`packages/types/src/index.ts`):
+  - `SalesReportItem`, `SalesSummaryData`, `SalesReportResponse`, `SalesByPaymentMethod`, `SalesGroupBy`, `SalesReportFilters`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.sales(params?)` — `GET /api/reports/sales` with full filter params
+  - `api.reports.salesSummary(params?)` — `GET /api/reports/sales/summary`
+  - `api.reports.salesByPaymentMethod(params?)` — `GET /api/reports/sales/payment-methods`
+- Frontend hooks created (`frontend/src/hooks/useReports.ts`):
+  - `useSalesReport`, `useSalesSummary`, `useSalesByPaymentMethod` with React Query
+- Frontend components created:
+  - `frontend/src/components/reports/index.ts` — Barrel exports
+  - `frontend/src/components/reports/SalesReportChart.tsx` — Recharts BarChart for sales by group (day/week/month/category/payment method) with Clinical Precision color palette
+  - `frontend/src/app/reports/sales/page.tsx` — Full Sales Reports page with:
+    - Filter bar: date range pickers, quick period selector, group-by dropdown, product/category/payment method filters
+    - KPI cards: Total Revenue, Avg Basket Size, Units Sold, Unique Customers
+    - Main SalesReportChart showing revenue by selected grouping
+    - Payment method breakdown cards
+    - Clinical Precision design with `prescription-border-l`, `data-mono`, `card-elevated`
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Reports` nav item with `FileText` icon, `bg-secondary` dot, `/reports/sales` href
+- Navigation structure updated:
+  - `/reports/sales` — Sales Reports page with filtering and charts
+- Plan spec `specs/phase-3/plan.md` step 2 marked implemented

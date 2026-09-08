@@ -206,4 +206,25 @@ export const api = {
     topProducts: (params?: { days?: number; limit?: number }) =>
       request<any>('/api/analytics/top-products', { params }),
   },
+
+  // Reports
+  reports: {
+    sales: (params?: {
+      startDate?: string;
+      endDate?: string;
+      productId?: string;
+      category?: string;
+      paymentMethod?: string;
+      status?: string;
+      groupBy?: string;
+      page?: number;
+      limit?: number;
+    }) => request<any>('/api/reports/sales', { params }),
+
+    salesSummary: (params?: { period?: string; days?: number }) =>
+      request<any>('/api/reports/sales/summary', { params }),
+
+    salesByPaymentMethod: (params?: { startDate?: string; endDate?: string }) =>
+      request<any>('/api/reports/sales/payment-methods', { params }),
+  },
 };
