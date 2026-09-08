@@ -25,12 +25,12 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 - [x] Generate `CreatePaymentInput` and `PaymentResponse` shared types
 
 ### 2. Order Model Enhancements
-- Extend `OrderStatus` enum with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`
-- Add `refundReason`, `returnWindowDays`, `receiptEmail`, `isOffline`, `offlineSyncedAt` fields
-- Add `paymentIntentId` field
-- Generate migration and apply to database
-- Update shared types: `OrderStatus`, `OrderWithItems`, `CreateOrderInput`
-- Update backend order routes to handle new fields
+- [x] Extend `OrderStatus` enum with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`
+- [x] Add `refundReason`, `returnWindowDays`, `receiptEmail`, `isOffline`, `offlineSyncedAt` fields
+- [x] Add `paymentIntentId` field
+- [x] Generate migration and apply to database (`prisma db push`)
+- [x] Update shared types: `OrderStatus`, `OrderWithItems`, `CreateOrderInput`
+- [x] Update backend order routes/DTO to handle new fields
 
 ### 3. Order Status Management
 - Update `PATCH /api/orders/:id/status` with status transition validation

@@ -648,3 +648,10 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - `PaymentForm` component created (`frontend/src/components/pos/PaymentForm.tsx`) with Cash / Card selection
 - `PosContext` updated with `paymentIntentId` state, `setPaymentIntentId` dispatcher, and provider exposure
 - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 1 partly implemented (Stripe setup + form + context; Checkout integration and webhook order update pending step 7)
+- **Phase 2: POS System — Step 2 COMPLETED ✅ (Order Model Enhancements)**
+  - `OrderStatus` enum extended with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`
+  - `Order` model fields added: `refundReason`, `returnWindowDays` (default 30), `receiptEmail`, `isOffline`, `offlineSyncedAt`, `paymentIntentId`
+  - `OrderItem` model fields added: `returnedQuantity`, `refunded`
+  - Database sync via `prisma db push`; Prisma Client regenerated
+  - Shared types (`packages/types/src/index.ts`) updated: `OrderStatus`, `Order`, `OrderItem`, `CreateOrderInput`
+  - Backend `order.dto.ts` updated with new status enum and input fields (`receiptEmail`, `isOffline`, `paymentIntentId`)

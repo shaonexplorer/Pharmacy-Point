@@ -60,7 +60,7 @@ export interface Customer {
   updatedAt: string;
 }
 
-export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED';
 
 export type PaymentMethod = 'cash' | 'card';
 
@@ -73,6 +73,12 @@ export interface Order {
   tax: number;
   taxRate: number;
   paymentMethod?: PaymentMethod | null;
+  paymentIntentId?: string | null;
+  refundReason?: string | null;
+  returnWindowDays?: number | null;
+  receiptEmail?: string | null;
+  isOffline?: boolean;
+  offlineSyncedAt?: string | null;
   staffId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -83,6 +89,8 @@ export interface OrderItem {
   orderId: string;
   productId: string;
   quantity: number;
+  returnedQuantity?: number;
+  refunded?: boolean;
   price: number;
 }
 
@@ -111,6 +119,9 @@ export interface CreateOrderInput {
   total: number;
   paymentMethod: PaymentMethod;
   staffId?: string | null;
+  receiptEmail?: string | null;
+  isOffline?: boolean;
+  paymentIntentId?: string | null;
 }
 
 export type ApiResponse<T> = {
