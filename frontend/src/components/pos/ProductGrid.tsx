@@ -135,7 +135,7 @@ export function ProductGrid({
 
   return (
     <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
-      {products.map((product) => {
+      {products.slice(0, 7).map((product) => {
         const isOutOfStock = product.quantity <= 0;
 
         return (
