@@ -226,5 +226,8 @@ export const api = {
 
     salesByPaymentMethod: (params?: { startDate?: string; endDate?: string }) =>
       request<any>('/api/reports/sales/payment-methods', { params }),
+
+    inventory: (params?: { slowMovingDays?: number; expiryDays?: number; limit?: number }) =>
+      request<any>('/api/reports/inventory', { params }),
   },
 };

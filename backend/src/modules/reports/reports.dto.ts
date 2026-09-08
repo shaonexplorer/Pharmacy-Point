@@ -34,3 +34,17 @@ export const salesSummarySchema = z.object({
 });
 
 export type SalesSummaryInput = z.infer<typeof salesSummarySchema>;
+
+/**
+ * Schema for inventory report query parameters.
+ */
+export const inventoryReportSchema = z.object({
+  // Date window for slow-moving detection (days)
+  slowMovingDays: z.coerce.number().int().min(1).max(365).optional().default(30),
+  // Days threshold for expiry warning
+  expiryDays: z.coerce.number().int().min(1).max(365).optional().default(30),
+  // Limit for slow-moving and expiring item lists
+  limit: z.coerce.number().int().min(1).max(500).optional().default(100),
+});
+
+export type InventoryReportInput = z.infer<typeof inventoryReportSchema>;

@@ -297,3 +297,40 @@ export interface SalesReportFilters {
   status?: OrderStatus;
   groupBy?: SalesGroupBy;
 }
+
+// ─── Inventory Report Types ───────────────────────────────────
+
+/** Inventory report item — one product row */
+export interface InventoryReportItem {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  quantity: number;
+  price: number;
+  expiryDate?: string | null;
+  batchNo?: string | null;
+  isLowStock: boolean;
+  isExpiringSoon: boolean;
+  isSlowMoving: boolean;
+}
+
+/** Inventory report summary metrics */
+export interface InventoryReportSummary {
+  totalProducts: number;
+  totalInventoryValue: number;
+  inStockCount: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  expiringCount: number;
+  expiredCount: number;
+  slowMovingCount: number;
+}
+
+/** Inventory report response */
+export interface InventoryReportResponse {
+  summary: InventoryReportSummary;
+  lowStockItems: InventoryReportItem[];
+  slowMovingItems: InventoryReportItem[];
+  expiringItems: InventoryReportItem[];
+}

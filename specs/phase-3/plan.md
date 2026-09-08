@@ -24,11 +24,11 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [ ] Frontend page at `/frontend/src/app/reports/sales/page.tsx`
 - [ ] Add search/filter form with date range picker and product selector
 
-### 3. Inventory Reports — PENDING
-- [ ] `GET /api/reports/inventory` endpoint
-- [ ] Include: stock levels, slow-moving items, returning items, expiry warnings
-- [ ] Frontend page at `/frontend/src/app/reports/inventory/page.tsx`
-- [ ] Low stock vs available inventory comparison chart
+### 3. Inventory Reports — COMPLETED ✅
+- [x] `GET /api/reports/inventory` endpoint — summary metrics + lowStock/slowMoving/expiring item arrays
+- [x] Include: stock levels, slow-moving items (no orders in N days), expiry warnings
+- [x] Frontend page at `/frontend/src/app/reports/inventory/page.tsx` — KPIs, charts, tables, CSV/PDF export
+- [x] Low stock vs available inventory comparison chart + inventory status donut
 
 ### 4. Customer Reports — PENDING
 - [ ] `GET /api/reports/customers` endpoint

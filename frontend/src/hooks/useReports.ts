@@ -2,7 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { SalesReportItem, SalesSummaryData, SalesByPaymentMethod } from '@pharmacy-point/types';
+import type {
+  SalesReportItem,
+  SalesSummaryData,
+  SalesByPaymentMethod,
+  InventoryReportResponse,
+} from '@pharmacy-point/types';
 
 /**
  * Fetch sales report data with grouping and filtering.
@@ -43,6 +48,21 @@ export function useSalesByPaymentMethod(params?: { startDate?: string; endDate?:
   return useQuery({
     queryKey: ['reports', 'sales-payment-methods', params],
     queryFn: () => api.reports.salesByPaymentMethod(params),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Fetch comprehensive inventory report.
+ */
+export function useInventoryReport(params?: {
+  slowMovingDays?: number;
+  expiryDays?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ['reports', 'inventory', params],
+    queryFn: () => api.reports.inventory(params),
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -5,7 +5,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { validate } from '../../middleware/validate';
-import { salesReportSchema, salesSummarySchema } from './reports.dto';
+import { salesReportSchema, salesSummarySchema, inventoryReportSchema } from './reports.dto';
 import * as reportsService from './reports.service';
 
 /**
@@ -55,4 +55,19 @@ export const getSalesByPaymentMethod = asyncHandler(async (req: Request, res: Re
 
   const data = await reportsService.getSalesByPaymentMethod(startDate, endDate);
   res.json(data);
+});
+
+/**
+ * GET /api/reports/inventory
+ * Get comprehensive inventory report with stock levels, low stock,
+ * slow-moving items, and expiry warnings.
+ * Query params: slowMovingDays, expiryDays, limit
+ */
+export const getInventoryReport = asyncHandler(async (req: Request, res: Response) => {
+  const slowMovingDays = parseInt(req.query.slowMovingDays as string) ?? 30;
+  const expiryDays = parseInt(req.query.expiryDays as string) ?? 30;
+  const limit = parseInt(req.query.limit as string) ?? 100;
+
+  const result = await reportsService.getInventoryReport({ slowMovingDays, expiryDays, limit });
+  res.json(result);
 });

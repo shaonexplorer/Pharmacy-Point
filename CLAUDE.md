@@ -826,3 +826,33 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Navigation structure updated:
   - `/reports/sales` — Sales Reports page with filtering and charts
 - Plan spec `specs/phase-3/plan.md` step 2 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 3 COMPLETED ✅ (Inventory Reports)**
+- Backend `GET /api/reports/inventory` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `inventoryReportSchema` DTO (`reports.dto.ts`) with `slowMovingDays`, `expiryDays`, `limit` params
+  - `getInventoryReport` service (`reports.service.ts`) returns summary metrics + categorized item arrays
+  - Summary: `totalProducts`, `totalInventoryValue`, `inStockCount`, `lowStockCount`, `outOfStockCount`, `expiringCount`, `expiredCount`, `slowMovingCount`
+  - Item categories: `lowStockItems`, `slowMovingItems`, `expiringItems`
+  - Slow-moving detection: products with no completed orders in `slowMovingDays` window (NOT EXISTS subquery)
+  - Expiry warnings: products with `expiryDate` between now and now + `expiryDays`
+- Shared types extended (`packages/types/src/index.ts`):
+  - `InventoryReportItem`, `InventoryReportSummary`, `InventoryReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.inventory(params?)` — `GET /api/reports/inventory`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useInventoryReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/InventoryReportChart.tsx` — Stock status comparison bar chart + inventory status donut
+  - `frontend/src/components/reports/index.ts` — Barrel export added
+- Frontend page created (`frontend/src/app/reports/inventory/page.tsx`):
+  - Filter bar: slow-moving window, expiry warning window (days)
+  - KPI cards: Total Products, Inventory Value, Low Stock, Expiring Soon, Out of Stock, Slow Moving, Expired, In Stock
+  - Charts: Stock Status Comparison bar chart + Inventory Distribution donut
+  - Tables: Low Stock Items, Slow-Moving Items, Expiring Soon Items (with product name, SKU, category, qty, price, value, expiry)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Inventory Reports` nav item with `AlertTriangle` icon, `bg-warning` dot, `/reports/inventory` href
+- Navigation structure updated:
+  - `/reports/inventory` — Inventory Reports page with KPIs, charts, and detailed item tables
+- Plan spec `specs/phase-3/plan.md` step 3 marked implemented
