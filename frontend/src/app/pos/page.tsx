@@ -17,6 +17,7 @@ import { ProductGrid } from '@/components/pos/ProductGrid';
 import { Cart } from '@/components/pos/Cart';
 import { Checkout } from '@/components/pos/Checkout';
 import { Receipt } from '@/components/pos/Receipt';
+import { ReceiptEmailForm } from '@/components/orders/ReceiptEmailForm';
 import { formatCurrency } from '@/lib/formatters';
 
 const POS_PRODUCT_LIMIT = 24;
@@ -61,6 +62,7 @@ function PosContent() {
 
   // Receipt state
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
 
   // Cart context
@@ -133,10 +135,7 @@ function PosContent() {
     setCompletedOrder(null);
   };
 
-  const handleEmailReceipt = () => {
-    // Phase 2: Email receipt integration
-    console.log('Email receipt for order:', completedOrder?.id);
-  };
+  const handleEmailReceipt = () => setShowEmailForm((s) => !s);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -169,6 +168,15 @@ function PosContent() {
             onEmail={handleEmailReceipt}
             onNewSale={handleNewSale}
           />
+          {showEmailForm && completedOrder && (
+            <div className="w-full mt-2">
+              <ReceiptEmailForm
+                orderId={completedOrder.id}
+                defaultEmail={completedOrder.customer?.email ?? ''}
+                onSent={() => setShowEmailForm(false)}
+              />
+            </div>
+          )}
         </div>
       </div>
     );

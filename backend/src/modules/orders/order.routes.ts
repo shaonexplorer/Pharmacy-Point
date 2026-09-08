@@ -4,7 +4,8 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate';
 import { orderCreateSchema, orderStatusUpdateSchema, refundSchema, returnSchema } from './order.dto';
-import { list, getOne, create, updateStatus, refund, returnOrder, getReturnsCtrl } from './order.controller';
+import { receiptEmailSchema } from './receipt.dto';
+import { list, getOne, create, updateStatus, refund, returnOrder, getReturnsCtrl, sendReceiptEmail, getReceiptHTML } from './order.controller';
 
 const router = Router();
 
@@ -15,5 +16,7 @@ router.patch('/:id/status', validate(orderStatusUpdateSchema), updateStatus);
 router.post('/:id/refund', validate(refundSchema), refund);
 router.post('/:id/return', validate(returnSchema), returnOrder);
 router.get('/:id/returns', getReturnsCtrl);
+router.post('/:id/receipt/email', validate(receiptEmailSchema), sendReceiptEmail);
+router.get('/:id/receipt', getReceiptHTML);
 
 export const orderRouter = router;

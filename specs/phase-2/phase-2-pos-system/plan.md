@@ -47,16 +47,14 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 - [x] Update `OrderItem` model with `returnedQuantity` and `refunded` (step 2 already applied)
 - [x] Update backend DTO (`refundSchema`, `returnSchema`) and service (`processRefund`, `processReturn`, `getReturns`)
 
-### 5. Enhanced Receipt Generation
-- Extend Receipt component with prescription notes field
-- Add pharmacy license number and address to receipt template
-- Add barcode/scannable order reference to receipt
-- Create `POST /api/orders/:id/receipt/email` endpoint
-  - Validate email format
-  - Generate HTML receipt from existing component
-  - Send via Nodemailer SMTP
-- Create `GET /api/orders/:id/receipt` endpoint for PDF download
-- Build `ReceiptEmailForm` component with email input and send button
+### 5. Enhanced Receipt Generation — COMPLETED ✅
+- [x] Extend Receipt component with prescription notes field
+- [x] Add pharmacy license number and address to receipt template
+- [x] Add barcode/scannable order reference to receipt
+- [x] Create `POST /api/orders/:id/receipt/email` endpoint (Nodemailer SMTP)
+- [x] Create `GET /api/orders/:id/receipt` endpoint for PDF/html download
+- [x] Build `ReceiptEmailForm` component with email input and send button
+- [x] Integrate email form into POS checkout receipt view
 
 ### 6. Offline Mode Support
 - Add `isOffline` and `offlineSyncedAt` fields to Order model

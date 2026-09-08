@@ -11,9 +11,10 @@ interface ReceiptProps {
   staffName?: string | null;
   onEmail?: () => void;
   onNewSale?: () => void;
+  prescriptionNotes?: string;
 }
 
-export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) {
+export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNotes }: ReceiptProps) {
   const handlePrint = () => {
     const printWindow = window.open('', '_blank', 'width=360,height=720');
     if (printWindow) {
@@ -43,8 +44,10 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
           <div class="receipt">
             <div class="header">
               <div class="shop-name">Pharmacy Point</div>
+              <div class="shop-info">Licensed Pharmacy — License #PH-28491-NE</div>
+              <div class="shop-info">1200 Medical Center Dr, Suite 300 • New Era, NY 10001 • (212) 555-0199</div>
               <div class="shop-info">${new Date(order.createdAt).toLocaleDateString()}</div>
-              <div class="shop-info">Order #${order.id.slice(0, 8)}</div>
+              <div class="shop-info">Order #${order.id.slice(0, 8)} — REF:${order.id}</div>
             </div>
             <div class="section">
               <div class="item"><span class="item-name">Item</span><span class="item-qty">Qty</span><span class="item-price">Price</span></div>
@@ -71,6 +74,8 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
               Customer: ${order.customer?.name ?? 'Walk-in'}<br/>
               Payment: ${(order.paymentMethod ?? 'cash').toUpperCase()}<br/>
               Staff: ${staffName ?? 'N/A'}<br/>
+              ${prescriptionNotes ? `Notes: ${prescriptionNotes}<br/>` : ''}
+              Pharmacy Point — License #PH-28491-NE — REF:${order.id}<br/>
               Thank you for your business!
             </div>
           </div>
@@ -90,6 +95,13 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
       className="receipt-content border-2 border-dashed border-border rounded-lg p-6 bg-card text-body-md"
       id="pos-receipt"
     >
+      {/* Pharmacy Info */}
+      <div className="text-center text-xs text-muted-foreground leading-tight mb-3">
+        <p className="font-medium text-foreground">Pharmacy Point — Licensed Pharmacy</p>
+        <p>License #PH-28491-NE • 1200 Medical Center Dr, Suite 300</p>
+        <p>New Era, NY 10001 • (212) 555-0199</p>
+      </div>
+
       {/* Header */}
       <div className="text-center border-b border-border pb-4 mb-4">
         <div className="flex items-center justify-center gap-2">
@@ -100,6 +112,7 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
           {new Date(order.createdAt).toLocaleString()}
         </p>
         <p className="text-xs text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
+        <p className="text-[10px] text-data-mono text-muted-foreground tracking-widest">REF:{order.id}</p>
       </div>
 
       {/* Customer & Payment Info */}
@@ -165,9 +178,17 @@ export function Receipt({ order, staffName, onEmail, onNewSale }: ReceiptProps) 
         )}
       </div>
 
+      {/* Prescription Notes */}
+      {prescriptionNotes && (
+        <div className="border-t border-border pt-2 mb-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Prescription Notes:</span> {prescriptionNotes}
+        </div>
+      )}
+
       {/* Footer */}
       <div className="text-center mt-4 text-xs text-muted-foreground">
         <p>Thank you for your business!</p>
+        <p className="text-[10px] text-data-mono mt-1">License #PH-28491-NE • REF:{order.id}</p>
       </div>
     </div>
   );
