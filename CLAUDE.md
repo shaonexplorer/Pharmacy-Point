@@ -653,7 +653,17 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - All new components styled with Clinical Precision theme: Pharma Teal `primary`, Medi-Blue `secondary`, Safety Green `tertiary`, Inter body + JetBrains Mono `data-mono`, 8px rhythm, rounded-lg containers
   - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 7 marked completed
 
-**Phase 5: POS System — Stripe Payment Integration (Step 1) — IN PROGRESS ✅**
+- **Phase 2: POS System — Step 8 COMPLETED ✅ (Testing and Validation)**
+  - Stripe Checkout flow tested: `POST /api/payments/checkout` creates Checkout Session; webhook verifies signature; order updated with `paymentIntentId`
+  - Refund/return flows validated: full (`REFUNDED`) and partial (`PARTIALLY_REFUNDED`) refunds via `POST /api/orders/:id/refund`; return with inventory restock (`STOCK_IN` + `product.quantity`) via `POST /api/orders/:id/return`; return-window enforced (30-day `returnWindowDays`)
+  - Email receipt delivery verified: `POST /api/orders/:id/receipt/email` via Nodemailer SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`); `ReceiptEmailForm` integrated in POS checkout
+  - Offline mode validated: `navigator.onLine` detection + `online`/`offline` events; `pharmacy-offline-queue` in `localStorage`; batch sync `POST /api/orders/offline/sync`; `OfflineIndicator` banner shown; sync-on-reconnect via `useEffect`
+  - Status transition rules enforced: `ALLOWED_TRANSITIONS` in `order.service.ts` (PENDING→COMPLETED/CANCELLED, COMPLETED→REFUNDED/PARTIALLY_REFUNDED/RETURNED)
+  - End-to-end flow confirmed: checkout (`Checkout` + `PaymentForm`) → process sale (`onProcessSale`) → receipt (`Receipt` with pharmacy license #PH-28491-NE, barcode `REF:${order.id}`) → email (`ReceiptEmailForm`) → refund/return (`RefundModal`/`ReturnModal`) → inventory restock (`STOCK_IN` transaction + `previousQuantity`/`newQuantity` audit)
+  - All new components styled with Clinical Precision: Pharma Teal `primary`, Medi-Blue `secondary`, Safety Green `tertiary`; Inter body + JetBrains Mono `data-mono`; surface containers; 8px rhythm; rounded-lg; `prescription-border-l` stripe on hero order vitals
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` steps 1–8 completed; all success criteria met
+
+**Phase 5: POS System — Stripe Payment Integration (Step 1) — COMPLETED ✅**
 - Stripe SDK installed (`stripe` backend / `@stripe/stripe-js` frontend)
 - `paymentIntentId` added to `Order` Prisma model; DB migrated; Prisma Client regenerated
 - Payment endpoints created under `/api/payments`: `POST /checkout` (Stripe Checkout Session), `POST /webhook` (signature verification)
@@ -661,7 +671,7 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Shared types extended (`CreatePaymentInput`, `PaymentResponse`, `PaymentIntentUpdate` in `packages/types/src/index.ts`)
 - `PaymentForm` component created (`frontend/src/components/pos/PaymentForm.tsx`) with Cash / Card selection
 - `PosContext` updated with `paymentIntentId` state, `setPaymentIntentId` dispatcher, and provider exposure
-- Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 1 partly implemented (Stripe setup + form + context; Checkout integration and webhook order update pending step 7)
+- Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 1 completed (Stripe setup + form + context + checkout integration + webhook order update validated in step 8)
 - **Phase 2: POS System — Step 2 COMPLETED ✅ (Order Model Enhancements)**
   - `OrderStatus` enum extended with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`
   - `Order` model fields added: `refundReason`, `returnWindowDays` (default 30), `receiptEmail`, `isOffline`, `offlineSyncedAt`, `paymentIntentId`

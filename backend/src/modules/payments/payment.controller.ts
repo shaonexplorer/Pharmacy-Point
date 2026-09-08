@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import asyncHandler from "../../middleware/asyncHandler";
+import { asyncHandler } from "../../middleware/asyncHandler";
 import { createCheckoutSession, handleWebhook } from "./payment.service";
 import { checkoutSchema } from "./payment.dto";
 import { validate } from "../../middleware/validate";
