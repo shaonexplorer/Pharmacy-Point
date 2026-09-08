@@ -98,3 +98,26 @@ export const updateStatus = asyncHandler(async (req: Request, res: Response) => 
     message: 'Order status updated successfully',
   });
 });
+
+import { processRefund, processReturn, getReturns } from './order.service';
+
+export async function refund(req: any, res: any, next: any) {
+  try {
+    const result = await processRefund(req.params.id, req.body);
+    res.json({ success: true, data: result });
+  } catch (e) { next(e); }
+}
+
+export async function returnOrder(req: any, res: any, next: any) {
+  try {
+    const result = await processReturn(req.params.id, req.body);
+    res.json({ success: true, data: result });
+  } catch (e) { next(e); }
+}
+
+export async function getReturnsCtrl(req: any, res: any, next: any) {
+  try {
+    const result = await getReturns(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (e) { next(e); }
+}

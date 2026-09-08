@@ -39,19 +39,13 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 - [x] Update POS checkout to set status to COMPLETED after successful payment
 
 ### 4. Refund/Return Processing
-- Create `POST /api/orders/:id/refund` endpoint
-  - Validate return window
-  - Reverse Stripe payment if applicable
-  - Update order status and items
-  - Return appropriate refund data
-- Create `POST /api/orders/:id/return` endpoint
-  - Restock returned items to inventory
-  - Create RETURN transaction in inventory system
-  - Update order status
-- Create `GET /api/orders/:id/returns` endpoint for return history
-- Build `RefundModal` and `ReturnModal` components
-- Add refund/return buttons on order detail page
-- Update `OrderItem` model with `returnedQuantity` and `refunded` boolean
+- [x] Create `POST /api/orders/:id/refund` endpoint (with return-window validation, Stripe reverse stub, status update)
+- [x] Create `POST /api/orders/:id/return` endpoint (restock inventory, create STOCK_IN transaction, update status)
+- [x] Create `GET /api/orders/:id/returns` endpoint
+- [x] Build `RefundModal` and `ReturnModal` components (Clinical Precision themed)
+- [x] Add refund/return buttons on order detail / customer order cards
+- [x] Update `OrderItem` model with `returnedQuantity` and `refunded` (step 2 already applied)
+- [x] Update backend DTO (`refundSchema`, `returnSchema`) and service (`processRefund`, `processReturn`, `getReturns`)
 
 ### 5. Enhanced Receipt Generation
 - Extend Receipt component with prescription notes field

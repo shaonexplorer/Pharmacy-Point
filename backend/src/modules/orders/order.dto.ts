@@ -45,3 +45,18 @@ export const orderStatusUpdateSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof orderCreateSchema>;
 export type OrderStatusUpdateInput = z.infer<typeof orderStatusUpdateSchema>;
+
+export const refundSchema = z.object({
+  amount: z.number().positive(),
+  reason: z.string().min(1).max(500),
+  refundMethod: z.enum(['original', 'store_credit']).optional().default('original'),
+});
+export const returnSchema = z.object({
+  items: z.array(z.object({
+    orderItemId: z.string().min(1),
+    quantity: z.number().positive(),
+  })).min(1),
+  reason: z.string().min(1).max(500).optional(),
+});
+export type RefundInput = z.infer<typeof refundSchema>;
+export type ReturnInput = z.infer<typeof returnSchema>;

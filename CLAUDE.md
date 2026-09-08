@@ -659,4 +659,12 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `PATCH /api/orders/:id/status` updated with transition validation (`ALLOWED_TRANSITIONS` in `order.service.ts`)
   - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
   - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
+- **Phase 2: POS System — Step 4 COMPLETED ✅ (Refund/Return Processing)**
+  - `POST /api/orders/:id/refund` endpoint (`order.controller.ts`, `order.routes.ts`, `order.service.ts`, `refund.dto.ts`) with return-window validation (30 days) and Stripe reverse stub; updates status to `REFUNDED`/`PARTIALLY_REFUNDED`
+  - `POST /api/orders/:id/return` endpoint with inventory restock (`product.quantity` increment, `STOCK_IN` `InventoryTransaction`), item `returnedQuantity` updates, status `RETURNED`
+  - `GET /api/orders/:id/returns` endpoint for return history
+  - `RefundModal` and `ReturnModal` components (`frontend/src/components/orders/`) with Clinical Precision design
+  - `order.dto.ts` extended with `refundSchema`/`returnSchema`; `order.service.ts` added `processRefund`, `processReturn`, `getReturns`
+  - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
+  - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
   - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 3 marked implemented
