@@ -7,9 +7,11 @@ import { productRouter } from '../modules/products/product.routes';
 import { companyRouter } from '../modules/companies/company.routes';
 import { customerRouter } from '../modules/customers/customer.routes';
 import { inventoryRouter } from '../modules/inventory/inventory.routes';
+import { notificationRouter } from '../modules/notifications/notification.routes';
 import { orderRouter } from '../modules/orders/order.routes';
 import { statsRouter } from '../modules/stats/stats.routes';
 import { categoryRouter } from '../modules/categories/category.routes';
+import paymentRouter from '../modules/payments/payment.routes';
 
 const router = Router();
 
@@ -17,8 +19,10 @@ router.use('/products', productRouter);
 router.use('/companies', companyRouter);
 router.use('/customers', customerRouter);
 router.use('/inventory', inventoryRouter);
+router.use('/notifications', notificationRouter);
 router.use('/orders', orderRouter);
 router.use('/stats', statsRouter);
 router.use('/categories', categoryRouter);
+router.use('/payments', paymentRouter);
 
 export { router as apiRouter };

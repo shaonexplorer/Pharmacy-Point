@@ -8,6 +8,34 @@ import { serializeInventoryItem } from '../../utils/serializers';
 import * as inventoryService from './inventory.service';
 
 /**
+ * GET /api/inventory/expiring
+ * List products expiring within N days (default 30).
+ */
+export const expiring = asyncHandler(async (req: Request, res: Response) => {
+  const result = await inventoryService.listExpiring({
+    page: req.query.page as string | undefined,
+    limit: req.query.limit as string | undefined,
+    days: req.query.days ? parseInt(req.query.days as string, 10) : 30,
+  });
+  res.json({
+    data: result.data.map((p: Record<string, unknown>) => serializeInventoryItem(p)),
+    pagination: result.pagination,
+  });
+});
+
+/**
+ * GET /api/inventory/expired
+ * List expired products still in stock.
+ */
+export const expired = asyncHandler(async (req: Request, res: Response) => {
+  const result = await inventoryService.listExpired();
+  res.json({
+    data: result.data.map((p: Record<string, unknown>) => serializeInventoryItem(p)),
+    pagination: result.pagination,
+  });
+});
+
+/**
  * GET /api/inventory
  * List inventory with low stock filter.
  * Query params: page, limit, search, lowStock, companyId
@@ -19,6 +47,9 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
     search: (req.query.search as string) || '',
     lowStock: req.query.lowStock === 'true',
     companyId: (req.query.companyId as string) || undefined,
+    barcode: (req.query.barcode as string) || undefined,
+    batchNo: (req.query.batchNo as string) || undefined,
+    expiryDate: (req.query.expiryDate as string) || undefined,
   });
 
   res.json({
@@ -65,10 +96,16 @@ export const stockIn = asyncHandler(async (req: Request, res: Response) => {
         productId: result.transaction.productId,
         type: result.transaction.type,
         quantity: result.transaction.quantity,
+        batchNo: (result.transaction as { batchNo?: string }).batchNo,
         notes: result.transaction.notes,
         referenceId: result.transaction.referenceId,
+        userId: (result.transaction as { userId?: string }).userId,
+        previousQuantity: (result.transaction as { previousQuantity?: number }).previousQuantity,
+        newQuantity: (result.transaction as { newQuantity?: number }).newQuantity,
         createdAt: result.transaction.createdAt,
       },
+      previousQuantity: result.previousQuantity,
+      newQuantity: result.newQuantity,
     },
     message: 'Stock in recorded successfully',
   });
@@ -93,10 +130,16 @@ export const stockOut = asyncHandler(async (req: Request, res: Response) => {
         productId: result.transaction.productId,
         type: result.transaction.type,
         quantity: result.transaction.quantity,
+        batchNo: (result.transaction as { batchNo?: string }).batchNo,
         notes: result.transaction.notes,
         referenceId: result.transaction.referenceId,
+        userId: (result.transaction as { userId?: string }).userId,
+        previousQuantity: (result.transaction as { previousQuantity?: number }).previousQuantity,
+        newQuantity: (result.transaction as { newQuantity?: number }).newQuantity,
         createdAt: result.transaction.createdAt,
       },
+      previousQuantity: result.previousQuantity,
+      newQuantity: result.newQuantity,
     },
     message: 'Stock out recorded successfully',
   });
@@ -116,6 +159,7 @@ export const adjust = asyncHandler(async (req: Request, res: Response) => {
         quantity: result.product.quantity,
         lowStock: result.product.lowStock,
         previousQuantity: result.previousQuantity,
+        newQuantity: result.newQuantity,
         difference: result.difference,
       },
       transaction: {
@@ -123,10 +167,30 @@ export const adjust = asyncHandler(async (req: Request, res: Response) => {
         productId: result.transaction.productId,
         type: result.transaction.type,
         quantity: result.transaction.quantity,
+        batchNo: (result.transaction as { batchNo?: string }).batchNo,
         notes: result.transaction.notes,
+        userId: (result.transaction as { userId?: string }).userId,
+        previousQuantity: (result.transaction as { previousQuantity?: number }).previousQuantity,
+        newQuantity: (result.transaction as { newQuantity?: number }).newQuantity,
+        referenceId: result.transaction.referenceId,
         createdAt: result.transaction.createdAt,
       },
     },
     message: 'Stock adjusted successfully',
   });
+});
+
+export const exportInventory = asyncHandler(async (req: Request, res: Response) => {
+  const csv = await inventoryService.exportInventoryCsv();
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="inventory.csv"');
+  res.send(csv);
+});
+
+export const exportExpiring = asyncHandler(async (req: Request, res: Response) => {
+  const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+  const csv = await inventoryService.exportExpiringCsv(days);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="expiring.csv"');
+  res.send(csv);
 });

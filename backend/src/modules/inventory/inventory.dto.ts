@@ -14,23 +14,43 @@ const nonNegativeQuantitySchema = z
   .nonnegative('Quantity must be a non-negative number');
 const optionalStringSchema = z.string().optional();
 
+const dateSchema = z.string().datetime().optional().or(z.date().optional());
+
 export const stockInSchema = z.object({
-  productId: productIdSchema,
+  productId: productIdSchema.optional(),
+  barcode: optionalStringSchema,
   quantity: positiveQuantitySchema,
+  batchNo: optionalStringSchema,
+  expiryDate: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, { message: 'Invalid expiry date format' }),
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+  userId: optionalStringSchema,
+}).refine((data) => data.productId || data.barcode, {
+  message: 'Either productId or barcode is required',
+  path: ['productId'],
 });
 
 export const stockOutSchema = z.object({
-  productId: productIdSchema,
+  productId: productIdSchema.optional(),
+  barcode: optionalStringSchema,
   quantity: positiveQuantitySchema,
+  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
+  userId: optionalStringSchema,
+}).refine((data) => data.productId || data.barcode, {
+  message: 'Either productId or barcode is required',
+  path: ['productId'],
 });
 
 export const stockAdjustSchema = z.object({
   quantity: nonNegativeQuantitySchema,
+  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
+  userId: optionalStringSchema,
 });
 
 export type StockInInput = z.infer<typeof stockInSchema>;

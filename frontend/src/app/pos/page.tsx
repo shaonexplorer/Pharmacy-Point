@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
@@ -17,6 +18,8 @@ import { ProductGrid } from '@/components/pos/ProductGrid';
 import { Cart } from '@/components/pos/Cart';
 import { Checkout } from '@/components/pos/Checkout';
 import { Receipt } from '@/components/pos/Receipt';
+import { ReceiptEmailForm } from '@/components/orders/ReceiptEmailForm';
+import { OfflineIndicator } from '@/components/pos/OfflineIndicator';
 import { formatCurrency } from '@/lib/formatters';
 
 const POS_PRODUCT_LIMIT = 24;
@@ -61,6 +64,7 @@ function PosContent() {
 
   // Receipt state
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [completedOrder, setCompletedOrder] = useState<OrderWithItems | null>(null);
 
   // Cart context
@@ -72,6 +76,12 @@ function PosContent() {
     taxRate,
     paymentMethod,
     customerId,
+    redeemedPoints,
+    isCreditSale,
+    customerName,
+    customerDueAmount,
+    customerLoyaltyPoints,
+    customerLoyaltyTier,
     addItem,
     removeItem,
     updateQuantity,
@@ -79,6 +89,8 @@ function PosContent() {
     setCustomer,
     setPaymentMethod,
     canAddToCart,
+    setRedeemedPoints,
+    setCreditSale,
   } = usePos();
 
   const isProcessing = createOrderMutation.isPending;
@@ -97,17 +109,29 @@ function PosContent() {
       const orderData = {
         customerId: customerId ?? null,
         items: orderItems,
-        subtotal,
-        tax: taxAmount,
-        taxRate,
-        total,
-        paymentMethod,
+        subtotal: Number(subtotal || 0),
+        tax: Number(taxAmount || 0),
+        taxRate: Number(taxRate || 0.085),
+        total: Number(total || 0),
+        paymentMethod: paymentMethod || 'cash',
         staffId: sessionData?.user?.id ?? null,
+        isCreditSale: !!isCreditSale,
+        redeemedPoints: Number(redeemedPoints || 0),
       };
 
       const response = await createOrderMutation.mutateAsync(orderData);
 
       if (response?.data) {
+        // Step 3: set status to COMPLETED after successful payment
+        try {
+          await fetch(`/api/orders/${response.data.id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'COMPLETED' }),
+          });
+        } catch {
+          /* non-blocking */
+        }
         setCompletedOrder(response.data);
         setShowReceipt(true);
         clearCart();
@@ -123,10 +147,7 @@ function PosContent() {
     setCompletedOrder(null);
   };
 
-  const handleEmailReceipt = () => {
-    // Phase 2: Email receipt integration
-    console.log('Email receipt for order:', completedOrder?.id);
-  };
+  const handleEmailReceipt = () => setShowEmailForm((s) => !s);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -159,6 +180,15 @@ function PosContent() {
             onEmail={handleEmailReceipt}
             onNewSale={handleNewSale}
           />
+          {showEmailForm && completedOrder && (
+            <div className="w-full mt-2">
+              <ReceiptEmailForm
+                orderId={completedOrder.id}
+                defaultEmail={completedOrder.customer?.email ?? ''}
+                onSent={() => setShowEmailForm(false)}
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -292,9 +322,24 @@ function PosContent() {
               customers={customers}
               isLoadingCustomers={isLoadingCustomers}
               isProcessing={isProcessing}
+              dueAmount={customerDueAmount}
+              loyaltyPoints={customerLoyaltyPoints}
+              loyaltyTier={customerLoyaltyTier}
+              redeemedPoints={redeemedPoints}
+              isCreditSale={isCreditSale}
               onPaymentMethodChange={setPaymentMethod}
-              onCustomerChange={(value) => setCustomer(value || null)}
+              onCustomerChange={(value) => {
+                const c = customers.find((cust) => cust.id === value);
+                setCustomer(value || null, {
+                  name: c?.name ?? null,
+                  dueAmount: (c as any)?.dueAmount ?? 0,
+                  loyaltyPoints: (c as any)?.loyaltyPoints ?? 0,
+                  loyaltyTier: (c as any)?.loyaltyTier ?? 'Bronze',
+                });
+              }}
               onProcessSale={handleProcessSale}
+              onRedeemPoints={setRedeemedPoints}
+              onCreditSaleToggle={setCreditSale}
             />
           </div>
         </div>
@@ -304,8 +349,27 @@ function PosContent() {
 }
 
 export default function PosPage() {
+  const [isOnline, setIsOnline] = React.useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  React.useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    setIsOnline(navigator.onLine);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  React.useEffect(() => {
+    if (isOnline) {
+      try {
+        const q = JSON.parse(localStorage.getItem('pharmacy-offline-queue') || '[]');
+        if (q.length) fetch('/api/orders/offline/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orders: q }) }).then(() => localStorage.removeItem('pharmacy-offline-queue'));
+      } catch {}
+    }
+  }, [isOnline]);
+
   return (
     <PosProvider>
+      {!isOnline && <OfflineIndicator />}
       <PosContent />
     </PosProvider>
   );

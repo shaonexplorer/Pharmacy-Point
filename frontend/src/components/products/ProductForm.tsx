@@ -33,6 +33,10 @@ const productSchema = z.object({
   companyId: z.string().optional().nullable(),
   description: z.string().optional(),
   image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  barcode: z.string().optional(),
+  batchNo: z.string().optional(),
+  lowStockThreshold: z.number().int().min(0).optional(),
+  expiryDate: z.string().optional(),
 });
 
 type FormData = z.infer<typeof productSchema>;
@@ -53,6 +57,9 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     price: product?.price ?? 0,
     quantity: product?.quantity ?? 0,
     lowStock: product?.lowStock ?? 10,
+    barcode: product?.barcode ?? '',
+    batchNo: product?.batchNo ?? '',
+    expiryDate: product?.expiryDate ? (product.expiryDate as unknown as string).split('T')[0] : '',
     companyId: product?.companyId ?? null,
     description: product?.description ?? '',
     image: product?.image ?? '',
@@ -82,6 +89,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         category: product.category,
         quantity: product.quantity,
         lowStock: product.lowStock,
+        barcode: product.barcode ?? '',
+        batchNo: product.batchNo ?? '',
         companyId: product.companyId ?? null,
         description: product.description ?? '',
         image: product.image ?? '',
@@ -346,6 +355,41 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             )}
           />
           {errors.lowStock && <p className="text-sm text-error">{errors.lowStock}</p>}
+        </div>
+
+        {/* Barcode */}
+        <div className="space-y-2">
+          <Label htmlFor="barcode" className="text-body-md text-foreground">Barcode</Label>
+          <Input
+            id="barcode"
+            type="text"
+            placeholder="123456789012"
+            value={formData.barcode}
+            onChange={(e) => handleChange('barcode', e.target.value)}
+          />
+        </div>
+
+        {/* Batch No */}
+        <div className="space-y-2">
+          <Label htmlFor="batchNo" className="text-body-md text-foreground">Batch No</Label>
+          <Input
+            id="batchNo"
+            type="text"
+            placeholder="B001"
+            value={formData.batchNo}
+            onChange={(e) => handleChange('batchNo', e.target.value)}
+          />
+        </div>
+
+        {/* Expiry Date */}
+        <div className="space-y-2">
+          <Label htmlFor="expiryDate" className="text-body-md text-foreground">Expiry Date</Label>
+          <Input
+            id="expiryDate"
+            type="date"
+            value={formData.expiryDate}
+            onChange={(e) => handleChange('expiryDate', e.target.value)}
+          />
         </div>
 
         {/* Image URL */}

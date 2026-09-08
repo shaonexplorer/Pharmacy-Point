@@ -29,6 +29,10 @@ export interface Product {
   price: number;
   quantity: number;
   lowStock: number;
+  barcode?: string | null;
+  batchNo?: string | null;
+  lowStockThreshold?: number | null;
+  expiryDate?: string | null;
   category: string;
   image?: string | null;
   deletedAt?: string | null;
@@ -56,7 +60,7 @@ export interface Customer {
   updatedAt: string;
 }
 
-export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED';
 
 export type PaymentMethod = 'cash' | 'card';
 
@@ -69,6 +73,12 @@ export interface Order {
   tax: number;
   taxRate: number;
   paymentMethod?: PaymentMethod | null;
+  paymentIntentId?: string | null;
+  refundReason?: string | null;
+  returnWindowDays?: number | null;
+  receiptEmail?: string | null;
+  isOffline?: boolean;
+  offlineSyncedAt?: string | null;
   staffId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -79,6 +89,8 @@ export interface OrderItem {
   orderId: string;
   productId: string;
   quantity: number;
+  returnedQuantity?: number;
+  refunded?: boolean;
   price: number;
 }
 
@@ -107,6 +119,9 @@ export interface CreateOrderInput {
   total: number;
   paymentMethod: PaymentMethod;
   staffId?: string | null;
+  receiptEmail?: string | null;
+  isOffline?: boolean;
+  paymentIntentId?: string | null;
 }
 
 export type ApiResponse<T> = {
@@ -145,7 +160,12 @@ export type UpdateCompanyInput = Partial<Company>;
 export type CreateCompanyInput = Omit<Company, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateCustomerInput = Partial<Customer>;
 export type CreateCustomerInput = Omit<Customer, 'id' | 'createdAt' | 'updatedAt' | 'dueAmount'>;
+export interface DuePayment { id: string; customerId: string; amount: number; orderId?: string | null; notes?: string | null; userId?: string | null; createdAt: string; updatedAt: string; }
 export type CustomerWithOrders = Customer & { orders?: Order[] };
+export type CreateDuePaymentInput = { amount: number; orderId?: string; notes?: string; userId?: string };
+export type DuePaymentWithCustomer = { id: string; customerId: string; amount: number; orderId?: string | null; notes?: string | null; userId?: string | null; createdAt: string; customer?: Customer; user?: { id: string; name?: string; email?: string } };
+export type CustomerWithDuePayments = Customer & { duePayments?: DuePaymentWithCustomer[] };
+export interface CustomerDashboard { customer: Customer; orders: Order[]; payments: DuePaymentWithCustomer[]; lifetimeValue: number; firstPurchaseDate?: string; lastPurchaseDate?: string; loyaltyPoints: number; loyaltyTier: string; pointsEarned: number; pointsRedeemed: number; }
 
 export type TransactionType = 'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT';
 
@@ -166,8 +186,11 @@ export interface InventoryItem extends Product {
 }
 
 export interface StockInInput {
-  productId: string;
+  productId?: string;
+  barcode?: string;
   quantity: number;
+  batchNo?: string;
+  expiryDate?: string;
   notes?: string;
   referenceId?: string;
 }
@@ -199,4 +222,20 @@ export interface Stats {
   stockInThisMonth?: number;
   stockOutThisMonth?: number;
   pendingOrders?: number;
+}
+
+export interface CreatePaymentInput {
+  amount: number;
+  currency?: string;
+  orderId?: string;
+  customerEmail?: string;
+}
+
+export interface PaymentResponse {
+  sessionId: string;
+  url: string;
+}
+
+export interface PaymentIntentUpdate {
+  paymentIntentId?: string | null;
 }

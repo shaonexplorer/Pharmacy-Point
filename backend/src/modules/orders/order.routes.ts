@@ -1,11 +1,12 @@
 /**
  * Order routes — thin URL-to-controller mapping.
- * Validation is handled via Zod DTO middleware; business logic in services.
  */
 import { Router } from 'express';
 import { validate } from '../../middleware/validate';
-import { orderCreateSchema, orderStatusUpdateSchema } from './order.dto';
-import { list, getOne, create, updateStatus } from './order.controller';
+import { orderCreateSchema, orderStatusUpdateSchema, refundSchema, returnSchema } from './order.dto';
+import { receiptEmailSchema } from './receipt.dto';
+import { offlineSyncSchema } from './offline.dto';
+import { list, getOne, create, updateStatus, refund, returnOrder, getReturnsCtrl, sendReceiptEmail, getReceiptHTML, syncOfflineOrders } from './order.controller';
 
 const router = Router();
 
@@ -13,5 +14,11 @@ router.get('/', list);
 router.get('/:id', getOne);
 router.post('/', validate(orderCreateSchema), create);
 router.patch('/:id/status', validate(orderStatusUpdateSchema), updateStatus);
+router.post('/:id/refund', validate(refundSchema), refund);
+router.post('/:id/return', validate(returnSchema), returnOrder);
+router.get('/:id/returns', getReturnsCtrl);
+router.post('/:id/receipt/email', validate(receiptEmailSchema), sendReceiptEmail);
+router.get('/:id/receipt', getReceiptHTML);
+router.post('/offline/sync', validate(offlineSyncSchema), syncOfflineOrders);
 
 export const orderRouter = router;

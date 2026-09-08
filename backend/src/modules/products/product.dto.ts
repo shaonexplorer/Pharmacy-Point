@@ -19,6 +19,10 @@ export const productCreateSchema = z.object({
   description: z.string().optional(),
   image: z.string().optional(),
   companyId: z.string().optional().nullable(),
+  barcode: z.string().optional(),
+  batchNo: z.string().optional(),
+  lowStockThreshold: z.number().int().optional(),
+  expiryDate: z.string().optional().or(z.date()).optional(),
 });
 
 export const productUpdateSchema = productCreateSchema.partial();

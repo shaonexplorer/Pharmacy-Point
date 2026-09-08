@@ -162,9 +162,12 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
 
     // 4. Decrement product stock and record STOCK_OUT transactions
     for (const item of data.items) {
-      await tx.product.update({
+      const productBefore = productMap.get(item.productId)!;
+      const previousQuantity = productBefore.quantity;
+      const updatedProduct = await tx.product.update({
         where: { id: item.productId },
         data: { quantity: { decrement: item.quantity } },
+        select: { id: true, quantity: true },
       });
 
       await tx.inventoryTransaction.create({
@@ -174,6 +177,9 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
           quantity: item.quantity,
           referenceId: order.id,
           notes: `Sale — Order #${order.id.slice(0, 8)}`,
+          userId: data.staffId ?? undefined,
+          previousQuantity,
+          newQuantity: updatedProduct.quantity,
         },
       });
     }
@@ -206,6 +212,15 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
  * Update an order's status.
  * Throws 404 if the order does not exist.
  */
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: ['REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED'],
+  CANCELLED: ['PENDING'],
+  REFUNDED: ['RETURNED'],
+  PARTIALLY_REFUNDED: ['REFUNDED', 'RETURNED'],
+  RETURNED: [],
+};
+
 export async function updateOrderStatus(id: string, status: string): Promise<PrismaResult> {
   const existing = await prisma.order.findUnique({ where: { id } });
 
@@ -213,9 +228,15 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
     throw new AppError(404, 'Order not found');
   }
 
+  const current = existing.status as string;
+  const allowed = ALLOWED_TRANSITIONS[current] ?? [];
+  if (!allowed.includes(status)) {
+    throw new AppError(400, `Invalid status transition from ${current} to ${status}`);
+  }
+
   const updated = await prisma.order.update({
     where: { id },
-    data: { status: status as 'PENDING' | 'COMPLETED' | 'CANCELLED' },
+    data: { status: status as 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED' },
     include: {
       customer: true,
       items: {
@@ -226,5 +247,83 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
     },
   });
 
+  // Loyalty points: earn 1 point per $1 on COMPLETED orders with customer
+  if (status === 'COMPLETED' && existing.customerId) {
+    try {
+      const { earnPoints } = await import('../customers/customer.service');
+      await earnPoints(existing.customerId, Number(updated.subtotal ?? 0), Number(updated.subtotal ?? 0));
+    } catch (e) { /* non-blocking */ }
+  }
+
   return updated;
+}
+
+const RETURN_WINDOW_DAYS = 30;
+
+export async function processRefund(orderId: string, data: { amount: number; reason: string; refundMethod?: string }) {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
+  if (!order) throw new AppError(404, 'Order not found');
+  if (order.status === 'REFUNDED' || order.status === 'CANCELLED') throw new AppError(400, 'Order already refunded or cancelled');
+  const daysSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  if (daysSince > RETURN_WINDOW_DAYS) throw new AppError(400, 'Return window exceeded');
+
+  // Reverse Stripe if paymentIntentId present (stubbed — real integration uses stripe.refunds.create)
+  if (order.paymentIntentId) {
+    // Stripe refund placeholder; in production use stripe.refunds.create({ payment_intent: order.paymentIntentId, amount })
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    // Mark items as refunded proportionally if full amount equals total
+    const isFull = data.amount >= Number(order.total);
+    if (isFull) {
+      await tx.orderItem.updateMany({ where: { orderId }, data: { refunded: true } });
+    }
+    return tx.order.update({
+      where: { id: orderId },
+      data: { status: isFull ? 'REFUNDED' : 'PARTIALLY_REFUNDED' },
+      include: { customer: true, items: { include: { product: true } } },
+    });
+  });
+
+  return { order: updated, refundAmount: data.amount, reason: data.reason };
+}
+
+export async function processReturn(orderId: string, data: { items: { orderItemId: string; quantity: number }[]; reason?: string }) {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: { include: { product: true } } } });
+  if (!order) throw new AppError(404, 'Order not found');
+  if (order.status === 'RETURNED' || order.status === 'CANCELLED') throw new AppError(400, 'Order already returned');
+
+  await prisma.$transaction(async (tx) => {
+    for (const ret of data.items) {
+      const item = await tx.orderItem.findUnique({ where: { id: ret.orderItemId }, include: { product: true } });
+      if (!item) throw new AppError(404, 'Order item not found');
+      if (ret.quantity > item.quantity - (item.returnedQuantity || 0)) throw new AppError(400, 'Return quantity exceeds available');
+      await tx.orderItem.update({ where: { id: ret.orderItemId }, data: { returnedQuantity: (item.returnedQuantity || 0) + ret.quantity } });
+      // Restock inventory and create RETURN transaction
+      await tx.product.update({ where: { id: item.productId }, data: { quantity: { increment: ret.quantity } } });
+      await tx.inventoryTransaction.create({
+        data: {
+          productId: item.productId,
+          type: 'STOCK_IN',
+          quantity: ret.quantity,
+          batchNo: item.product?.batchNo,
+          userId: undefined,
+          previousQuantity: item.product?.quantity ?? 0,
+          newQuantity: (item.product?.quantity ?? 0) + ret.quantity,
+          notes: `Return for order ${orderId}`,
+          referenceId: orderId,
+        },
+      });
+    }
+    await tx.order.update({ where: { id: orderId }, data: { status: 'RETURNED' } });
+  });
+
+  return { orderId, returnedItems: data.items, reason: data.reason || '' };
+}
+
+export async function getReturns(orderId: string) {
+  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: { include: { product: true } } } });
+  if (!order) throw new AppError(404, 'Order not found');
+  const returned = order.items.filter(i => (i.returnedQuantity || 0) > 0);
+  return { orderId, returnedItems: returned };
 }

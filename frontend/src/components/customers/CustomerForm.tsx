@@ -36,6 +36,9 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
     phone: customer?.phone ?? '',
     address: customer?.address ?? '',
   });
+  // Loyalty info display for edit mode
+  const loyaltyTier = (customer as any)?.loyaltyTier || 'Bronze';
+  const loyaltyPoints = (customer as any)?.loyaltyPoints || 0;
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createMutation = useCreateCustomer();
@@ -123,6 +126,12 @@ export function CustomerForm({ customer, mode }: CustomerFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {mode === 'edit' && customer && (
+        <div className="rounded-lg border bg-secondary/40 p-3 flex gap-4 text-sm">
+          <div><span className="text-muted-foreground">Tier:</span> <span className="font-semibold">{loyaltyTier}</span></div>
+          <div><span className="text-muted-foreground">Points:</span> <span className="font-semibold data-mono">{loyaltyPoints}</span></div>
+        </div>
+      )}
       {apiError && (
         <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
           {apiError}

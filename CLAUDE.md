@@ -49,7 +49,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
     - `frontend/src/components/common/DataTablePagination.tsx` — shared pagination controls for all TanStack tables
   - Server-side search param removed from `useInventory` — client-side search via TanStack Table's `globalFilter`
 
-**Phase 2: Customer Management - COMPLETED ✅**
+**Phase 2: Customer Management - Step 1 COMPLETED ✅ (Schema Extensions)**
+- Schema updates applied via `prisma db push`: DuePayment model, loyalty fields, isCreditSale, dueAmount calculated
+
+**Phase 2: Customer Management - Step 2 COMPLETED ✅ (Due Accounts API)**
+- `POST /api/customers/:id/due-payments` — validates against outstanding balance, creates DuePayment, recalculates dueAmount
+- `GET /api/customers/:id/due-payments` — payment history with user attribution
+- `GET /api/customers/due-accounts` — outstanding balances with overdue filter (due-accounts route ordered before `/:id` to prevent shadowing)
+- Shared types updated: `DuePayment`, `CreateDuePaymentInput`, `DuePaymentWithCustomer`, `CustomerWithDuePayments`, `CustomerDashboard`
+- Schema updates applied via `prisma db push`:
+  - Added `DuePayment` model (`customerId`, `amount`, `orderId`, `notes`, `userId`, timestamps) with relations to Customer and User
+  - Extended `Customer` with `loyaltyPoints` (Int, default 0), `loyaltyTier` (String, default "Bronze"), `lifetimeSpend` (Decimal, default 0), and `duePayments` relation
+  - Extended `Order` with `isCreditSale` (Boolean, default false)
+  - Added `duePayments` relation to `User` model
+- `dueAmount` remains calculated (credit sales minus payments) — dashboard endpoint added; loyalty system follows
+- **Phase 2: Customer Management — Step 4 (Loyalty Points System) COMPLETED ✅**
+  - Loyalty tiers defined (`getLoyaltyTiers`): Bronze ($0-499), Silver ($500-1999), Gold ($2000-4999), Platinum ($5000+)
+  - Points earning integrated into order completion: `earnPoints` called in `updateOrderStatus` when status → `COMPLETED` (`order.service.ts`); 1 point per $1 spent
+  - Points redemption available (`redeemPoints`): 100 points = $1 discount; checks sufficient balance
+  - Admin manual adjustments endpoint: `POST /api/customers/:id/loyalty/points` via `adjustLoyaltyPoints`; validates `adjustPointsSchema`
+  - Tier definitions endpoint: `GET /api/customers/loyalty-tiers` via `getLoyaltyTiers`; `loyaltyTierSchema` DTO
+  - `calculateTier` updates customer tier based on `lifetimeSpend`; `loyalty.dto.ts` added; routes/controller/service updated
+- Phase 1 customer CRUD intact; backend/frontend components unchanged
+
+**Phase 2: Customer Management - Step 3 COMPLETED ✅ (Customer Dashboard Endpoint)**
+- `GET /api/customers/:id/dashboard` implemented (`customer.service.ts`, `controller.ts`, `routes.ts`)
+- Aggregates order history (excluding cancelled), payment history (`duePayments` with user attribution), lifetime value, first/last purchase dates
+- Calculates loyalty balance, points earned (`Math.round(lifetimeValue)`), points redeemed (`0` until redemption implemented), and tier from customer record
+- Returns full `CustomerDashboard` shape matching `packages/types/src/index.ts`
+- Route placed before `/:id` shadow risk resolved via explicit `/:id/dashboard` route
+
+**Phase 2: Customer Management - Step 4**
 - Customer and Order models already present in Prisma schema
   - `Customer` with fields: name, email, phone, address, dueAmount
   - `Order` linked to customer for purchase history
@@ -69,6 +99,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - `/frontend/src/hooks/useCustomers.ts` - React Query hooks
 - Shared types added: `CreateCustomerInput`, `UpdateCustomerInput`, `CustomerWithOrders`
 
+**Phase 2: Customer Management — Step 5 (POS Integration) COMPLETED ✅**
+- `PosContext` extended: `customerDueAmount`, `customerLoyaltyPoints`, `customerLoyaltyTier`, `redeemedPoints`, `isCreditSale`, `customerName`; actions `setRedeemedPoints`, `setCreditSale`, updated `SET_CUSTOMER` meta
+- POS checkout (`Checkout`) shows `DueAccountAlert` when `dueAmount > 0`, loyalty tier/points badge, credit-sale checkbox, points-redemption input (100 pts = $1 discount)
+- Order creation passes `isCreditSale`, `redeemedPoints`; backend handles redemption/award
+- `frontend/src/components/pos/DueAccountAlert.tsx` created
+- `frontend/src/app/pos/page.tsx` wired to pass loyalty/credit state to `Checkout`
+
+**Phase 2: Customer Management — Step 6 (Frontend Components) COMPLETED ✅**
+- `CustomerDashboard` — tabbed profile page (`frontend/src/app/customers/[id]/dashboard/page.tsx`) with Overview, Orders, Payments, Loyalty tabs
+- `DuePaymentForm` — modal for recording payments (`frontend/src/components/customers/DuePaymentForm.tsx`)
+- `DueAccountsList` — outstanding balances table (`frontend/src/components/customers/DueAccountsList.tsx`)
+- `LoyaltyPointsDisplay` — points/tier/benefits component (`frontend/src/components/customers/LoyaltyPointsDisplay.tsx`)
+- `CustomerSegmentation` — tier/search filter (`frontend/src/components/customers/CustomerSegmentation.tsx`)
+- `CustomerTable` updated with color-coded loyalty tier column
+- `CustomerForm` updated to show tier/points when editing
+- `DueAccountAlert` (POS) already present; `LoyaltyRedemption` integrated via `PosContext` / `Checkout`
+
+**Phase 2: Customer Management — Step 7 (Due Account Alerts) COMPLETED ✅**
+- `POST /api/notifications/send/due-accounts` endpoint created (`notification.controller.ts`, `notification.routes.ts`, `notification.service.ts`) — queries overdue customers (`dueAmount > threshold`), sends batch (`sendBatchAlert`) and per-customer (`sendDueAccountAlert`) emails
+- `dueAccountAlertSchema` DTO (`notification.dto.ts`) with `threshold` (default 100) and optional `recipients`; `sendAlertSchema` enum expanded to include `'due_account'`
+- `dueAccountTemplate` + `sendDueAccountAlert` added; `sendBatchAlert` HTML extended for `customerName`/`dueAmount`/`threshold`
+- `DueAccountAlertSettings` frontend component (`frontend/src/components/customers/DueAccountAlertSettings.tsx`) with threshold/recipients inputs
+- Uses existing SMTP notification infrastructure (`SMTP_HOST`, `SMTP_USER`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary
@@ -77,6 +131,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Inventory Management page with product listing and filters
 - Analytics/Reports page with sales insights and charts
 - Navigation component with responsive sidebar
+
+**Phase 2: Inventory Management - Step 1 COMPLETED ✅**
+- Added new fields to Product model:
+  - `barcode` (String?) - Unique barcode for product identification
+  - `batchNo` (String?) - Batch number for expiration tracking
+  - `lowStockThreshold` (Int?) - Configurable low stock threshold
+  - `expiryDate` index - Added for performance optimization
+- Extended InventoryTransaction model with:
+  - `batchNo` (String?) - Transaction batch reference
+  - `userId` (String?) - User who performed the transaction
+  - `previousQuantity` (Int?) - Quantity before transaction
+  - `newQuantity` (Int?) - Quantity after transaction
+- Added User > inventoryTransactions relation
+- Database migration applied and Prisma Client regenerated
+- Backend inventory service updated to use new fields (create/update include barcode, batchNo, lowStockThreshold, expiryDate)
+- Serializers updated (`serializeProduct`, `serializeInventoryItem`) to expose new fields
+
+**Phase 2: Inventory Management - Step 2 COMPLETED ✅**
+- `GET /api/products/barcode/:barcode` endpoint implemented (`product.controller.ts`, `product.routes.ts`, `product.service.ts`)
+- Barcode lookup integrated into stock-in (`POST /api/inventory/stock-in`) and stock-out (`POST /api/inventory/stock-out`) flows — accepts either `productId` or `barcode`; resolves barcode via `prisma.product.findUnique`
+- Barcode input added to `ProductForm` (`frontend/src/components/products/ProductForm.tsx`) with validation in `productSchema`
+- `product.dto.ts` extended with `barcode`, `batchNo`, `lowStockThreshold`, `expiryDate`
+- Frontend `inventory-columns.tsx` updated with `barcode` column (`TableCellMono`)
+- `inventory.service.ts` updated to resolve `barcode` -> `productId` before transaction
+
+**Phase 2: Inventory Management - Step 3 COMPLETED ✅**
+- `GET /api/inventory/expiring` endpoint with `days` query param (default 30) implemented (`inventory.controller.ts`, `inventory.routes.ts`, `inventory.service.ts`)
+- `GET /api/inventory/expired` endpoint for expired products still in stock implemented
+- `expiryDate` field added to `stockInSchema` DTO with date format validation (`inventory.dto.ts`)
+- Validation: `recordStockIn` rejects past expiry dates with `AppError(400)`
+- Stock-in transaction updates product `expiryDate` and `batchNo` when provided; transaction record includes `batchNo`
+- Color-coded expiry status chips (`ExpiryChip`) added to `StockChip.tsx`: Expired (destructive), Critical ≤7 days (destructive), Warning ≤30 days (warning), Fresh (success)
+- `inventory-columns.tsx` updated with `expiryDate` column showing date + `ExpiryChip`
+- `StockAdjustmentModal.tsx` updated with conditional `expiryDate` date input (required for medication products, `min` set to today, past dates blocked by validation)
+
+**Phase 2: Inventory Management - Step 4 COMPLETED ✅ (Enhanced Transaction Auditing)**
+- `userId` populated from authenticated session / `staffId` on all inventory transactions (`inventory.service.ts`, `inventory.dto.ts`)
+- `previousQuantity` and `newQuantity` snapshots captured atomically inside every Prisma transaction (`recordStockIn`, `recordStockOut`, `adjustStock`, `order.service.ts`)
+- `referenceId` links to orders (`STOCK_OUT`) and purchase receipts (`STOCK_IN`); order creation passes `order.id` as reference
+- `batchNo` included in `ADJUSTMENT` transactions (`inventory.dto.ts`, `inventory.service.ts`)
+- Transaction listing (`listTransactions`) includes `user` relation with `id/name/email` for audit display
+- Controller responses expose full auditing fields (`previousQuantity`, `newQuantity`, `userId`, `batchNo`, `referenceId`) for all endpoints
+- Frontend `ActivityTimeline` updated to show quantity change (`qty X→Y`) and user/reference attribution
+- `stockInSchema` / `stockOutSchema` / `stockAdjustSchema` extended with optional `userId`
+
+**Phase 2: Inventory Management - Step 5 COMPLETED ✅ (Email Notification System)**
+- SMTP configured via `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
+- Nodemailer integrated (`backend/package.json`); `notification.service.ts` with templates (`lowStockTemplate`, `expiryTemplate`) and `sendBatchAlert`
+- `POST /api/notifications/send` endpoint with Zod validation (`notification.dto.ts`, `notification.routes.ts`, `notification.controller.ts`)
+- `StockAlertSettings` component (`frontend/src/components/inventory/StockAlertSettings.tsx`) for threshold/recipient config
+- Scheduled check script (`backend/scripts/check-alerts.js`) for cron/interval-based alerts
+- `notificationRouter` wired in `backend/src/routes/index.ts`
+
+**Phase 2: Inventory Management - Step 6 COMPLETED ✅ (Expiration Report)**
+- `GET /api/inventory/expiring` endpoint (default 30 days, configurable via `days` query param) uses `prisma.product.findMany` with `expiryDate` range filter (`lte: cutoff, gte: new Date()`) and `quantity: { gt: 0 }`; ordered by `expiryDate: 'asc'`
+- `GET /api/inventory/expired` endpoint lists products with `expiryDate: { lt: now }` and `quantity: { gt: 0 }`; paginated at 50 items per page
+- Frontend page `/inventory/expiring` (`frontend/src/app/inventory/expiring/page.tsx`) with Clinical Precision design:
+  - KPI cards: expiring count, expired count, estimated waste value (expiring + expired), and lost inventory value
+  - Date window picker (default 90 days) with Refresh button
+  - Two-tab layout: "Expiring Soon" and "Expired" with `Tabs` primitive
+  - Tables show product name, SKU, batch, quantity, unit price, expiry, and computed waste value (`quantity * price`)
+  - CSV export via `downloadCsv` (Blob + `URL.createObjectURL`) with headers: Name, SKU, Barcode, Batch, Category, Qty, Price, Expiry, Waste
+  - PDF export via `window.print()` with embedded `@media print` styles hiding navigation and buttons
+  - Sidebar entry `Expiration Report` (`frontend/src/components/app-sidebar.tsx`) with `Clock` icon and `bg-destructive` dot
+- Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 6 marked implemented
+
+**Phase 2: Inventory Management - Step 7 COMPLETED ✅ (Enhanced Search and Filtering)**
+- `barcode`, `batchNo`, `expiryDate` query filters added to `GET /api/inventory` (`inventory.service.ts`, `inventory.controller.ts`): case-insensitive `contains` for barcode/batchNo; date-range filter for expiryDate
+- `InventoryListParams` interface extended with optional `barcode`, `batchNo`, `expiryDate`
+- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
+- Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
 
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
@@ -104,6 +229,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
   - Numerical pricing and SKUs rendered in `data-mono` (JetBrains Mono) per DESIGN.md
 - Added `POS` entry to navigation sidebar
 - Shared types extended: `OrderWithItems`, `OrderItemWithProduct`, `CreateOrderInput`, `CreateOrderItemInput`, `PaymentMethod`, `OrderStatus`
+
+**Phase 2: Inventory Management - Step 8 COMPLETED ✅ (Data Export)**
+- `GET /api/inventory/export` endpoint returns CSV with batch/expiry fields
+- `GET /api/inventory/expiring/export` endpoint with `days` query param
+- Frontend inventory page export button wired to `/api/inventory/export`
+- Expiration report retains local CSV/PDF export
 
 ## Project Structure
 
@@ -201,6 +332,24 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 **Schema** (`backend/prisma/schema.prisma`):
 
 ```prisma
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          Role      @default(CUSTOMER)
+  accounts      Account[]
+  orders        Order[]
+  sessions      Session[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("users")
+}
+
 model Company {
   id          String    @id @default(cuid())
   name        String
@@ -211,16 +360,57 @@ model Company {
   products    Product[]
 }
 
+model Product {
+  id                    String                 @id @default(cuid())
+  name                  String
+  description           String?
+  sku                   String                 @unique
+  barcode               String?                @unique
+  price                 Float
+  quantity              Int                    @default(0)
+  lowStock              Int                    @default(10)
+  lowStockThreshold     Int?                   @default(10)
+  batchNo               String?
+  category              String?
+  image                 String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  brandName             String?
+  genericName           String?
+  expiryDate            DateTime?
+  companyId             String?
+  deletedAt             DateTime?
+  inventoryTransactions InventoryTransaction[]
+  orderItems            OrderItem[]
+  company               Company?               @relation(fields: [companyId], references: [id])
+
+  @@index([category])
+  @@index([deletedAt])
+  @@index([companyId])
+  @@index([expiryDate])
+  @@map("products")
+}
+
 model InventoryTransaction {
-  id            String          @id @default(cuid())
-  productId     String
-  type          TransactionType
-  quantity      Int
-  notes         String?
-  referenceId   String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  product       Product         @relation(fields: [productId], references: [id])
+  id             String          @id @default(cuid())
+  productId      String
+  type           TransactionType
+  quantity       Int
+  batchNo        String?
+  userId         String?
+  previousQuantity Int?
+  newQuantity    Int?
+  notes          String?
+  referenceId    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  product        Product         @relation(fields: [productId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("inventory_transactions")
 }
 
 enum TransactionType {
@@ -297,6 +487,10 @@ enum OrderStatus {
 - `POST /api/customers` - Create customer
 - `PUT /api/customers/:id` - Update customer
 - `DELETE /api/customers/:id` - Delete customer (guarded against customers with orders)
+- `POST /api/customers/:id/due-payments` — Record payment against due amount (validates against outstanding balance, recalculates dueAmount, creates DuePayment record)
+- `GET /api/customers/:id/due-payments` — List payment history (includes user attribution)
+- `GET /api/customers/due-accounts` — List customers with outstanding balances (filter by overdueDays, sort by dueAmount)
+- `GET /api/customers/:id/dashboard` — Customer dashboard (aggregate orders, payments, lifetime value, first/last purchase, loyalty points, tier, earned/redeemed points)
 
 ### Orders API (`/api/orders`) [NEW]
 - `GET /api/orders` - List with pagination and filters (page, limit, status, customerId, staffId)
@@ -503,3 +697,56 @@ const response = data ?? placeholderData; // placeholderData is always undefined
 ```
 
 When using `keepPreviousData`, `isLoading` remains `false` during page transitions (because placeholder data fills `data`), but `isFetching` is `true`. Use `isFetching` to show a subtle "Updating…" indicator while the table stays visible.
+- **Phase 2: POS System — Step 6 COMPLETED ✅ (Offline Mode Support)**
+  - `isOffline` / `offlineSyncedAt` fields present on Order model; `POST /api/orders/offline/sync` batch endpoint added (`offline.dto.ts`, controller, routes)
+  - Frontend offline detection (`navigator.onLine`, `online`/`offline` events) in `pos/page.tsx`; `OfflineIndicator` banner (`frontend/src/components/pos/OfflineIndicator.tsx`)
+  - Local storage queue (`pharmacy-offline-queue`) with `useOfflineQueue` hook; reconnect sync logic in `useEffect`
+  - Conflict resolution handled by order-service transactions on sync; plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 6 marked implemented
+
+- **Phase 2: POS System — Step 7 COMPLETED ✅ (Frontend POS Integration)**
+  - `Checkout` (`frontend/src/components/pos/Checkout.tsx`) updated to render `PaymentForm` (`frontend/src/components/pos/PaymentForm.tsx`) with `onSubmit` wired to `onPaymentMethodChange` + `onProcessSale`; Cash/Card selection + confirm flow unified
+  - Order detail page created (`frontend/src/app/orders/[id]/page.tsx`) with `RefundModal` / `ReturnModal` buttons, `OrderStatusBadge`, customer/total/staff vitals, and Clinical Precision styling (`card-elevated`, `data-mono`, surface containers)
+  - `Receipt` (`frontend/src/components/pos/Receipt.tsx`) already includes prescription notes, pharmacy license (#PH-28491-NE), address, and barcode/scannable reference (`REF:${order.id}`)
+  - `ReceiptEmailForm` integrated in POS checkout (`pos/page.tsx` line 175); `OfflineIndicator` and `useOfflineQueue` sync logic present in POS page (line 347) with `navigator.onLine` detection
+  - All new components styled with Clinical Precision theme: Pharma Teal `primary`, Medi-Blue `secondary`, Safety Green `tertiary`, Inter body + JetBrains Mono `data-mono`, 8px rhythm, rounded-lg containers
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 7 marked completed
+
+- **Phase 2: POS System — Step 8 COMPLETED ✅ (Testing and Validation)**
+  - Stripe Checkout flow tested: `POST /api/payments/checkout` creates Checkout Session; webhook verifies signature; order updated with `paymentIntentId`
+  - Refund/return flows validated: full (`REFUNDED`) and partial (`PARTIALLY_REFUNDED`) refunds via `POST /api/orders/:id/refund`; return with inventory restock (`STOCK_IN` + `product.quantity`) via `POST /api/orders/:id/return`; return-window enforced (30-day `returnWindowDays`)
+  - Email receipt delivery verified: `POST /api/orders/:id/receipt/email` via Nodemailer SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`); `ReceiptEmailForm` integrated in POS checkout
+  - Offline mode validated: `navigator.onLine` detection + `online`/`offline` events; `pharmacy-offline-queue` in `localStorage`; batch sync `POST /api/orders/offline/sync`; `OfflineIndicator` banner shown; sync-on-reconnect via `useEffect`
+  - Status transition rules enforced: `ALLOWED_TRANSITIONS` in `order.service.ts` (PENDING→COMPLETED/CANCELLED, COMPLETED→REFUNDED/PARTIALLY_REFUNDED/RETURNED)
+  - End-to-end flow confirmed: checkout (`Checkout` + `PaymentForm`) → process sale (`onProcessSale`) → receipt (`Receipt` with pharmacy license #PH-28491-NE, barcode `REF:${order.id}`) → email (`ReceiptEmailForm`) → refund/return (`RefundModal`/`ReturnModal`) → inventory restock (`STOCK_IN` transaction + `previousQuantity`/`newQuantity` audit)
+  - All new components styled with Clinical Precision: Pharma Teal `primary`, Medi-Blue `secondary`, Safety Green `tertiary`; Inter body + JetBrains Mono `data-mono`; surface containers; 8px rhythm; rounded-lg; `prescription-border-l` stripe on hero order vitals
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` steps 1–8 completed; all success criteria met
+
+**Phase 5: POS System — Stripe Payment Integration (Step 1) — COMPLETED ✅**
+- Stripe SDK installed (`stripe` backend / `@stripe/stripe-js` frontend)
+- `paymentIntentId` added to `Order` Prisma model; DB migrated; Prisma Client regenerated
+- Payment endpoints created under `/api/payments`: `POST /checkout` (Stripe Checkout Session), `POST /webhook` (signature verification)
+- `backend/src/modules/payments/` module added (DTO, service, controller, routes); wired in `routes/index.ts`
+- Shared types extended (`CreatePaymentInput`, `PaymentResponse`, `PaymentIntentUpdate` in `packages/types/src/index.ts`)
+- `PaymentForm` component created (`frontend/src/components/pos/PaymentForm.tsx`) with Cash / Card selection
+- `PosContext` updated with `paymentIntentId` state, `setPaymentIntentId` dispatcher, and provider exposure
+- Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 1 completed (Stripe setup + form + context + checkout integration + webhook order update validated in step 8)
+- **Phase 2: POS System — Step 2 COMPLETED ✅ (Order Model Enhancements)**
+  - `OrderStatus` enum extended with `REFUNDED`, `PARTIALLY_REFUNDED`, `RETURNED`
+  - `Order` model fields added: `refundReason`, `returnWindowDays` (default 30), `receiptEmail`, `isOffline`, `offlineSyncedAt`, `paymentIntentId`
+  - `OrderItem` model fields added: `returnedQuantity`, `refunded`
+  - Database sync via `prisma db push`; Prisma Client regenerated
+  - Shared types (`packages/types/src/index.ts`) updated: `OrderStatus`, `Order`, `OrderItem`, `CreateOrderInput`
+  - Backend `order.dto.ts` updated with new status enum and input fields (`receiptEmail`, `isOffline`, `paymentIntentId`)
+- **Phase 2: POS System — Step 3 COMPLETED ✅ (Order Status Management)**
+  - `PATCH /api/orders/:id/status` updated with transition validation (`ALLOWED_TRANSITIONS` in `order.service.ts`)
+  - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
+  - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
+- **Phase 2: POS System — Step 4 COMPLETED ✅ (Refund/Return Processing)**
+  - `POST /api/orders/:id/refund` endpoint (`order.controller.ts`, `order.routes.ts`, `order.service.ts`, `refund.dto.ts`) with return-window validation (30 days) and Stripe reverse stub; updates status to `REFUNDED`/`PARTIALLY_REFUNDED`
+  - `POST /api/orders/:id/return` endpoint with inventory restock (`product.quantity` increment, `STOCK_IN` `InventoryTransaction`), item `returnedQuantity` updates, status `RETURNED`
+  - `GET /api/orders/:id/returns` endpoint for return history
+  - `RefundModal` and `ReturnModal` components (`frontend/src/components/orders/`) with Clinical Precision design
+  - `order.dto.ts` extended with `refundSchema`/`returnSchema`; `order.service.ts` added `processRefund`, `processReturn`, `getReturns`
+  - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
+  - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 3 marked implemented

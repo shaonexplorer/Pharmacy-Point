@@ -37,6 +37,15 @@ export const getOne = asyncHandler(async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/products/barcode/:barcode
+ * Get a single product by barcode.
+ */
+export const getByBarcode = asyncHandler(async (req: Request, res: Response) => {
+  const product = await productService.getProductByBarcode(req.params.barcode);
+  res.json({ data: serializeProduct(product) });
+});
+
+/**
  * POST /api/products
  * Create a new product.
  */

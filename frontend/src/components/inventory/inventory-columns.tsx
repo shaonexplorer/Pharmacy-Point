@@ -4,7 +4,7 @@ import { Plus, Edit, AlertTriangle } from 'lucide-react';
 
 import type { InventoryItem } from '@pharmacy-point/types';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
-import { StockChip, getStockStatus } from '@/components/inventory/StockChip';
+import { StockChip, getStockStatus, ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { Button } from '@/components/ui/button';
 import { TableCellMono } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/formatters';
@@ -38,6 +38,20 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       ),
     },
     {
+      accessorKey: 'batchNo',
+      header: 'Batch',
+      cell: ({ row }) => (
+        <TableCellMono>{row.original.batchNo || '—'}</TableCellMono>
+      ),
+    },
+    {
+      accessorKey: 'barcode',
+      header: 'Barcode',
+      cell: ({ row }) => (
+        <TableCellMono>{row.original.barcode || '—'}</TableCellMono>
+      ),
+    },
+    {
       accessorKey: 'category',
       header: 'Category',
       cell: ({ row }) => (
@@ -59,6 +73,22 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
               {product.quantity} units
             </span>
             <StockChip status={stockStatus} />
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'expiryDate',
+      header: 'Expiry',
+      cell: ({ row }) => {
+        const product = row.original;
+        const expStatus = getExpiryStatus(product.expiryDate);
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-on-surface-variant">
+              {product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '—'}
+            </span>
+            <ExpiryChip status={expStatus} />
           </div>
         );
       },

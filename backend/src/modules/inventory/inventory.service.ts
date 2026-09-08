@@ -10,12 +10,87 @@ import type { StockInInput, StockOutInput, StockAdjustInput } from './inventory.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PrismaResult = any;
 
+export interface ExpiringListParams {
+  page?: string | undefined;
+  limit?: string | undefined;
+  days?: number;
+}
+
+export async function listExpiring(params: ExpiringListParams): Promise<PaginatedInventory> {
+  const { page, limit, skip } = parsePagination({ page: params.page, limit: params.limit });
+  const days = params.days ?? 30;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() + days);
+
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        deletedAt: null,
+        expiryDate: { lte: cutoff, gte: new Date() },
+        quantity: { gt: 0 },
+      },
+      skip,
+      take: limit,
+      orderBy: { expiryDate: 'asc' },
+      include: { company: true },
+    }),
+    prisma.product.count({
+      where: {
+        deletedAt: null,
+        expiryDate: { lte: cutoff, gte: new Date() },
+        quantity: { gt: 0 },
+      },
+    }),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      ...buildPagination(total, page, limit),
+      total,
+    },
+  };
+}
+
+export async function listExpired(): Promise<PaginatedInventory> {
+  const now = new Date();
+  const [items, total] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        deletedAt: null,
+        expiryDate: { lt: now },
+        quantity: { gt: 0 },
+      },
+      orderBy: { expiryDate: 'asc' },
+      include: { company: true },
+    }),
+    prisma.product.count({
+      where: {
+        deletedAt: null,
+        expiryDate: { lt: now },
+        quantity: { gt: 0 },
+      },
+    }),
+  ]);
+
+  return {
+    data: items,
+    pagination: {
+      ...buildPagination(total, 1, 50),
+      total,
+    },
+  };
+}
+
 export interface InventoryListParams {
   page?: string | undefined;
   limit?: string | undefined;
   search?: string;
   lowStock?: boolean;
   companyId?: string;
+  barcode?: string;
+  batchNo?: string;
+  expiryDate?: string;
 }
 
 export interface InventoryTransactionListParams {
@@ -34,6 +109,7 @@ export interface StockOperationResult {
   product: PrismaResult;
   transaction: PrismaResult;
   previousQuantity?: number;
+  newQuantity?: number;
   difference?: number;
 }
 
@@ -47,6 +123,9 @@ export async function listInventory(params: InventoryListParams): Promise<Pagina
   const search = params.search ?? '';
   const lowStockOnly = params.lowStock === true;
   const companyId = params.companyId;
+  const barcode = params.barcode;
+  const batchNo = params.batchNo;
+  const expiryDate = params.expiryDate;
 
   const where: Record<string, unknown> = { deletedAt: null };
 
@@ -59,6 +138,21 @@ export async function listInventory(params: InventoryListParams): Promise<Pagina
 
   if (companyId) {
     where.companyId = companyId;
+  }
+
+  if (barcode) {
+    where.barcode = { contains: barcode, mode: 'insensitive' };
+  }
+
+  if (batchNo) {
+    where.batchNo = { contains: batchNo, mode: 'insensitive' };
+  }
+
+  if (expiryDate) {
+    const target = new Date(expiryDate);
+    const end = new Date(target);
+    end.setDate(end.getDate() + 1);
+    where.expiryDate = { gte: target, lt: end };
   }
 
   // Fetch all matching products, then filter + paginate in JS
@@ -110,7 +204,7 @@ export async function listTransactions(
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: { product: true },
+      include: { product: true, user: { select: { id: true, name: true, email: true } } },
     }),
     prisma.inventoryTransaction.count({ where }),
   ]);
@@ -130,32 +224,55 @@ export async function listTransactions(
  * an STOCK_IN transaction record.
  */
 export async function recordStockIn(data: StockInInput): Promise<StockOperationResult> {
+  let productId = data.productId;
+  if (!productId && data.barcode) {
+    const productByBarcode = await prisma.product.findUnique({
+      where: { barcode: data.barcode, deletedAt: null },
+    });
+    if (!productByBarcode) throw new AppError(404, 'Product not found by barcode');
+    productId = productByBarcode.id;
+  }
   const product = await prisma.product.findFirst({
-    where: { id: data.productId, deletedAt: null },
+    where: { id: productId, deletedAt: null },
   });
 
   if (!product) {
     throw new AppError(404, 'Product not found');
   }
 
+  if (data.expiryDate) {
+    const expiry = new Date(data.expiryDate);
+    if (expiry < new Date()) {
+      throw new AppError(400, 'Expiry date cannot be in the past');
+    }
+  }
+
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
+    const updateData: Record<string, unknown> = { quantity: { increment: data.quantity } };
+    if (data.expiryDate) updateData.expiryDate = new Date(data.expiryDate);
+    if (data.batchNo) updateData.batchNo = data.batchNo;
     const updatedProduct = await tx.product.update({
-      where: { id: data.productId },
-      data: { quantity: { increment: data.quantity } },
+      where: { id: productId! },
+      data: updateData,
     });
 
     const transaction = await tx.inventoryTransaction.create({
       data: {
-        productId: data.productId,
+        productId: productId!,
         type: 'STOCK_IN',
         quantity: data.quantity,
+        batchNo: data.batchNo,
         notes: data.notes,
         referenceId: data.referenceId,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
 
-    return { product: updatedProduct, transaction };
+    return { product: updatedProduct, transaction, previousQuantity, newQuantity: updatedProduct.quantity };
   });
 }
 
@@ -165,8 +282,16 @@ export async function recordStockIn(data: StockInInput): Promise<StockOperationR
  * Uses a Prisma transaction for atomicity.
  */
 export async function recordStockOut(data: StockOutInput): Promise<StockOperationResult> {
+  let productId = data.productId;
+  if (!productId && data.barcode) {
+    const productByBarcode = await prisma.product.findUnique({
+      where: { barcode: data.barcode, deletedAt: null },
+    });
+    if (!productByBarcode) throw new AppError(404, 'Product not found by barcode');
+    productId = productByBarcode.id;
+  }
   const product = await prisma.product.findFirst({
-    where: { id: data.productId, deletedAt: null },
+    where: { id: productId, deletedAt: null },
   });
 
   if (!product) {
@@ -181,23 +306,27 @@ export async function recordStockOut(data: StockOutInput): Promise<StockOperatio
   }
 
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
     const updatedProduct = await tx.product.update({
-      where: { id: data.productId },
+      where: { id: productId! },
       data: { quantity: { decrement: data.quantity } },
     });
 
     const transaction = await tx.inventoryTransaction.create({
       data: {
-        productId: data.productId,
+        productId: productId!,
         type: 'STOCK_OUT',
         quantity: data.quantity,
         notes: data.notes,
         referenceId: data.referenceId,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
 
-    return { product: updatedProduct, transaction };
+    return { product: updatedProduct, transaction, previousQuantity, newQuantity: updatedProduct.quantity };
   });
 }
 
@@ -221,8 +350,9 @@ export async function adjustStock(
   const quantityDifference = data.quantity - product.quantity;
 
   return await prisma.$transaction(async (tx) => {
+    const previousQuantity = product.quantity;
     const updatedProduct = await tx.product.update({
-      where: { id: productId },
+      where: { id: productId! },
       data: { quantity: data.quantity },
     });
 
@@ -232,6 +362,10 @@ export async function adjustStock(
         type: 'ADJUSTMENT',
         quantity: quantityDifference,
         notes: data.notes,
+        batchNo: data.batchNo,
+        userId: (data as { userId?: string }).userId ?? undefined,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
       },
       include: { product: true },
     });
@@ -239,8 +373,33 @@ export async function adjustStock(
     return {
       product: updatedProduct,
       transaction,
-      previousQuantity: product.quantity,
+      previousQuantity,
+      newQuantity: updatedProduct.quantity,
       difference: quantityDifference,
     };
   });
+}
+
+export async function exportInventoryCsv(): Promise<string> {
+  const products = await prisma.product.findMany({ where: { deletedAt: null }, orderBy: { name: 'asc' }, include: { company: true } });
+  const headers = ['Name','SKU','Barcode','Batch','Category','Qty','Price','Expiry','Company'];
+  const rows = products.map((p: any) => [
+    p.name, p.sku, p.barcode ?? '', p.batchNo ?? '', p.category ?? '', String(p.quantity ?? 0), String(p.price ?? 0), p.expiryDate ? new Date(p.expiryDate).toISOString().split('T')[0] : '', p.company?.name ?? ''
+  ]);
+  const escape = (v: string) => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
+  return lines.join('\r\n');
+}
+
+export async function exportExpiringCsv(days = 30): Promise<string> {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() + days);
+  const products = await prisma.product.findMany({ where: { deletedAt: null, expiryDate: { lte: cutoff, gte: new Date() }, quantity: { gt: 0 } }, orderBy: { expiryDate: 'asc' }, include: { company: true } });
+  const headers = ['Name','SKU','Barcode','Batch','Category','Qty','Price','Expiry','Waste','Company'];
+  const rows = products.map((p: any) => {
+    const waste = (p.quantity ?? 0) * (p.price ?? 0);
+    return [p.name, p.sku, p.barcode ?? '', p.batchNo ?? '', p.category ?? '', String(p.quantity ?? 0), String(p.price ?? 0), p.expiryDate ? new Date(p.expiryDate).toISOString().split('T')[0] : '', String(waste.toFixed(2)), p.company?.name ?? ''];
+  });
+  const escape = (v: string) => '"' + String(v).replace(/"/g, '""') + '"';
+  const lines = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
+  return lines.join('\r\n');
 }

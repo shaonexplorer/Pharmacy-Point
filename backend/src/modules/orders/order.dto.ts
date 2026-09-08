@@ -32,13 +32,31 @@ export const orderCreateSchema = z.object({
     .nonnegative('Tax rate must be a non-negative number'),
   paymentMethod: z.enum(['cash', 'card']).optional().nullable(),
   staffId: z.string().optional().nullable(),
+  receiptEmail: z.string().email().optional().nullable(),
+  isOffline: z.boolean().optional().default(false),
+  paymentIntentId: z.string().optional().nullable(),
 });
 
 export const orderStatusUpdateSchema = z.object({
-  status: z.enum(['PENDING', 'COMPLETED', 'CANCELLED'], {
-    errorMap: () => ({ message: 'Status must be one of: PENDING, COMPLETED, CANCELLED' }),
+  status: z.enum(['PENDING', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED'], {
+    errorMap: () => ({ message: 'Status must be a valid order status' }),
   }),
 });
 
 export type CreateOrderInput = z.infer<typeof orderCreateSchema>;
 export type OrderStatusUpdateInput = z.infer<typeof orderStatusUpdateSchema>;
+
+export const refundSchema = z.object({
+  amount: z.number().positive(),
+  reason: z.string().min(1).max(500),
+  refundMethod: z.enum(['original', 'store_credit']).optional().default('original'),
+});
+export const returnSchema = z.object({
+  items: z.array(z.object({
+    orderItemId: z.string().min(1),
+    quantity: z.number().positive(),
+  })).min(1),
+  reason: z.string().min(1).max(500).optional(),
+});
+export type RefundInput = z.infer<typeof refundSchema>;
+export type ReturnInput = z.infer<typeof returnSchema>;

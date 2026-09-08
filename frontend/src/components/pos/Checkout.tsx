@@ -4,6 +4,8 @@ import { Customer, PaymentMethod } from '@pharmacy-point/types';
 import { CartItem } from '@/context/PosContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { DueAccountAlert } from './DueAccountAlert';
 import {
   Select,
   SelectContent,
@@ -14,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
+import PaymentForm from './PaymentForm';
 
 interface CheckoutProps {
   items: CartItem[];
@@ -29,6 +32,13 @@ interface CheckoutProps {
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onCustomerChange: (customerId: string) => void;
   onProcessSale: () => void;
+  dueAmount?: number;
+  loyaltyPoints?: number;
+  loyaltyTier?: string;
+  redeemedPoints?: number;
+  isCreditSale?: boolean;
+  onRedeemPoints?: (pts: number) => void;
+  onCreditSaleToggle?: (v: boolean) => void;
 }
 
 export function Checkout({
@@ -42,9 +52,16 @@ export function Checkout({
   customers,
   isLoadingCustomers,
   isProcessing,
+  dueAmount = 0,
+  loyaltyPoints = 0,
+  loyaltyTier = 'Bronze',
+  redeemedPoints = 0,
+  isCreditSale = false,
   onPaymentMethodChange,
   onCustomerChange,
   onProcessSale,
+  onRedeemPoints,
+  onCreditSaleToggle,
 }: CheckoutProps) {
   const isEmpty = items.length === 0;
 
@@ -80,31 +97,16 @@ export function Checkout({
           </div>
         </div>
 
-        {/* Payment Method Selection — DESIGN.md: secondary uses Medi-Blue */}
+        {/* Payment Method — Clinical Precision: unified PaymentForm for Cash/Card + Stripe flow */}
         <div className="flex flex-col gap-2">
           <p className="text-label-md text-foreground">Payment Method</p>
-          <div className="flex gap-2">
-            <Button
-              variant={paymentMethod === 'cash' ? 'default' : 'secondary'}
-              size="tablet"
-              disabled={isProcessing}
-              onClick={() => onPaymentMethodChange('cash')}
-              className="flex-1"
-            >
-              <Banknote className="mr-2 h-4 w-4" />
-              Cash
-            </Button>
-            <Button
-              variant={paymentMethod === 'card' ? 'default' : 'secondary'}
-              size="tablet"
-              disabled={isProcessing}
-              onClick={() => onPaymentMethodChange('card')}
-              className="flex-1"
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Card
-            </Button>
-          </div>
+          <PaymentForm
+            total={total}
+            onSubmit={(method) => {
+              onPaymentMethodChange(method);
+              onProcessSale();
+            }}
+          />
         </div>
 
         {/* Customer Selection */}
@@ -128,6 +130,41 @@ export function Checkout({
             </SelectContent>
           </Select>
         </div>
+
+        {dueAmount > 0 && (
+          <DueAccountAlert dueAmount={dueAmount} />
+        )}
+        {customerId && loyaltyPoints > 0 && (
+          <div className="flex items-center gap-2 text-sm">
+            <Badge variant="outline" className="bg-secondary/10 text-secondary">{loyaltyTier}</Badge>
+            <span className="text-on-surface-variant">Points: <strong className="text-foreground">{loyaltyPoints}</strong></span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="credit-sale"
+            checked={isCreditSale}
+            onChange={(e) => onCreditSaleToggle?.(e.target.checked)}
+            className="h-4 w-4 rounded border-border accent-primary"
+          />
+          <label htmlFor="credit-sale" className="text-sm text-foreground">Credit sale (record due amount)</label>
+        </div>
+        {customerId && loyaltyPoints > 0 && onRedeemPoints && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-on-surface-variant">Redeem points:</span>
+            <input
+              type="number"
+              min={0}
+              max={loyaltyPoints}
+              step={100}
+              value={redeemedPoints}
+              onChange={(e) => onRedeemPoints(Math.min(Math.max(0, Math.round(Number(e.target.value) / 100) * 100), loyaltyPoints))}
+              className="w-24 rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+            <span className="text-xs text-on-surface-variant">({redeemedPoints / 100} discount)</span>
+          </div>
+        )}
 
         {/* Process Sale — primary action, large-format with rounded-lg per spec */}
         <Button

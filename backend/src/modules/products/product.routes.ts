@@ -5,11 +5,12 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate';
 import { productCreateSchema, productUpdateSchema } from './product.dto';
-import { list, getOne, create, update, remove } from './product.controller';
+import { list, getOne, getByBarcode, create, update, remove } from './product.controller';
 
 const router = Router();
 
 router.get('/', list);
+router.get('/barcode/:barcode', getByBarcode);
 router.get('/:id', getOne);
 router.post('/', validate(productCreateSchema), create);
 router.put('/:id', validate(productUpdateSchema), update);
