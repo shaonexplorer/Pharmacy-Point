@@ -66,14 +66,14 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 - [x] Update POS page (`pos/page.tsx`) with network state and indicator
 - [x] Implement basic conflict resolution (batch sync on reconnect; stock handled by order service transactions)
 
-### 7. Frontend POS Integration
-- Update `Checkout` component with payment method selection
-- Integrate `PaymentForm` (Stripe Elements) in checkout flow
-- Add refund/return action buttons to order detail page
-- Update `Receipt` component with prescription notes and pharmacy info
-- Add `ReceiptEmailForm` to order confirmation screen
-- Add `OfflineIndicator` and offline queuing to POS page
-- Style all new components with Clinical Precision theme
+### 7. Frontend POS Integration — COMPLETED ✅
+- [x] Update `Checkout` component with payment method selection (PaymentForm integrated — Cash/Card + confirm flow)
+- [x] Integrate `PaymentForm` in checkout flow (`Checkout.tsx` renders `PaymentForm` with `onSubmit` wired to `onPaymentMethodChange` + `onProcessSale`)
+- [x] Add refund/return action buttons to order detail page (`frontend/src/app/orders/[id]/page.tsx` with `RefundModal` / `ReturnModal`)
+- [x] Update `Receipt` component with prescription notes and pharmacy info (license #PH-28491-NE, address 1200 Medical Center Dr, barcode reference REF:`order.id` — present)
+- [x] Add `ReceiptEmailForm` to order confirmation screen (`pos/page.tsx` line 175 — integrated)
+- [x] Add `OfflineIndicator` and offline queuing to POS page (`pos/page.tsx` line 347; `OfflineIndicator` component + `useOfflineQueue` hook)
+- [x] Style all new components with Clinical Precision theme (Pharma Teal primary, JetBrains Mono `data-mono`, surface containers, rounded-lg, 8px rhythm)
 
 ### 8. Testing and Validation
 - Test Stripe payment flow in test mode

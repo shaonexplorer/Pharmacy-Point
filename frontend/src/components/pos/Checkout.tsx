@@ -14,6 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
+import PaymentForm from './PaymentForm';
 
 interface CheckoutProps {
   items: CartItem[];
@@ -80,31 +81,16 @@ export function Checkout({
           </div>
         </div>
 
-        {/* Payment Method Selection — DESIGN.md: secondary uses Medi-Blue */}
+        {/* Payment Method — Clinical Precision: unified PaymentForm for Cash/Card + Stripe flow */}
         <div className="flex flex-col gap-2">
           <p className="text-label-md text-foreground">Payment Method</p>
-          <div className="flex gap-2">
-            <Button
-              variant={paymentMethod === 'cash' ? 'default' : 'secondary'}
-              size="tablet"
-              disabled={isProcessing}
-              onClick={() => onPaymentMethodChange('cash')}
-              className="flex-1"
-            >
-              <Banknote className="mr-2 h-4 w-4" />
-              Cash
-            </Button>
-            <Button
-              variant={paymentMethod === 'card' ? 'default' : 'secondary'}
-              size="tablet"
-              disabled={isProcessing}
-              onClick={() => onPaymentMethodChange('card')}
-              className="flex-1"
-            >
-              <CreditCard className="mr-2 h-4 w-4" />
-              Card
-            </Button>
-          </div>
+          <PaymentForm
+            total={total}
+            onSubmit={(method) => {
+              onPaymentMethodChange(method);
+              onProcessSale();
+            }}
+          />
         </div>
 
         {/* Customer Selection */}

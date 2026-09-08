@@ -645,6 +645,14 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - Local storage queue (`pharmacy-offline-queue`) with `useOfflineQueue` hook; reconnect sync logic in `useEffect`
   - Conflict resolution handled by order-service transactions on sync; plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 6 marked implemented
 
+- **Phase 2: POS System — Step 7 COMPLETED ✅ (Frontend POS Integration)**
+  - `Checkout` (`frontend/src/components/pos/Checkout.tsx`) updated to render `PaymentForm` (`frontend/src/components/pos/PaymentForm.tsx`) with `onSubmit` wired to `onPaymentMethodChange` + `onProcessSale`; Cash/Card selection + confirm flow unified
+  - Order detail page created (`frontend/src/app/orders/[id]/page.tsx`) with `RefundModal` / `ReturnModal` buttons, `OrderStatusBadge`, customer/total/staff vitals, and Clinical Precision styling (`card-elevated`, `data-mono`, surface containers)
+  - `Receipt` (`frontend/src/components/pos/Receipt.tsx`) already includes prescription notes, pharmacy license (#PH-28491-NE), address, and barcode/scannable reference (`REF:${order.id}`)
+  - `ReceiptEmailForm` integrated in POS checkout (`pos/page.tsx` line 175); `OfflineIndicator` and `useOfflineQueue` sync logic present in POS page (line 347) with `navigator.onLine` detection
+  - All new components styled with Clinical Precision theme: Pharma Teal `primary`, Medi-Blue `secondary`, Safety Green `tertiary`, Inter body + JetBrains Mono `data-mono`, 8px rhythm, rounded-lg containers
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 7 marked completed
+
 **Phase 5: POS System — Stripe Payment Integration (Step 1) — IN PROGRESS ✅**
 - Stripe SDK installed (`stripe` backend / `@stripe/stripe-js` frontend)
 - `paymentIntentId` added to `Order` Prisma model; DB migrated; Prisma Client regenerated
