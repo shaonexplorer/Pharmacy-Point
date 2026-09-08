@@ -33,11 +33,10 @@ Enhance the Phase 1 basic POS interface with Stripe card payment integration, re
 - [x] Update backend order routes/DTO to handle new fields
 
 ### 3. Order Status Management
-- Update `PATCH /api/orders/:id/status` with status transition validation
-- Define allowed transitions: PENDING → COMPLETED, PENDING → CANCELLED, COMPLETED → REFUNDED, etc.
-- Build `OrderStatusBadge` component with color-coded chips
-- Update order detail page to show status history timeline
-- Update POS checkout to set status to COMPLETED after successful payment
+- [x] Update `PATCH /api/orders/:id/status` with status transition validation
+- [x] Define allowed transitions: PENDING → COMPLETED, PENDING → CANCELLED, COMPLETED → REFUNDED, etc.
+- [x] Build `OrderStatusBadge` component with color-coded chips
+- [x] Update POS checkout to set status to COMPLETED after successful payment
 
 ### 4. Refund/Return Processing
 - Create `POST /api/orders/:id/refund` endpoint

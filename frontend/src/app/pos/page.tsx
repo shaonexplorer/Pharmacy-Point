@@ -108,6 +108,16 @@ function PosContent() {
       const response = await createOrderMutation.mutateAsync(orderData);
 
       if (response?.data) {
+        // Step 3: set status to COMPLETED after successful payment
+        try {
+          await fetch(`/api/orders/${response.data.id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'COMPLETED' }),
+          });
+        } catch {
+          /* non-blocking */
+        }
         setCompletedOrder(response.data);
         setShowReceipt(true);
         clearCart();

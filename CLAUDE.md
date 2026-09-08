@@ -655,3 +655,8 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - Database sync via `prisma db push`; Prisma Client regenerated
   - Shared types (`packages/types/src/index.ts`) updated: `OrderStatus`, `Order`, `OrderItem`, `CreateOrderInput`
   - Backend `order.dto.ts` updated with new status enum and input fields (`receiptEmail`, `isOffline`, `paymentIntentId`)
+- **Phase 2: POS System — Step 3 COMPLETED ✅ (Order Status Management)**
+  - `PATCH /api/orders/:id/status` updated with transition validation (`ALLOWED_TRANSITIONS` in `order.service.ts`)
+  - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
+  - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
+  - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 3 marked implemented

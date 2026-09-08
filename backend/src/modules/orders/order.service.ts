@@ -212,6 +212,15 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
  * Update an order's status.
  * Throws 404 if the order does not exist.
  */
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  PENDING: ['COMPLETED', 'CANCELLED'],
+  COMPLETED: ['REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED'],
+  CANCELLED: ['PENDING'],
+  REFUNDED: ['RETURNED'],
+  PARTIALLY_REFUNDED: ['REFUNDED', 'RETURNED'],
+  RETURNED: [],
+};
+
 export async function updateOrderStatus(id: string, status: string): Promise<PrismaResult> {
   const existing = await prisma.order.findUnique({ where: { id } });
 
@@ -219,9 +228,15 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
     throw new AppError(404, 'Order not found');
   }
 
+  const current = existing.status as string;
+  const allowed = ALLOWED_TRANSITIONS[current] ?? [];
+  if (!allowed.includes(status)) {
+    throw new AppError(400, `Invalid status transition from ${current} to ${status}`);
+  }
+
   const updated = await prisma.order.update({
     where: { id },
-    data: { status: status as 'PENDING' | 'COMPLETED' | 'CANCELLED' },
+    data: { status: status as 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED' },
     include: {
       customer: true,
       items: {
