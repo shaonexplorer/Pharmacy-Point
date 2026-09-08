@@ -294,6 +294,11 @@ backend/src/
       category.service.ts
       category.controller.ts
       category.routes.ts     # Now wired up (was dead code)
+    analytics/
+      analytics.dto.ts       # Zod validation for analytics queries
+      analytics.service.ts   # Revenue trends, sales by category, inventory status
+      analytics.controller.ts# GET /api/analytics/* endpoints
+      analytics.routes.ts    # Routes wired in routes/index.ts
 `
 
 ### Backend module layer responsibilities
@@ -500,6 +505,13 @@ enum OrderStatus {
 
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard
+
+### Analytics API (`/api/analytics`) [Phase 3 - NEW]
+- `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
+- `GET /api/analytics/revenue-trends?period=month&days=30` — Revenue trend data for charting (labels, revenue, orders arrays)
+- `GET /api/analytics/sales-by-category?days=30` — Sales breakdown by product category
+- `GET /api/analytics/inventory-status` — Inventory status summary (inStock, lowStock, outOfStock, totalInventoryValue)
+- `GET /api/analytics/top-products?days=30&limit=5` — Top products by revenue
 
 ## Development Workflow
 
@@ -750,3 +762,27 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
   - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
   - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 3 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 1 COMPLETED ✅ (Analytics Dashboard)**
+- Backend analytics module created (`backend/src/modules/analytics/`):
+  - `analytics.dto.ts` — Zod validation for period/days query params
+  - `analytics.service.ts` — Revenue trends, sales by category, inventory status, top products (uses Prisma raw SQL with `sql` tag)
+  - `analytics.controller.ts` — GET `/api/analytics/*` endpoints with validation middleware
+  - `analytics.routes.ts` — Wired in `routes/index.ts`
+- Frontend chart components created (`frontend/src/components/charts/`):
+  - `RevenueTrendChart.tsx` — ComposedChart (Line + Bar) for revenue trends
+  - `SalesByCategoryChart.tsx` — BarChart for sales by category
+  - `InventoryStatusChart.tsx` — PieChart for inventory status distribution
+  - `TopProductsChart.tsx` — Horizontal BarChart for top products
+  - `index.ts` — Barrel exports
+- Frontend analytics hooks created (`frontend/src/hooks/useAnalytics.ts`):
+  - `useAnalytics`, `useRevenueTrends`, `useSalesByCategory`, `useInventoryAnalytics`, `useTopProducts`
+- Frontend analytics page updated (`frontend/src/app/analytics/page.tsx`):
+  - Replaced static mock data with real API calls via React Query
+  - KPI cards for revenue, avg order value, new customers, inventory health
+  - Period filter (day/week/month/quarter) wired to all charts
+  - Revenue trends, sales by category, inventory status, top products charts
+  - Responsive grid layout (2 columns desktop, 1 column mobile)
+  - Clinical Precision theme integration throughout
+- Recharts library installed and integrated
+- All TypeScript compilation passes (both frontend and backend)

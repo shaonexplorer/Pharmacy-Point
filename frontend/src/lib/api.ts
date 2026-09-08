@@ -188,4 +188,22 @@ export const api = {
         data,
       }),
   },
+
+  // Analytics
+  analytics: {
+    dashboard: (params?: { period?: string; days?: number }) =>
+      request<any>('/api/analytics/dashboard', { params }),
+
+    revenueTrends: (params?: { period?: string; days?: number }) =>
+      request<any>('/api/analytics/revenue-trends', { params }),
+
+    salesByCategory: (params?: { days?: number }) =>
+      request<any>('/api/analytics/sales-by-category', { params }),
+
+    inventoryStatus: () =>
+      request<any>('/api/analytics/inventory-status'),
+
+    topProducts: (params?: { days?: number; limit?: number }) =>
+      request<any>('/api/analytics/top-products', { params }),
+  },
 };
