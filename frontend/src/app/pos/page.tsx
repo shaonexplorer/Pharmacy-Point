@@ -109,14 +109,14 @@ function PosContent() {
       const orderData = {
         customerId: customerId ?? null,
         items: orderItems,
-        subtotal,
-        tax: taxAmount,
-        taxRate,
-        total,
-        paymentMethod: isCreditSale ? 'credit' : paymentMethod,
+        subtotal: Number(subtotal || 0),
+        tax: Number(taxAmount || 0),
+        taxRate: Number(taxRate || 0.085),
+        total: Number(total || 0),
+        paymentMethod: paymentMethod || 'cash',
         staffId: sessionData?.user?.id ?? null,
-        isCreditSale,
-        redeemedPoints,
+        isCreditSale: !!isCreditSale,
+        redeemedPoints: Number(redeemedPoints || 0),
       };
 
       const response = await createOrderMutation.mutateAsync(orderData);

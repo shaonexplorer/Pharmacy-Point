@@ -161,10 +161,18 @@ function posReducer(state: PosState, action: PosAction): PosState {
 
     case 'CLEAR_CART':
       return {
+        ...state,
         items: [],
         customerId: null,
+        customerName: null,
+        customerDueAmount: 0,
+        customerLoyaltyPoints: 0,
+        customerLoyaltyTier: 'Bronze',
         paymentMethod: 'cash',
+        redeemedPoints: 0,
+        isCreditSale: false,
         taxRate: state.taxRate,
+        paymentIntentId: null,
       };
 
     case 'SET_CUSTOMER':
@@ -199,7 +207,7 @@ function posReducer(state: PosState, action: PosAction): PosState {
       return { ...state, redeemedPoints: Math.min(action.points, state.customerLoyaltyPoints) };
 
     case 'SET_CREDIT_SALE':
-      return { ...state, isCreditSale: action.isCredit, paymentMethod: action.isCredit ? 'credit' : state.paymentMethod };
+      return { ...state, isCreditSale: action.isCredit };
 
     default:
       return state;
