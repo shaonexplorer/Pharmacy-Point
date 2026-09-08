@@ -11,7 +11,13 @@ Enhance the Phase 1 customer management system with due accounts management (cre
 
 ## Implementation Steps
 
-### 1. Database Schema Extensions
+### 1. Database Schema Extensions — COMPLETED ✅
+- Added `DuePayment` model with customerId, amount, orderId, notes, userId, timestamps; relations to Customer and User
+- Added `loyaltyPoints`, `loyaltyTier`, `lifetimeSpend` fields to Customer model; added `duePayments` relation to User model
+- Added `isCreditSale` boolean to Order model
+- Updated `dueAmount` on Customer (calculated field; backend logic to follow)
+- Foreign key relationships and indexes set (`@@index([customerId])` on DuePayment)
+- Prisma migration applied via `prisma db push`; Client regeneration pending server restart
 - Add `DuePayment` model with customerId, amount, orderId, notes, userId, timestamps
 - Add `loyaltyPoints`, `loyaltyTier`, `lifetimeSpend` fields to Customer model
 - Add `isCreditSale` boolean to Order model

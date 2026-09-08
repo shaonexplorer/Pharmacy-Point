@@ -49,7 +49,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
     - `frontend/src/components/common/DataTablePagination.tsx` — shared pagination controls for all TanStack tables
   - Server-side search param removed from `useInventory` — client-side search via TanStack Table's `globalFilter`
 
-**Phase 2: Customer Management - COMPLETED ✅**
+**Phase 2: Customer Management - Step 1 COMPLETED ✅ (Schema Extensions)**
+- Schema updates applied via `prisma db push`:
+  - Added `DuePayment` model (`customerId`, `amount`, `orderId`, `notes`, `userId`, timestamps) with relations to Customer and User
+  - Extended `Customer` with `loyaltyPoints` (Int, default 0), `loyaltyTier` (String, default "Bronze"), `lifetimeSpend` (Decimal, default 0), and `duePayments` relation
+  - Extended `Order` with `isCreditSale` (Boolean, default false)
+  - Added `duePayments` relation to `User` model
+- `dueAmount` remains calculated (credit sales minus payments) — due payments API and dashboard to follow
+- Phase 1 customer CRUD intact; backend/frontend components unchanged
 - Customer and Order models already present in Prisma schema
   - `Customer` with fields: name, email, phone, address, dueAmount
   - `Order` linked to customer for purchase history
