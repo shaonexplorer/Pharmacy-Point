@@ -120,6 +120,7 @@ export function useStockAdjust() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
   });
 }

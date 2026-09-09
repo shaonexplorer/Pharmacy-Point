@@ -21,7 +21,19 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
-import { useExpiringProducts, useExpiredProducts } from '@/hooks/useInventory';
+import { useExpiringProducts, useExpiredProducts, useStockAdjust } from '@/hooks/useInventory';
+import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import type { InventoryItem } from '@pharmacy-point/types';
 import {
   useReactTable,
@@ -91,6 +103,23 @@ const columns: ColumnDef<InventoryItem>[] = [
       );
     },
     meta: { align: 'right' },
+  },
+  {
+    id: 'action',
+    header: 'Action',
+    cell: (info) => {
+      const row = info.row.original;
+      return (
+        <StockAdjustmentModal
+          product={row}
+          trigger={
+            <Button variant="outline" size="sm">
+              Adjust Stock
+            </Button>
+          }
+        />
+      );
+    },
   },
 ];
 
@@ -505,6 +534,16 @@ function ExpiringTable({ data, loading }: { data: InventoryItem[]; loading: bool
 }
 
 function ExpiredTable({ data, loading }: { data: InventoryItem[]; loading: boolean }) {
+  const { mutateAsync: adjustStock, isPending: disposing } = useStockAdjust();
+
+  const handleDispose = async (product: InventoryItem) => {
+    const notes = `Expired product disposal — batch #${product.batchNo ?? 'N/A'}`;
+    await adjustStock({
+      productId: product.id,
+      data: { quantity: 0, notes },
+    });
+  };
+
   const expiredCols: ColumnDef<InventoryItem>[] = [
     {
       ...columns[0],
@@ -544,6 +583,42 @@ function ExpiredTable({ data, loading }: { data: InventoryItem[]; loading: boole
         );
       },
       meta: { align: 'right' },
+    },
+    {
+      id: 'action',
+      header: 'Action',
+      cell: (info) => {
+        const row = info.row.original;
+        return (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                Dispose
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Dispose expired product?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will set the stock level of <strong>{row.name}</strong> to 0 and
+                  create an ADJUSTMENT transaction. This action cannot be undone without
+                  a new stock-in.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground"
+                  onClick={() => handleDispose(row)}
+                  disabled={disposing}
+                >
+                  {disposing ? 'Disposing…' : 'Dispose'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        );
+      },
     },
   ];
   const table = useReactTable({
