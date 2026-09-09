@@ -7,5 +7,5 @@ import { z } from "zod";
 const router = Router();
 router.post("/checkout", validate(checkoutSchema), checkout);
 router.post("/webhook", webhook);
-router.post("/reminders", validate(zod.object({})), sendPaymentReminders);
+router.post("/reminders", validate(z.object({})), sendPaymentReminders);
 export default router;

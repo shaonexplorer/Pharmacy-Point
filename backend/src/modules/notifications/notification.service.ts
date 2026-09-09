@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-};
+});
 
 function lowStockTemplate(productName: string, qty: number, threshold: number) {
   return `<h2>Low Stock Alert — ${productName}</h2>
