@@ -50,11 +50,11 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [x] Add export buttons to each report page — Sales Reports page now has CSV/PDF export
 - [x] Ensure exports include all visible columns and filters — CSV export dynamically includes columns based on groupBy selection (day/week/month/category/paymentMethod)
 
-### 7. Charting Library Integration — PENDING
-- [ ] Select and install charting library (Recharts recommended for React)
-- [ ] Create reusable chart components: LineChart, BarChart, PieChart
-- [ ] Add responsive design for mobile viewing
-- [ ] Implement dark/light theme support
+### 7. Charting Library Integration — COMPLETED ✅
+- [x] Selected and installed Recharts charting library
+- [x] Created reusable chart components: LineChart (RevenueTrendChart), BarChart (SalesByCategoryChart, TopProductsChart), PieChart (InventoryStatusChart)
+- [x] Added responsive design via Recharts `ResponsiveContainer` and Tailwind grid classes
+- [x] Implemented dark/light theme support using `hsl()` color tokens from Clinical Precision design system
 
 ### 8. Performance Optimization — PENDING
 - [ ] Implement data caching for frequently accessed reports
