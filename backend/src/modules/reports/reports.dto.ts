@@ -84,3 +84,15 @@ export const financialReportSchema = z.object({
 });
 
 export type FinancialReportInput = z.infer<typeof financialReportSchema>;
+
+/* ─── Collection Report ────────────────────────────────── */
+
+export const collectionReportSchema = z.object({
+  // Pagination
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  // Filter by overdue days (optional; returns all with due amounts if omitted)
+  overdueDays: z.coerce.number().int().min(1).max(365).optional(),
+});
+
+export type CollectionReportInput = z.infer<typeof collectionReportSchema>;

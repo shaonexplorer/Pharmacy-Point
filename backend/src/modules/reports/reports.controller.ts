@@ -109,3 +109,17 @@ export const getFinancialReport = asyncHandler(async (req: Request, res: Respons
 
   res.json(result);
 });
+
+/**
+ * GET /api/reports/collection
+ * Get comprehensive collection status report with aging buckets.
+ * Query params: page, limit, overdueDays
+ */
+export const getCollectionReport = asyncHandler(async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) ?? 1;
+  const limit = parseInt(req.query.limit as string) ?? 50;
+  const overdueDays = req.query.overdueDays ? parseInt(req.query.overdueDays as string) : undefined;
+
+  const result = await reportsService.getCollectionReport({ page, limit, overdueDays });
+  res.json(result);
+});

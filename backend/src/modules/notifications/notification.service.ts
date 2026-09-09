@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
-});
+};
 
 function lowStockTemplate(productName: string, qty: number, threshold: number) {
   return `<h2>Low Stock Alert — ${productName}</h2>
@@ -19,6 +19,11 @@ function lowStockTemplate(productName: string, qty: number, threshold: number) {
 function expiryTemplate(productName: string, days: number) {
   return `<h2>Expiration Approaching — ${productName}</h2>
 <p>Expires in <strong>${days}</strong> day(s).</p>`;
+}
+
+function dueAccountTemplate(customerName: string, dueAmount: number, threshold: number) {
+  return `<h2>Due Account Alert — ${customerName}</h2>
+<p>Outstanding balance <strong>$${dueAmount.toFixed(2)}</strong> exceeds threshold <strong>$${threshold.toFixed(2)}</strong>.</p>`;
 }
 
 export async function sendLowStockAlert(recipient: string, productName: string, qty: number, threshold: number) {
@@ -39,11 +44,6 @@ export async function sendExpiryAlert(recipient: string, productName: string, da
     subject: `Expiration Warning: ${productName}`,
     html: expiryTemplate(productName, days),
   });
-}
-
-function dueAccountTemplate(customerName: string, dueAmount: number, threshold: number) {
-  return `<h2>Due Account Alert — ${customerName}</h2>
-<p>Outstanding balance <strong>$${dueAmount.toFixed(2)}</strong> exceeds threshold <strong>$${threshold.toFixed(2)}</strong>.</p>`;
 }
 
 export async function sendDueAccountAlert(recipient: string, customerName: string, dueAmount: number, threshold: number) {
@@ -69,4 +69,51 @@ export async function sendBatchAlert(recipient: string, type: 'low_stock' | 'exp
     subject: `Inventory Alert — ${type.replace('_', ' ')}`,
     html: `<h2>Inventory Alert</h2><ul>${html}</ul>`,
   });
+}
+
+/**
+ * Send payment reminder emails to customers with due amounts.
+ * Queries customers with outstanding due amounts and sends reminder emails.
+ */
+export async function sendPaymentRemindersService() {
+  const customersWithDue = await prisma.customer.findMany({
+    where: { dueAmount: { gt: 0 } },
+    select: { id: true, name: true, email: true, dueAmount: true },
+    orderBy: { dueAmount: 'desc' },
+  });
+
+  const reminders = customersWithDue.map((customer) => ({
+    customerId: customer.id,
+    customerName: customer.name || 'Unknown',
+    customerEmail: customer.email,
+    dueAmount: Number(customer.dueAmount || 0),
+  }));
+
+  // Send email reminders for each customer
+  const mailTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+
+  for (const reminder of reminders) {
+    const html = `<h2>Payment Reminder — ${reminder.customerName}</h2>
+      <p>Dear ${reminder.customerName},</p>
+      <p>We noticed you have an outstanding balance of <strong>$${reminder.dueAmount.toFixed(2)}</strong> on your account.</p>
+      <p>Please make a payment at your earliest convenience to keep your account in good standing.</p>
+      <p>Thank you for choosing our pharmacy.</p>`;
+
+    await mailTransporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: reminder.customerEmail,
+      subject: `Payment Reminder — Outstanding Balance $${reminder.dueAmount.toFixed(2)}`,
+      html,
+    });
+  }
+
+  return { sent: reminders.length, customers: reminders.length };
 }

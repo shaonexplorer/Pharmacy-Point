@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendBatchAlert, sendDueAccountAlert } from './notification.service';
+import { sendBatchAlert, sendDueAccountAlert, sendPaymentRemindersService } from './notification.service';
 import { sendAlertSchema, dueAccountAlertSchema } from './notification.dto';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { prisma } from '../../config/database';
@@ -29,4 +29,13 @@ export const sendAlerts = asyncHandler(async (req: Request, res: Response) => {
   const items = [{ name: 'Sample Product', qty: 3, threshold: 10 }];
   await sendBatchAlert(to[0], type, items);
   res.json({ sent: true, to });
+});
+
+/**
+ * Send payment reminder emails to customers with due amounts.
+ * Queries customers with outstanding due amounts and sends reminder emails.
+ */
+export const sendPaymentReminders = asyncHandler(async (req: Request, res: Response) => {
+  const result = await sendPaymentRemindersService();
+  res.json(result);
 });
