@@ -36,6 +36,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DataTablePagination } from '@/components/common/DataTablePagination';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 
 interface ProductTableProps {
   products: Product[];
@@ -135,6 +136,26 @@ export function ProductTable({
         cell: ({ row }) => (
           <span className="text-on-surface-variant">{row.original.company?.name ?? '—'}</span>
         ),
+      },
+      {
+        accessorKey: 'batchNo',
+        header: 'Batch',
+        cell: ({ row }) => <span className="text-xs text-on-surface-variant">{row.original.batchNo || '—'}</span>,
+      },
+      {
+        accessorKey: 'expiryDate',
+        header: 'Expiry',
+        cell: ({ row }) => {
+          const d = row.original.expiryDate ? new Date(row.original.expiryDate) : null;
+          if (!d) return <span className="text-xs text-on-surface-variant">—</span>;
+          const status = getExpiryStatus(row.original.expiryDate ? row.original.expiryDate.toString() : null);
+          return (
+            <div className="flex items-center gap-2">
+              <span className="text-xs">{d.toLocaleDateString()}</span>
+              <ExpiryChip status={status} />
+            </div>
+          );
+        },
       },
       {
         id: 'actions',

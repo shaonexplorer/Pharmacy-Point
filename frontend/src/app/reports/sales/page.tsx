@@ -424,7 +424,7 @@ export default function SalesReportsPage() {
                         ? 'Category'
                         : groupBy === 'paymentMethod'
                           ? 'Payment Method'
-                          : 'Date',
+                          : 'Date']: item.groupLabel,
                 ...(groupBy !== 'paymentMethod' && { 'Total Sales': item.totalSales }),
                 ...(groupBy !== 'paymentMethod' && { 'Order Count': item.orderCount }),
                 ...(groupBy !== 'paymentMethod' && { Units: item.totalUnits }),

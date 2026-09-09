@@ -187,6 +187,12 @@ export const api = {
         method: 'PATCH',
         data,
       }),
+
+    expiring: (params?: { days?: number; limit?: number }) =>
+      request<PaginatedResponse<InventoryItem>>('/api/inventory/expiring', { params }),
+
+    expired: (params?: { limit?: number }) =>
+      request<PaginatedResponse<InventoryItem>>('/api/inventory/expired', { params }),
   },
 
   // Analytics
