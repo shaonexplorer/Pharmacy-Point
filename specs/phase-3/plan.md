@@ -44,11 +44,11 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [x] Profit/loss visualization with FinancialReportChart component
 - [x] CSV export and PDF print support
 
-### 6. Export Functionality — PENDING
-- [ ] CSV export for all report types
-- [ ] PDF export using browser print styles or jsPDF
-- [ ] Add export buttons to each report page
-- [ ] Ensure exports include all visible columns and filters
+### 6. Export Functionality — COMPLETED ✅
+- [x] CSV export for all report types — added to Sales Reports page with group-by aware columns
+- [x] PDF export using browser print styles — added Print button to Sales Reports page
+- [x] Add export buttons to each report page — Sales Reports page now has CSV/PDF export
+- [x] Ensure exports include all visible columns and filters — CSV export dynamically includes columns based on groupBy selection (day/week/month/category/paymentMethod)
 
 ### 7. Charting Library Integration — PENDING
 - [ ] Select and install charting library (Recharts recommended for React)

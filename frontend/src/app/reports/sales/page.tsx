@@ -22,6 +22,8 @@ import {
   Filter,
   Calendar,
   ChevronDown,
+  Download,
+  FileText,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -38,6 +40,27 @@ function getDateRange(days: number) {
   };
 }
 
+/* ── CSV Export Helper ──────────────────────────────────── */
+function downloadCsv(data: Record<string, unknown>[], filename: string): void {
+  if (data.length === 0) return;
+  const headers = Object.keys(data[0]);
+  const csvLines = [
+    headers.join(','),
+    ...data.map((row) =>
+      headers.map((h) => `"${String(row[h] ?? '').replace(/"/g, '""')}"`).join(',')
+    ),
+  ];
+  const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Clinical Precision — Sales Reports Page (Step 2 of Phase 3)
  *
@@ -48,6 +71,7 @@ function getDateRange(days: number) {
  * - Sales by payment method breakdown
  * - Responsive grid layout
  * - All data fetched from real API endpoints
+ * - CSV and PDF export functionality
  */
 
 export default function SalesReportsPage() {
@@ -382,6 +406,38 @@ export default function SalesReportsPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* ── Export Buttons ── */}
+        <div className="flex gap-3 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const exportData = reportData?.data?.map((item: any) => ({
+                [groupBy === 'day'
+                  ? 'Date'
+                  : groupBy === 'week'
+                    ? 'Week'
+                    : groupBy === 'month'
+                      ? 'Month'
+                      : groupBy === 'category'
+                        ? 'Category'
+                        : groupBy === 'paymentMethod'
+                          ? 'Payment Method'
+                          : 'Date',
+                ...(groupBy !== 'paymentMethod' && { 'Total Sales': item.totalSales }),
+                ...(groupBy !== 'paymentMethod' && { 'Order Count': item.orderCount }),
+                ...(groupBy !== 'paymentMethod' && { Units: item.totalUnits }),
+              })) ?? [];
+              downloadCsv(exportData, `sales-report-${new Date().toISOString().split('T')[0]}.csv`);
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" /> CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <FileText className="mr-2 h-4 w-4" /> PDF
+          </Button>
+        </div>
 
         {/* ── Action Button ── */}
         <div className="flex justify-end">

@@ -823,6 +823,7 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
     - Main SalesReportChart showing revenue by selected grouping
     - Payment method breakdown cards
     - Clinical Precision design with `prescription-border-l`, `data-mono`, `card-elevated`
+    - **Export functionality (Step 6)**: CSV and PDF export buttons with group-by-aware column selection
 - Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
   - Added `Reports` nav item with `FileText` icon, `bg-secondary` dot, `/reports/sales` href
 - Navigation structure updated:
