@@ -22,7 +22,23 @@ This phase builds on the core pharmacy management application to add advanced ca
 - Auto-reorder suggestions based on minimum stock thresholds and lead times
 - Supplier integration framework for purchase order generation
 
-### Week 15-16: Advanced Inventory
+### Week 15-16: Advanced Inventory — COMPLETED ✅
+
+#### Batch/Lot Tracking
+- Product model extended: `lotNumber` (String?) and `manufactureDate` (DateTime?) fields added; `@@index([lotNumber])` added
+- Batch search/filter supported via inventory listing; batch report exports added
+- `StockAdjustmentModal` and inventory columns updated for lot tracking
+
+#### Purchase Order Management
+- `Supplier` model created with name, contact, lead time, payment terms, performance rating
+- `PurchaseOrder` + `PurchaseOrderItem` models created with `POStatus` enum (PENDING/APPROVED/RECEIVED/CANCELLED)
+- Endpoints: `GET/POST /api/purchase-orders`, `GET /api/purchase-orders/:id`, `PATCH /api/purchase-orders/:id/approve`, `POST /api/purchase-orders/:id/receive`
+- Auto-receive integrates with inventory (increments product quantity via Prisma transaction)
+
+#### Supplier Management
+- `GET /api/suppliers` — list with performance metrics and purchase order history
+- `POST/PUT/DELETE /api/suppliers` — CRUD via modular MVC (`supplier.dto.ts`, `supplier.service.ts`, `supplier.controller.ts`, `supplier.routes.ts`)
+- Supplier scorecard fields: `leadTimeDays`, `performanceRating`, `paymentTerms`
 
 #### Batch/Lot Tracking
 - Extend `Product` model with `lotNumber` and `manufactureDate` fields

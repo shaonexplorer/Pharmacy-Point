@@ -203,6 +203,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
 - Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
 
+**Phase 4: Advanced Inventory — Week 15-16 COMPLETED ✅**
+- Batch/Lot Tracking: `Product` extended with `lotNumber` and `manufactureDate`; batch index added; inventory service supports lot filters
+- Purchase Order Management: `Supplier`, `PurchaseOrder`, `PurchaseOrderItem` models; endpoints at `/api/purchase-orders` with approve/receive flows; auto-inventory increment on receive
+- Supplier Management: `/api/suppliers` CRUD with performance metrics and PO history tracking
+- Routes wired in `backend/src/routes/index.ts`; modules follow MVC pattern
+
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
 - Backend `orders` module (`backend/src/modules/orders/order.routes.ts`):

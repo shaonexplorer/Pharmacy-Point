@@ -93,6 +93,8 @@ model Product {
   lowStock              Int                    @default(10)
   lowStockThreshold     Int?                   @default(10)
   batchNo               String?
+  lotNumber             String?
+  manufactureDate       DateTime?
   category              String?
   image                 String?
   createdAt             DateTime               @default(now())
@@ -104,6 +106,7 @@ model Product {
   deletedAt             DateTime?
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
+  purchaseOrderItems    PurchaseOrderItem[]
   company               Company?               @relation(fields: [companyId], references: [id])
 
   @@index([category])
@@ -111,6 +114,7 @@ model Product {
   @@index([companyId])
   @@index([expiryDate])
   @@index([quantity])
+  @@index([lotNumber])
   @@map("products")
 }
 
@@ -244,4 +248,55 @@ enum TransactionType {
   STOCK_IN
   STOCK_OUT
   ADJUSTMENT
+}
+
+model Supplier {
+  id              String    @id @default(cuid())
+  name            String
+  contactName     String?
+  email           String?
+  phone           String?
+  address         String?
+  leadTimeDays    Int       @default(7)
+  paymentTerms    String?   @default("Net 30")
+  performanceRating Float?  @default(5.0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  purchaseOrders  PurchaseOrder[]
+  @@map("suppliers")
+}
+
+enum POStatus {
+  PENDING
+  APPROVED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id          String          @id @default(cuid())
+  supplierId  String
+  poNumber    String          @unique
+  status      POStatus       @default(PENDING)
+  totalAmount Decimal         @db.Decimal(10,2) @default(0)
+  notes       String?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  supplier    Supplier        @relation(fields: [supplierId], references: [id])
+  items       PurchaseOrderItem[]
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id          String   @id @default(cuid())
+  poId        String
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10,2)
+  receivedQty Int      @default(0)
+  po          PurchaseOrder @relation(fields: [poId], references: [id])
+  @@map("purchase_order_items")
 }
