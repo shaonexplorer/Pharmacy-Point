@@ -5,7 +5,7 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../middleware/asyncHandler';
 import { validate } from '../../middleware/validate';
-import { salesReportSchema, salesSummarySchema, inventoryReportSchema, customerReportSchema } from './reports.dto';
+import { salesReportSchema, salesSummarySchema, inventoryReportSchema, customerReportSchema, financialReportSchema } from './reports.dto';
 import * as reportsService from './reports.service';
 
 /**
@@ -86,5 +86,26 @@ export const getCustomerReport = asyncHandler(async (req: Request, res: Response
   const limit = parseInt(req.query.limit as string) ?? 50;
 
   const result = await reportsService.getCustomerReport({ tier, activeDays, hasDueAccounts, page, limit });
+  res.json(result);
+});
+
+/**
+ * GET /api/reports/financial
+ * Get financial report with profit/loss metrics.
+ * Query params: startDate, endDate, paymentMethod, status, groupBy, page, limit
+ */
+export const getFinancialReport = asyncHandler(async (req: Request, res: Response) => {
+  const input = req.query as Record<string, string | undefined>;
+
+  const result = await reportsService.getFinancialReport({
+    groupBy: input.groupBy as any ?? 'month',
+    paymentMethod: input.paymentMethod as any,
+    status: input.status as any,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    page: parseInt(input.page ?? '1'),
+    limit: parseInt(input.limit ?? '50'),
+  });
+
   res.json(result);
 });

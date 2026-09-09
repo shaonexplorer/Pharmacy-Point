@@ -887,3 +887,31 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Navigation structure updated:
   - `/reports/customers` — Customer Reports page with KPIs, charts, and detailed segmentation table
 - Plan spec `specs/phase-3/plan.md` step 4 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 5 COMPLETED ✅ (Financial Reports)**
+- Backend `GET /api/reports/financial` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `financialReportSchema` DTO (`reports.dto.ts`) with `startDate`, `endDate`, `paymentMethod`, `status`, `groupBy`, `page`, `limit` params
+  - `getFinancialReport` service (`reports.service.ts`) calculates gross revenue, COGS, gross profit, net profit, average order value, total refunds
+  - Uses raw SQL via `prisma.$queryRaw` for aggregated queries with parallel execution
+  - Grouping support: day, week, month with pagination
+- Shared types extended (`packages/types/src/index.ts`):
+  - `FinancialReportSummary`, `FinancialReportItem`, `FinancialReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.financial(params?)` — `GET /api/reports/financial`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useFinancialReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/FinancialReportChart.tsx` — Profit & loss bar chart + margin overview
+  - `frontend/src/components/reports/index.ts` — Barrel export updated
+- Frontend page created (`frontend/src/app/reports/financial/page.tsx`):
+  - Filter bar: date range, quick period, payment method, status
+  - KPI cards: Gross Revenue, COGS, Gross Profit, Net Profit, Avg Order Value, Total Units, Total Refunds, Total Expenses
+  - Charts: FinancialReportChart (profit/loss breakdown + margin overview)
+  - Table: Period Breakdown (revenue, COGS, profit, orders by period)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Financial Reports` nav item with `Calculator` icon, `bg-secondary` dot, `/reports/financial` href
+- Navigation structure updated:
+  - `/reports/financial` — Financial Reports page with KPIs, charts, and detailed period breakdown
+- Plan spec `specs/phase-3/plan.md` step 5 marked implemented

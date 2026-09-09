@@ -8,6 +8,7 @@ import type {
   SalesByPaymentMethod,
   InventoryReportResponse,
   CustomerReportResponse,
+  FinancialReportResponse,
 } from '@pharmacy-point/types';
 
 /**
@@ -81,6 +82,25 @@ export function useCustomerReport(params?: {
   return useQuery({
     queryKey: ['reports', 'customers', params],
     queryFn: () => api.reports.customers(params),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Fetch financial report with profit/loss metrics.
+ */
+export function useFinancialReport(params?: {
+  startDate?: string;
+  endDate?: string;
+  paymentMethod?: string;
+  status?: string;
+  groupBy?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ['reports', 'financial', params],
+    queryFn: () => api.reports.financial(params),
     staleTime: 5 * 60 * 1000,
   });
 }

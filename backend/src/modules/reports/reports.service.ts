@@ -4,7 +4,7 @@
  */
 import { prisma } from '../../config/database';
 import { parsePagination, buildPagination } from '../../utils/pagination';
-import type { SalesReportInput, InventoryReportInput, CustomerReportInput } from './reports.dto';
+import type { SalesReportInput, InventoryReportInput, CustomerReportInput, FinancialReportInput } from './reports.dto';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ReportResult = Record<string, any>;
@@ -577,5 +577,169 @@ export async function getInventoryReport(
     lowStockItems: lowStockItemsWithFlag,
     slowMovingItems: slowMovingItemsWithFlag,
     expiringItems: expiringItemsWithFlag,
+  };
+}
+
+// ─── Financial Report ──────────────────────────────────
+
+interface FinancialSummary {
+  grossRevenue: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  netProfit: number;
+  totalOrders: number;
+  totalUnits: number;
+  averageOrderValue: number;
+  totalRefunds: number;
+  totalExpenses: number;
+}
+
+interface FinancialDataRow {
+  groupLabel: string;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  orders: number;
+}
+
+/**
+ * Get comprehensive financial report with profit/loss metrics.
+ * Calculates gross revenue, COGS (placeholder for purchase order integration),
+ * gross profit, and net profit.
+ */
+export async function getFinancialReport(
+  input: FinancialReportInput
+): Promise<{
+  summary: FinancialSummary;
+  data: FinancialDataRow[];
+  pagination: ReturnType<typeof buildPagination> & { total: number };
+}> {
+  const { groupBy, paymentMethod, status, startDate, endDate, page, limit } = input;
+
+  const { skip } = parsePagination({ page: String(page), limit: String(limit) });
+
+  // Determine cutoff date
+  const cutoff = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  // Build WHERE conditions
+  const conditions: string[] = ['o.status = :status'];
+  const params: Record<string, unknown> = {
+    status: status ?? 'COMPLETED',
+    cutoff,
+    limit,
+    skip,
+  };
+
+  if (!startDate) {
+    conditions.push('o.createdAt >= :cutoff');
+  }
+  if (startDate) {
+    conditions.push('o.createdAt >= :startDate');
+    params.startDate = new Date(startDate);
+  }
+  if (endDate) {
+    conditions.push('o.createdAt <= :endDate');
+    params.endDate = new Date(endDate);
+  }
+  if (paymentMethod) {
+    conditions.push('o.paymentMethod = :paymentMethod');
+    params.paymentMethod = paymentMethod;
+  }
+
+  const whereClause = conditions.join(' AND ');
+
+  // Build GROUP BY
+  let groupByClause: string[];
+  let selectClause: string;
+  let orderByClause: string;
+
+  switch (groupBy) {
+    case 'week':
+      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%u')"];
+      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%u') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      orderByClause = 'group_label ASC';
+      break;
+    case 'month':
+      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m')"];
+      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      orderByClause = 'group_label ASC';
+      break;
+    case 'day':
+    default:
+      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m-%d')"];
+      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m-%d') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      orderByClause = 'group_label ASC';
+      break;
+  }
+
+  const countQuery = `
+    SELECT COUNT(DISTINCT o.id) as total
+    FROM orders o
+    JOIN order_items oi ON oi.orderId = o.id
+    WHERE ${whereClause}
+  `;
+
+  const query = `
+    SELECT ${selectClause}
+    FROM orders o
+    JOIN order_items oi ON oi.orderId = o.id
+    WHERE ${whereClause}
+    GROUP BY ${groupByClause.join(', ')}
+    ORDER BY ${orderByClause}
+    LIMIT :limit OFFSET :skip
+  `;
+
+  const summaryQuery = `
+    SELECT
+      COALESCE(SUM(o.total), 0) as gross_revenue,
+      COALESCE(SUM(oi.price * oi.quantity), 0) as cost_of_goods_sold,
+      COALESCE(SUM(o.total), 0) - COALESCE(SUM(oi.price * oi.quantity), 0) as gross_profit,
+      COALESCE(SUM(o.total), 0) - COALESCE(SUM(oi.price * oi.quantity), 0) as net_profit,
+      COUNT(DISTINCT o.id) as total_orders,
+      SUM(oi.quantity) as total_units,
+      COALESCE(AVG(o.total), 0) as avg_order_value,
+      COALESCE(SUM(CASE WHEN o.status IN ('REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED') THEN o.total ELSE 0 END), 0) as total_refunds
+    FROM orders o
+    JOIN order_items oi ON oi.orderId = o.id
+    WHERE ${whereClause}
+  `;
+
+  // Execute all queries in parallel
+  const [countResult, results, summaryResult] = await Promise.all([
+    prisma.$queryRaw<RawRow[]>(countQuery as any, params),
+    prisma.$queryRaw<RawRow[]>(query as any, params),
+    prisma.$queryRaw<RawRow[]>(summaryQuery as any, params),
+  ]);
+
+  const total = Number((countResult as RawRow)[0]?.total ?? 0);
+
+  const data = (results as RawRow[]).map((row) => ({
+    groupLabel: row.group_label as string,
+    revenue: Number(row.revenue ?? 0),
+    cogs: Number(row.cogs ?? 0),
+    profit: Number(row.profit ?? 0),
+    orders: Number(row.orders ?? 0),
+  }));
+
+  const sr = summaryResult as RawRow;
+  const summary: FinancialSummary = {
+    grossRevenue: Number(sr.gross_revenue ?? 0),
+    costOfGoodsSold: Number(sr.cost_of_goods_sold ?? 0),
+    grossProfit: Number(sr.gross_profit ?? 0),
+    netProfit: Number(sr.net_profit ?? 0),
+    totalOrders: Number(sr.total_orders ?? 0),
+    totalUnits: Number(sr.total_units ?? 0),
+    averageOrderValue: Number(sr.avg_order_value ?? 0),
+    totalRefunds: Number(sr.total_refunds ?? 0),
+    totalExpenses: 0, // Future: integrate with purchase orders
+  };
+
+  return {
+    data,
+    summary,
+    pagination: {
+      ...buildPagination(total, page, limit),
+      total,
+    },
   };
 }

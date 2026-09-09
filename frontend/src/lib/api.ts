@@ -237,5 +237,15 @@ export const api = {
       page?: number;
       limit?: number;
     }) => request<any>('/api/reports/customers', { params }),
+
+    financial: (params?: {
+      startDate?: string;
+      endDate?: string;
+      paymentMethod?: string;
+      status?: string;
+      groupBy?: string;
+      page?: number;
+      limit?: number;
+    }) => request<any>('/api/reports/financial', { params }),
   },
 };

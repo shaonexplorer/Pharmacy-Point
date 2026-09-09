@@ -65,3 +65,22 @@ export const customerReportSchema = z.object({
 });
 
 export type CustomerReportInput = z.infer<typeof customerReportSchema>;
+
+/**
+ * Schema for financial report query parameters.
+ */
+export const financialReportSchema = z.object({
+  // Date range
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  // Filters
+  paymentMethod: z.enum(['cash', 'card']).optional(),
+  status: z.enum(['PENDING', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED']).optional(),
+  // Grouping
+  groupBy: z.enum(['day', 'week', 'month']).optional().default('month'),
+  // Pagination
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+});
+
+export type FinancialReportInput = z.infer<typeof financialReportSchema>;

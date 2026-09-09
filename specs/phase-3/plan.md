@@ -37,12 +37,12 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [x] Frontend page at `/frontend/src/app/reports/customers/page.tsx` — filters (tier, active window, due accounts), KPI cards, tier bar chart + spending donut, customer segmentation table, CSV/PDF export
 - [x] Customer segmentation by spending patterns
 
-### 5. Financial Reports — PENDING
-- [ ] `GET /api/reports/financial` endpoint
-- [ ] Calculate: gross revenue, cost of goods sold, gross profit, net profit
-- [ ] Expense tracking (future integration with purchase orders)
-- [ ] Frontend page at `/frontend/src/app/reports/financial/page.tsx`
-- [ ] Profit/loss visualization
+### 5. Financial Reports — COMPLETED ✅
+- [x] `GET /api/reports/financial` endpoint — gross revenue, COGS, gross profit, net profit, avg order value, total refunds
+- [x] `financialReportSchema` DTO with date range, payment method, status, grouping filters
+- [x] Frontend page at `/frontend/src/app/reports/financial/page.tsx` — KPI cards, profit/loss charts, period breakdown table
+- [x] Profit/loss visualization with FinancialReportChart component
+- [x] CSV export and PDF print support
 
 ### 6. Export Functionality — PENDING
 - [ ] CSV export for all report types

@@ -387,3 +387,41 @@ export interface CustomerReportResponse {
     hasPrev: boolean;
   };
 }
+
+// ─── Financial Report Types ────────────────────────────
+
+/** Financial report summary metrics */
+export interface FinancialReportSummary {
+  grossRevenue: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  netProfit: number;
+  totalOrders: number;
+  totalUnits: number;
+  averageOrderValue: number;
+  totalRefunds: number;
+  totalExpenses: number;
+}
+
+/** Financial report data row — one row per group */
+export interface FinancialReportItem {
+  groupLabel: string;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  orders: number;
+}
+
+/** Financial report response */
+export interface FinancialReportResponse {
+  summary: FinancialReportSummary;
+  data: FinancialReportItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
