@@ -1,16 +1,36 @@
 /**
  * Reports service — business logic for sales reporting.
  * Provides aggregated sales data with flexible grouping and filtering.
+ * Includes data caching for frequently accessed report types.
  */
 import { prisma } from '../../config/database';
 import { parsePagination, buildPagination } from '../../utils/pagination';
 import type { SalesReportInput, InventoryReportInput, CustomerReportInput, FinancialReportInput } from './reports.dto';
+
+// Simple in-memory cache for report data (key: cache key, value: {data, timestamp})
+const reportCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ReportResult = Record<string, any>;
 
 interface RawRow {
   [key: string]: any;
+}
+
+/**
+ * Generate a consistent cache key for report queries.
+ */
+function makeCacheKey(prefix: string, input: Record<string, unknown>): string {
+  const entries = Object.entries(input).sort(([a], [b]) => String(a).localeCompare(String(b)));
+  return `${prefix}:${entries.map(([k, v]) => `${k}=${v}`).join('|')}`;
+}
+
+/**
+ * Check if cached data is still valid (within TTL).
+ */
+function isCacheValid(timestamp: number): boolean {
+  return Date.now() - timestamp < CACHE_TTL;
 }
 
 interface SalesSummaryData {
@@ -24,6 +44,7 @@ interface SalesSummaryData {
 
 /**
  * Get sales report data with flexible grouping and filtering.
+ * Uses server-side caching for improved performance on repeated requests.
  */
 export async function getSalesReport(
   input: SalesReportInput
@@ -33,6 +54,20 @@ export async function getSalesReport(
   pagination: ReturnType<typeof buildPagination> & { total: number };
 }> {
   const { groupBy, productId, category, paymentMethod, status, startDate, endDate, page, limit } = input;
+
+  const cacheKey = makeCacheKey('sales-report', { groupBy, productId, category, paymentMethod, status, startDate, endDate, page, limit });
+
+  // Check cache
+  const cached = reportCache.get(cacheKey);
+  if (cached && isCacheValid(cached.timestamp)) {
+    const { data: cachedData, summary: cachedSummary, pagination: cachedPagination } = cached.data;
+    const { skip } = parsePagination({ page: String(page), limit: String(limit) });
+    return {
+      data: cachedData.data.slice((page - 1) * limit, page * limit),
+      summary: cachedSummary,
+      pagination: { ...cachedPagination, total: cachedPagination.total },
+    };
+  }
 
   const { skip } = parsePagination({ page: String(page), limit: String(limit) });
 
@@ -165,6 +200,19 @@ export async function getSalesReport(
     uniqueCustomers: Number((summaryResult as RawRow).unique_customers ?? 0),
   };
 
+  // Cache the result for future requests
+  reportCache.set(cacheKey, {
+    data: {
+      data,
+      summary,
+      pagination: {
+        ...buildPagination(total, page, limit),
+        total,
+      },
+    },
+    timestamp: Date.now(),
+  });
+
   return {
     data,
     summary,
@@ -177,11 +225,20 @@ export async function getSalesReport(
 
 /**
  * Get sales summary metrics for a time period.
+ * Uses server-side caching for improved performance on repeated requests.
  */
 export async function getSalesSummary(
   period: string = 'month',
   days: number = 30
 ): Promise<SalesSummaryData> {
+  const cacheKey = makeCacheKey('sales-summary', { period, days });
+
+  // Check cache
+  const cached = reportCache.get(cacheKey);
+  if (cached && isCacheValid(cached.timestamp)) {
+    return cached.data;
+  }
+
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
 
@@ -201,7 +258,7 @@ export async function getSalesSummary(
 
   const [result] = await prisma.$queryRaw<RawRow[]>(query as any, { cutoff });
 
-  return {
+  const summary: SalesSummaryData = {
     totalRevenue: Number((result as RawRow).total_revenue ?? 0),
     transactionCount: Number((result as RawRow).transaction_count ?? 0),
     averageBasketSize: Number((result as RawRow).avg_basket ?? 0),
@@ -209,15 +266,32 @@ export async function getSalesSummary(
     uniqueProducts: Number((result as RawRow).unique_products ?? 0),
     uniqueCustomers: Number((result as RawRow).unique_customers ?? 0),
   };
+
+  // Cache the result for future requests
+  reportCache.set(cacheKey, {
+    data: summary,
+    timestamp: Date.now(),
+  });
+
+  return summary;
 }
 
 /**
  * Get sales grouped by payment method.
+ * Uses server-side caching for improved performance on repeated requests.
  */
 export async function getSalesByPaymentMethod(
   startDate: string,
   endDate: string
 ): Promise<Array<{ paymentMethod: string; totalSales: number; orderCount: number }>> {
+  const cacheKey = makeCacheKey('sales-payment-methods', { startDate, endDate });
+
+  // Check cache
+  const cached = reportCache.get(cacheKey);
+  if (cached && isCacheValid(cached.timestamp)) {
+    return cached.data;
+  }
+
   const query = `
     SELECT o.paymentMethod as paymentMethod,
            SUM(o.total) as total_sales,
@@ -232,11 +306,19 @@ export async function getSalesByPaymentMethod(
 
   const results = await prisma.$queryRaw<RawRow[]>(query as any, { startDate, endDate });
 
-  return (results as RawRow[]).map((row) => ({
+  const data = (results as RawRow[]).map((row) => ({
     paymentMethod: row.paymentMethod as string,
     totalSales: Number(row.total_sales ?? 0),
     orderCount: Number(row.order_count ?? 0),
   }));
+
+  // Cache the result for future requests
+  reportCache.set(cacheKey, {
+    data,
+    timestamp: Date.now(),
+  });
+
+  return data;
 }
 
 // ─── Customer Report ─────────────────────────────────────
@@ -383,6 +465,34 @@ export async function getCustomerReport(
     count: Number(row.count ?? 0),
     percentage: totalCustomers > 0 ? Math.round((Number(row.count ?? 0) / totalCustomers) * 100) : 0,
   }));
+
+  // Cache the result for future requests
+  reportCache.set(cacheKey, {
+    data: {
+      summary: {
+        totalCustomers,
+        activeCustomers,
+        inactiveCustomers,
+        averageSpend,
+        totalLifetimeSpend,
+        totalDueAccounts,
+        totalDueAmount,
+        tierDistribution: tierResults.reduce((acc: Record<string, number>, row: RawRow) => {
+          acc[(row.tier as string) ?? 'Unknown'] = Number(row.count ?? 0);
+          return acc;
+        }, {}),
+        totalPointsEarned,
+        totalPointsRedeemed,
+      },
+      customers,
+      tierDistribution,
+      pagination: {
+        ...buildPagination(total, page, limit),
+        total,
+      },
+    },
+    timestamp: Date.now(),
+  });
 
   return {
     summary: {

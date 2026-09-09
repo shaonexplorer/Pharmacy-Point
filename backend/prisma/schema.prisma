@@ -110,6 +110,7 @@ model Product {
   @@index([deletedAt])
   @@index([companyId])
   @@index([expiryDate])
+  @@index([quantity])
   @@map("products")
 }
 
@@ -181,6 +182,9 @@ model Order {
   customer      Customer?   @relation(fields: [customerId], references: [id])
   user          User?       @relation(fields: [staffId], references: [id])
 
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
   @@map("orders")
 }
 

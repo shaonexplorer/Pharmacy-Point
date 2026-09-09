@@ -13,6 +13,7 @@ import type {
 
 /**
  * Fetch sales report data with grouping and filtering.
+ * Includes staleTime of 5 minutes for React Query cache.
  */
 export function useSalesReport(params?: {
   startDate?: string;
@@ -29,11 +30,13 @@ export function useSalesReport(params?: {
     queryKey: ['reports', 'sales', params],
     queryFn: () => api.reports.sales(params),
     staleTime: 5 * 60 * 1000,
+    // keepPreviousData: true, // Uncomment to show previous page data during pagination
   });
 }
 
 /**
  * Fetch sales summary metrics.
+ * Includes staleTime of 5 minutes for React Query cache.
  */
 export function useSalesSummary(params?: { period?: string; days?: number }) {
   return useQuery({
@@ -45,6 +48,7 @@ export function useSalesSummary(params?: { period?: string; days?: number }) {
 
 /**
  * Fetch sales breakdown by payment method.
+ * Includes staleTime of 5 minutes for React Query cache.
  */
 export function useSalesByPaymentMethod(params?: { startDate?: string; endDate?: string }) {
   return useQuery({
