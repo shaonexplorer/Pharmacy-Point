@@ -4,7 +4,13 @@
  */
 import { prisma } from '../../config/database';
 import { parsePagination, buildPagination } from '../../utils/pagination';
-import type { SalesReportInput, InventoryReportInput, CustomerReportInput, FinancialReportInput } from './reports.dto';
+import type {
+  SalesReportInput,
+  InventoryReportInput,
+  CustomerReportInput,
+  FinancialReportInput,
+  CollectionReportInput,
+} from './reports.dto';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ReportResult = Record<string, any>;
@@ -25,14 +31,13 @@ interface SalesSummaryData {
 /**
  * Get sales report data with flexible grouping and filtering.
  */
-export async function getSalesReport(
-  input: SalesReportInput
-): Promise<{
+export async function getSalesReport(input: SalesReportInput): Promise<{
   data: ReportResult[];
   summary: SalesSummaryData;
   pagination: ReturnType<typeof buildPagination> & { total: number };
 }> {
-  const { groupBy, productId, category, paymentMethod, status, startDate, endDate, page, limit } = input;
+  const { groupBy, productId, category, paymentMethod, status, startDate, endDate, page, limit } =
+    input;
 
   const { skip } = parsePagination({ page: String(page), limit: String(limit) });
 
@@ -245,9 +250,7 @@ export async function getSalesByPaymentMethod(
  * Get comprehensive customer report with segmentation,
  * loyalty analytics, and due account metrics.
  */
-export async function getCustomerReport(
-  input: CustomerReportInput
-): Promise<{
+export async function getCustomerReport(input: CustomerReportInput): Promise<{
   summary: {
     totalCustomers: number;
     activeCustomers: number;
@@ -281,7 +284,9 @@ export async function getCustomerReport(
   if (activeDays) {
     const cutoff = new Date(now);
     cutoff.setDate(cutoff.getDate() - activeDays);
-    conditions.push(`EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :activeCutoff AND o.status = 'COMPLETED')`);
+    conditions.push(
+      `EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :activeCutoff AND o.status = 'COMPLETED')`
+    );
     params.activeCutoff = cutoff;
   }
 
@@ -317,7 +322,10 @@ export async function getCustomerReport(
   params.activeCutoff = activeCutoff;
 
   const [countResult, results] = await Promise.all([
-    prisma.$queryRaw<RawRow[]>(`SELECT COUNT(*) as total FROM customers c ${whereClause}` as any, params),
+    prisma.$queryRaw<RawRow[]>(
+      `SELECT COUNT(*) as total FROM customers c ${whereClause}` as any,
+      params
+    ),
     prisma.$queryRaw<RawRow[]>(query as any, { ...params, activeCutoff }),
   ]);
 
@@ -381,7 +389,8 @@ export async function getCustomerReport(
   const tierDistribution = (tierResults as RawRow[]).map((row) => ({
     tier: row.tier as string,
     count: Number(row.count ?? 0),
-    percentage: totalCustomers > 0 ? Math.round((Number(row.count ?? 0) / totalCustomers) * 100) : 0,
+    percentage:
+      totalCustomers > 0 ? Math.round((Number(row.count ?? 0) / totalCustomers) * 100) : 0,
   }));
 
   return {
@@ -415,9 +424,7 @@ export async function getCustomerReport(
  * Get comprehensive inventory report.
  * Includes stock levels, low stock, slow-moving, and expiry warnings.
  */
-export async function getInventoryReport(
-  input: InventoryReportInput
-): Promise<{
+export async function getInventoryReport(input: InventoryReportInput): Promise<{
   summary: {
     totalProducts: number;
     totalInventoryValue: number;
@@ -607,9 +614,7 @@ interface FinancialDataRow {
  * Calculates gross revenue, COGS (placeholder for purchase order integration),
  * gross profit, and net profit.
  */
-export async function getFinancialReport(
-  input: FinancialReportInput
-): Promise<{
+export async function getFinancialReport(input: FinancialReportInput): Promise<{
   summary: FinancialSummary;
   data: FinancialDataRow[];
   pagination: ReturnType<typeof buildPagination> & { total: number };
@@ -737,6 +742,94 @@ export async function getFinancialReport(
   return {
     data,
     summary,
+    pagination: {
+      ...buildPagination(total, page, limit),
+      total,
+    },
+  };
+}
+
+/**
+ * Get comprehensive collection status report with aging buckets.
+ * Returns customers with outstanding due amounts, grouped by debt age.
+ */
+export async function getCollectionReport(input: CollectionReportInput): Promise<{
+  summary: {
+    totalCustomers: number;
+    totalDueAmount: number;
+    agingBuckets: { bucket: string; count: number; amount: number }[];
+  };
+  data: ReportResult[];
+  pagination: ReturnType<typeof buildPagination> & { total: number };
+}> {
+  const { page, limit, overdueDays } = input;
+  const { skip } = parsePagination({ page: String(page), limit: String(limit) });
+
+  const where: Record<string, unknown> = { dueAmount: { gt: 0 } };
+
+  if (overdueDays) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - overdueDays);
+    where.orders = { some: { createdAt: { lt: cutoff } } };
+  }
+
+  const [customers, total] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { dueAmount: 'desc' },
+      include: { orders: true },
+    }),
+    prisma.customer.count({ where }),
+  ]);
+
+  const now = new Date();
+  const agingBuckets = [
+    { bucket: '0-30 days', count: 0, amount: 0 },
+    { bucket: '31-60 days', count: 0, amount: 0 },
+    { bucket: '61-90 days', count: 0, amount: 0 },
+    { bucket: '90+ days', count: 0, amount: 0 },
+  ];
+
+  const data = customers.map((c) => {
+    const dueAmount = Number(c.dueAmount ?? 0);
+    const lastOrderDate = c.orders.length
+      ? new Date(Math.max(...c.orders.map((o) => new Date(o.createdAt).getTime())))
+      : new Date(c.createdAt);
+    const daysOverdue = Math.floor(
+      (now.getTime() - lastOrderDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    let bucketIndex = 0;
+    if (daysOverdue > 90) bucketIndex = 3;
+    else if (daysOverdue > 60) bucketIndex = 2;
+    else if (daysOverdue > 30) bucketIndex = 1;
+
+    agingBuckets[bucketIndex].count += 1;
+    agingBuckets[bucketIndex].amount += dueAmount;
+
+    return {
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone,
+      dueAmount,
+      daysOverdue,
+      orderCount: c.orders.length,
+      lastOrderDate: lastOrderDate.toISOString(),
+    };
+  });
+
+  const totalDueAmount = customers.reduce((sum, c) => sum + Number(c.dueAmount ?? 0), 0);
+
+  return {
+    summary: {
+      totalCustomers: total,
+      totalDueAmount,
+      agingBuckets: agingBuckets.map((b) => ({ ...b, amount: Number(b.amount.toFixed(2)) })),
+    },
+    data,
     pagination: {
       ...buildPagination(total, page, limit),
       total,

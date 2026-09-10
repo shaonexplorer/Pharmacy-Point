@@ -3,7 +3,9 @@
 import { useEffect, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
+import { DuePaymentForm } from '@/components/customers/DuePaymentForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +43,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const { data: session, isPending: authPending } = useSession();
 
+  const queryClient = useQueryClient();
   const { data: response, isLoading, error } = useCustomer(id);
   const deleteCustomerMutation = useDeleteCustomer();
 
@@ -181,6 +184,16 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                     <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-error/10 px-3 py-1 text-body-sm font-medium text-error">
                       <DollarSign className="h-4 w-4" />
                       <span>Due: {formatCurrency(customer.dueAmount)}</span>
+                    </div>
+                  )}
+                  {customer.dueAmount > 0 && (
+                    <div className="mt-2">
+                      <DuePaymentForm
+                        customerId={customer.id}
+                        onSuccess={() => {
+                          queryClient.invalidateQueries({ queryKey: ['customers', 'detail', id] });
+                        }}
+                      />
                     </div>
                   )}
                 </div>

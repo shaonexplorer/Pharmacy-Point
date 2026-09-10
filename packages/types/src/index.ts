@@ -80,6 +80,7 @@ export interface Order {
   refundReason?: string | null;
   returnWindowDays?: number | null;
   receiptEmail?: string | null;
+  isCreditSale?: boolean;
   isOffline?: boolean;
   offlineSyncedAt?: string | null;
   staffId?: string | null;
@@ -125,6 +126,8 @@ export interface CreateOrderInput {
   receiptEmail?: string | null;
   isOffline?: boolean;
   paymentIntentId?: string | null;
+  isCreditSale?: boolean;
+  redeemedPoints?: number;
 }
 
 export type ApiResponse<T> = {
@@ -168,7 +171,7 @@ export type CustomerWithOrders = Customer & { orders?: Order[] };
 export type CreateDuePaymentInput = { amount: number; orderId?: string; notes?: string; userId?: string };
 export type DuePaymentWithCustomer = { id: string; customerId: string; amount: number; orderId?: string | null; notes?: string | null; userId?: string | null; createdAt: string; customer?: Customer; user?: { id: string; name?: string; email?: string } };
 export type CustomerWithDuePayments = Customer & { duePayments?: DuePaymentWithCustomer[] };
-export interface CustomerDashboard { customer: Customer; orders: Order[]; payments: DuePaymentWithCustomer[]; lifetimeValue: number; firstPurchaseDate?: string; lastPurchaseDate?: string; loyaltyPoints: number; loyaltyTier: string; pointsEarned: number; pointsRedeemed: number; }
+export interface CustomerDashboard { customer: Customer; orders: OrderWithItems[]; payments: DuePaymentWithCustomer[]; lifetimeValue: number; firstPurchaseDate?: string; lastPurchaseDate?: string; loyaltyPoints: number; loyaltyTier: string; pointsEarned: number; pointsRedeemed: number; }
 
 export type TransactionType = 'STOCK_IN' | 'STOCK_OUT' | 'ADJUSTMENT';
 

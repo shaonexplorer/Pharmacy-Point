@@ -35,12 +35,17 @@ export const orderCreateSchema = z.object({
   receiptEmail: z.string().email().optional().nullable(),
   isOffline: z.boolean().optional().default(false),
   paymentIntentId: z.string().optional().nullable(),
+  isCreditSale: z.boolean().optional(),
+  redeemedPoints: z.number().int().nonnegative().optional(),
 });
 
 export const orderStatusUpdateSchema = z.object({
-  status: z.enum(['PENDING', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED'], {
-    errorMap: () => ({ message: 'Status must be a valid order status' }),
-  }),
+  status: z.enum(
+    ['PENDING', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED'],
+    {
+      errorMap: () => ({ message: 'Status must be a valid order status' }),
+    }
+  ),
 });
 
 export type CreateOrderInput = z.infer<typeof orderCreateSchema>;
@@ -52,10 +57,14 @@ export const refundSchema = z.object({
   refundMethod: z.enum(['original', 'store_credit']).optional().default('original'),
 });
 export const returnSchema = z.object({
-  items: z.array(z.object({
-    orderItemId: z.string().min(1),
-    quantity: z.number().positive(),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        orderItemId: z.string().min(1),
+        quantity: z.number().positive(),
+      })
+    )
+    .min(1),
   reason: z.string().min(1).max(500).optional(),
 });
 export type RefundInput = z.infer<typeof refundSchema>;

@@ -147,8 +147,17 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
         paymentMethod: data.paymentMethod ?? 'cash',
         staffId: data.staffId ?? undefined,
         status: 'COMPLETED',
+        isCreditSale: data.isCreditSale ?? false,
+        redeemedPoints: data.redeemedPoints ?? 0,
+        paymentIntentId: data.paymentIntentId ?? undefined,
       },
     });
+
+    // 2b. Redeem loyalty points if specified
+    if (data.redeemedPoints && data.redeemedPoints > 0 && data.customerId) {
+      const { redeemPoints } = await import('../customers/customer.service');
+      await redeemPoints(data.customerId, data.redeemedPoints);
+    }
 
     // 3. Create order items
     const orderItemsData = data.items.map((item) => ({
@@ -236,7 +245,10 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
 
   const updated = await prisma.order.update({
     where: { id },
-    data: { status: status as 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED' },
+    data: {
+      status: status as
+        'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED',
+    },
     include: {
       customer: true,
       items: {
@@ -251,8 +263,14 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
   if (status === 'COMPLETED' && existing.customerId) {
     try {
       const { earnPoints } = await import('../customers/customer.service');
-      await earnPoints(existing.customerId, Number(updated.subtotal ?? 0), Number(updated.subtotal ?? 0));
-    } catch (e) { /* non-blocking */ }
+      await earnPoints(
+        existing.customerId,
+        Number(updated.subtotal ?? 0),
+        Number(updated.subtotal ?? 0)
+      );
+    } catch (e) {
+      /* non-blocking */
+    }
   }
 
   return updated;
@@ -260,11 +278,17 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
 
 const RETURN_WINDOW_DAYS = 30;
 
-export async function processRefund(orderId: string, data: { amount: number; reason: string; refundMethod?: string }) {
+export async function processRefund(
+  orderId: string,
+  data: { amount: number; reason: string; refundMethod?: string }
+) {
   const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true } });
   if (!order) throw new AppError(404, 'Order not found');
-  if (order.status === 'REFUNDED' || order.status === 'CANCELLED') throw new AppError(400, 'Order already refunded or cancelled');
-  const daysSince = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  if (order.status === 'REFUNDED' || order.status === 'CANCELLED')
+    throw new AppError(400, 'Order already refunded or cancelled');
+  const daysSince = Math.floor(
+    (Date.now() - new Date(order.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+  );
   if (daysSince > RETURN_WINDOW_DAYS) throw new AppError(400, 'Return window exceeded');
 
   // Reverse Stripe if paymentIntentId present (stubbed — real integration uses stripe.refunds.create)
@@ -288,19 +312,36 @@ export async function processRefund(orderId: string, data: { amount: number; rea
   return { order: updated, refundAmount: data.amount, reason: data.reason };
 }
 
-export async function processReturn(orderId: string, data: { items: { orderItemId: string; quantity: number }[]; reason?: string }) {
-  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: { include: { product: true } } } });
+export async function processReturn(
+  orderId: string,
+  data: { items: { orderItemId: string; quantity: number }[]; reason?: string }
+) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: { include: { product: true } } },
+  });
   if (!order) throw new AppError(404, 'Order not found');
-  if (order.status === 'RETURNED' || order.status === 'CANCELLED') throw new AppError(400, 'Order already returned');
+  if (order.status === 'RETURNED' || order.status === 'CANCELLED')
+    throw new AppError(400, 'Order already returned');
 
   await prisma.$transaction(async (tx) => {
     for (const ret of data.items) {
-      const item = await tx.orderItem.findUnique({ where: { id: ret.orderItemId }, include: { product: true } });
+      const item = await tx.orderItem.findUnique({
+        where: { id: ret.orderItemId },
+        include: { product: true },
+      });
       if (!item) throw new AppError(404, 'Order item not found');
-      if (ret.quantity > item.quantity - (item.returnedQuantity || 0)) throw new AppError(400, 'Return quantity exceeds available');
-      await tx.orderItem.update({ where: { id: ret.orderItemId }, data: { returnedQuantity: (item.returnedQuantity || 0) + ret.quantity } });
+      if (ret.quantity > item.quantity - (item.returnedQuantity || 0))
+        throw new AppError(400, 'Return quantity exceeds available');
+      await tx.orderItem.update({
+        where: { id: ret.orderItemId },
+        data: { returnedQuantity: (item.returnedQuantity || 0) + ret.quantity },
+      });
       // Restock inventory and create RETURN transaction
-      await tx.product.update({ where: { id: item.productId }, data: { quantity: { increment: ret.quantity } } });
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { quantity: { increment: ret.quantity } },
+      });
       await tx.inventoryTransaction.create({
         data: {
           productId: item.productId,
@@ -322,8 +363,11 @@ export async function processReturn(orderId: string, data: { items: { orderItemI
 }
 
 export async function getReturns(orderId: string) {
-  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: { include: { product: true } } } });
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: { include: { product: true } } },
+  });
   if (!order) throw new AppError(404, 'Order not found');
-  const returned = order.items.filter(i => (i.returnedQuantity || 0) > 0);
+  const returned = order.items.filter((i) => (i.returnedQuantity || 0) > 0);
   return { orderId, returnedItems: returned };
 }

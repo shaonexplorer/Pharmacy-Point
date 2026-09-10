@@ -17,6 +17,9 @@ import type {
   StockInInput,
   StockOutInput,
   StockAdjustInput,
+  DuePaymentWithCustomer,
+  CreateDuePaymentInput,
+  CustomerDashboard,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -155,6 +158,46 @@ export const api = {
       request<ApiResponse<never>>(`/api/customers/${id}`, {
         method: 'DELETE',
       }),
+    // Due payments
+    duePayments: {
+      list: (customerId: string) =>
+        request<PaginatedResponse<DuePaymentWithCustomer>>(
+          `/api/customers/${customerId}/due-payments`
+        ),
+      create: (customerId: string, data: CreateDuePaymentInput) =>
+        request<ApiResponse<DuePaymentWithCustomer>>(`/api/customers/${customerId}/due-payments`, {
+          method: 'POST',
+          data,
+        }),
+    },
+    // Due accounts
+    dueAccounts: (params?: { page?: number; limit?: number; overdueDays?: number }) =>
+      request<PaginatedResponse<Customer>>('/api/customers/due-accounts', { params }),
+    // Customer dashboard
+    dashboard: (customerId: string) =>
+      request<ApiResponse<CustomerDashboard>>(`/api/customers/${customerId}/dashboard`),
+    // Loyalty
+    loyalty: {
+      tiers: () =>
+        request<
+          ApiResponse<
+            { tier: string; minSpend: number; maxSpend: number | null; benefits: string }[]
+          >
+        >('/api/customers/loyalty-tiers'),
+      adjustPoints: (customerId: string, data: { amount: number; notes?: string }) =>
+        request<
+          ApiResponse<{
+            customerId: string;
+            amount: number;
+            newPoints: number;
+            notes?: string;
+            tier: string;
+          }>
+        >(`/api/customers/${customerId}/loyalty/points`, {
+          method: 'POST',
+          data,
+        }),
+    },
   },
 
   // Inventory
@@ -206,8 +249,7 @@ export const api = {
     salesByCategory: (params?: { days?: number }) =>
       request<any>('/api/analytics/sales-by-category', { params }),
 
-    inventoryStatus: () =>
-      request<any>('/api/analytics/inventory-status'),
+    inventoryStatus: () => request<any>('/api/analytics/inventory-status'),
 
     topProducts: (params?: { days?: number; limit?: number }) =>
       request<any>('/api/analytics/top-products', { params }),
@@ -253,5 +295,17 @@ export const api = {
       page?: number;
       limit?: number;
     }) => request<any>('/api/reports/financial', { params }),
+  },
+
+  // Notifications
+  notifications: {
+    sendDueAccountAlert: (data: { threshold?: number; recipients?: string[] }) =>
+      request<ApiResponse<{ sent: boolean; to: string[]; count: number }>>(
+        '/api/notifications/send/due-accounts',
+        {
+          method: 'POST',
+          data,
+        }
+      ),
   },
 };

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { prisma } from '../../config/database';
 import { AppError } from '../../middleware/errorHandler';
 
 const transporter = nodemailer.createTransport({
@@ -26,7 +27,12 @@ function dueAccountTemplate(customerName: string, dueAmount: number, threshold: 
 <p>Outstanding balance <strong>$${dueAmount.toFixed(2)}</strong> exceeds threshold <strong>$${threshold.toFixed(2)}</strong>.</p>`;
 }
 
-export async function sendLowStockAlert(recipient: string, productName: string, qty: number, threshold: number) {
+export async function sendLowStockAlert(
+  recipient: string,
+  productName: string,
+  qty: number,
+  threshold: number
+) {
   if (!process.env.SMTP_USER) throw new AppError(500, 'SMTP not configured');
   await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -46,7 +52,12 @@ export async function sendExpiryAlert(recipient: string, productName: string, da
   });
 }
 
-export async function sendDueAccountAlert(recipient: string, customerName: string, dueAmount: number, threshold: number) {
+export async function sendDueAccountAlert(
+  recipient: string,
+  customerName: string,
+  dueAmount: number,
+  threshold: number
+) {
   if (!process.env.SMTP_USER) throw new AppError(500, 'SMTP not configured');
   await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -56,13 +67,28 @@ export async function sendDueAccountAlert(recipient: string, customerName: strin
   });
 }
 
-export async function sendBatchAlert(recipient: string, type: 'low_stock' | 'expiry_approaching' | 'expired' | 'due_account', items: { name?: string; customerName?: string; qty?: number; days?: number; threshold?: number; dueAmount?: number }[]) {
+export async function sendBatchAlert(
+  recipient: string,
+  type: 'low_stock' | 'expiry_approaching' | 'expired' | 'due_account',
+  items: {
+    name?: string;
+    customerName?: string;
+    qty?: number;
+    days?: number;
+    threshold?: number;
+    dueAmount?: number;
+  }[]
+) {
   if (!process.env.SMTP_USER) throw new AppError(500, 'SMTP not configured');
-  const html = items.map(i => {
-    if (type === 'low_stock') return `<li><strong>${i.name}</strong>: qty ${i.qty} (threshold ${i.threshold})</li>`;
-    if (type === 'due_account') return `<li><strong>${i.customerName}</strong>: due $${i.dueAmount?.toFixed(2)} (threshold $${i.threshold?.toFixed(2)})</li>`;
-    return `<li><strong>${i.name}</strong>: ${i.days} days</li>`;
-  }).join('');
+  const html = items
+    .map((i) => {
+      if (type === 'low_stock')
+        return `<li><strong>${i.name}</strong>: qty ${i.qty} (threshold ${i.threshold})</li>`;
+      if (type === 'due_account')
+        return `<li><strong>${i.customerName}</strong>: due $${i.dueAmount?.toFixed(2)} (threshold $${i.threshold?.toFixed(2)})</li>`;
+      return `<li><strong>${i.name}</strong>: ${i.days} days</li>`;
+    })
+    .join('');
   await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to: recipient,
