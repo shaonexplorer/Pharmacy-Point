@@ -123,6 +123,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `DueAccountAlertSettings` frontend component (`frontend/src/components/customers/DueAccountAlertSettings.tsx`) with threshold/recipients inputs
 - Uses existing SMTP notification infrastructure (`SMTP_HOST`, `SMTP_USER`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
 
+### Credit Sale / Due Management Fixes
+
+The credit sale flow had several bugs where `Customer.dueAmount` was never updated on credit sale orders, causing due accounts to be invisible in the POS and due-account listings. The following fixes were applied:
+
+- **Order creation updates `dueAmount`** (`backend/src/modules/orders/order.service.ts`): Inside the `createOrder` Prisma transaction, when `isCreditSale` is `true` and `customerId` is set, the customer's `dueAmount` is incremented by the order `total`. Previously this step was missing entirely.
+- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Previously only orders/inventory/products/stats and customer lists were invalidated.
+- **Refund adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processRefund`): Within the refund transaction, if the order is a credit sale with a linked customer, the customer's `dueAmount` is decremented by the refunded amount.
+- **Return adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processReturn`): The returned item value (`Σ item.price × returnedQty`) is accumulated during the return transaction; if the order is a credit sale with a linked customer, `dueAmount` is decremented by that value.
+- **Refund/returned orders excluded from balance recalculation** (`backend/src/modules/customers/customer.service.ts` `recordDuePayment`): The recalculation query now excludes `CANCELLED`, `REFUNDED`, and `RETURNED` orders (previously only `CANCELLED` was excluded).
+- **Customer detail includes payment history** (`backend/src/modules/customers/customer.service.ts` `getCustomer`): The `duePayments` relation (with user attribution) is now included alongside `orders`.
+- **Loyalty-tiers route ordering** (`backend/src/modules/customers/customer.routes.ts`): `GET /api/customers/loyalty-tiers` is now registered before `GET /api/customers/:id` to prevent route shadowing (previously `/loyalty-tiers` was matched as `/:id` → 404). `/due-accounts` and `/:id/dashboard` were already correctly ordered.
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary
@@ -202,6 +214,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `InventoryListParams` interface extended with optional `barcode`, `batchNo`, `expiryDate`
 - Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
 - Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
+
+**Phase 4: Advanced Inventory — Week 15-16 COMPLETED ✅**
+- Batch/Lot Tracking: `Product` extended with `lotNumber` and `manufactureDate`; batch index added; inventory service supports lot filters
+- Purchase Order Management: `Supplier`, `PurchaseOrder`, `PurchaseOrderItem` models; endpoints at `/api/purchase-orders` with approve/receive flows; auto-inventory increment on receive
+- Supplier Management: `/api/suppliers` CRUD with performance metrics and PO history tracking
+- Routes wired in `backend/src/routes/index.ts`; modules follow MVC pattern
 
 **Phase 5: Basic POS Interface - COMPLETED ✅**
 - Extended `Order` Prisma model with `subtotal`, `tax`, `taxRate`, `paymentMethod`, `staffId` fields
@@ -294,6 +312,16 @@ backend/src/
       category.service.ts
       category.controller.ts
       category.routes.ts     # Now wired up (was dead code)
+    analytics/
+      analytics.dto.ts       # Zod validation for analytics queries
+      analytics.service.ts   # Revenue trends, sales by category, inventory status
+      analytics.controller.ts# GET /api/analytics/* endpoints
+      analytics.routes.ts    # Routes wired in routes/index.ts
+    reports/
+      reports.dto.ts         # Zod validation for sales report queries
+      reports.service.ts     # Sales aggregation, inventory and customer reports
+      reports.controller.ts  # GET /api/reports/sales, /sales/summary, /sales/payment-methods, /inventory, /customers
+      reports.routes.ts      # Routes wired in routes/index.ts
 `
 
 ### Backend module layer responsibilities
@@ -501,6 +529,20 @@ enum OrderStatus {
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard
 
+### Analytics API (`/api/analytics`) [Phase 3 - NEW]
+- `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
+- `GET /api/analytics/revenue-trends?period=month&days=30` — Revenue trend data for charting (labels, revenue, orders arrays)
+- `GET /api/analytics/sales-by-category?days=30` — Sales breakdown by product category
+- `GET /api/analytics/inventory-status` — Inventory status summary (inStock, lowStock, outOfStock, totalInventoryValue)
+- `GET /api/analytics/top-products?days=30&limit=5` — Top products by revenue
+
+### Reports API (`/api/reports`) [Phase 3 - NEW]
+- `GET /api/reports/sales` — Sales report with flexible grouping (day/week/month/category/paymentMethod), filters (date range, product, category, payment method, status), pagination
+- `GET /api/reports/sales/summary` — Sales summary metrics for a time period (total revenue, transaction count, avg basket, units, unique products/customers)
+- `GET /api/reports/sales/payment-methods` — Sales breakdown by payment method for a date range
+- `GET /api/reports/inventory` — Inventory report with stock levels, slow-moving, and expiry warnings
+- `GET /api/reports/customers` — Customer report with segmentation, loyalty analytics, and due account metrics (tier, activeDays, hasDueAccounts filters)
+
 ## Development Workflow
 
 ### Initial Setup
@@ -585,6 +627,7 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── pos/ - Point of Sale interface with cart and checkout
 ├── inventory/ - Product inventory with stock levels
 ├── analytics/ - Sales reports and insights
+├── reports/sales/ - Sales reports with filters and charts
 ├── companies/ - Company list with TanStack Table
 ├── companies/new/ - Add company form
 ├── companies/[id]/ - View company details
@@ -750,3 +793,145 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `OrderStatusBadge` component created (`frontend/src/components/orders/OrderStatusBadge.tsx`) with color-coded chips per status
   - POS checkout (`frontend/src/app/pos/page.tsx`) updated to call `PATCH /api/orders/:id/status` with `COMPLETED` after successful sale
   - Plan spec `specs/phase-2/phase-2-pos-system/plan.md` step 3 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 1 COMPLETED ✅ (Analytics Dashboard)**
+- Backend analytics module created (`backend/src/modules/analytics/`):
+  - `analytics.dto.ts` — Zod validation for period/days query params
+  - `analytics.service.ts` — Revenue trends, sales by category, inventory status, top products (uses Prisma raw SQL with `sql` tag)
+  - `analytics.controller.ts` — GET `/api/analytics/*` endpoints with validation middleware
+  - `analytics.routes.ts` — Wired in `routes/index.ts`
+- Frontend chart components created (`frontend/src/components/charts/`):
+  - `RevenueTrendChart.tsx` — ComposedChart (Line + Bar) for revenue trends
+  - `SalesByCategoryChart.tsx` — BarChart for sales by category
+  - `InventoryStatusChart.tsx` — PieChart for inventory status distribution
+  - `TopProductsChart.tsx` — Horizontal BarChart for top products
+  - `index.ts` — Barrel exports
+- Frontend analytics hooks created (`frontend/src/hooks/useAnalytics.ts`):
+  - `useAnalytics`, `useRevenueTrends`, `useSalesByCategory`, `useInventoryAnalytics`, `useTopProducts`
+- Frontend analytics page updated (`frontend/src/app/analytics/page.tsx`):
+  - Replaced static mock data with real API calls via React Query
+  - KPI cards for revenue, avg order value, new customers, inventory health
+  - Period filter (day/week/month/quarter) wired to all charts
+  - Revenue trends, sales by category, inventory status, top products charts
+  - Responsive grid layout (2 columns desktop, 1 column mobile)
+  - Clinical Precision theme integration throughout
+- Recharts library installed and integrated
+- All TypeScript compilation passes (both frontend and backend)
+- **Charting Library Integration (Step 7) COMPLETED ✅** — Recharts integrated with four chart types (Revenue Trends line/bar, Sales by category bar, Inventory status pie, Top products horizontal bar), responsive via `ResponsiveContainer`, and themed with Clinical Precision `hsl()` tokens
+
+**Phase 3: Analytics & Reporting — Step 2 COMPLETED ✅ (Sales Reports)**
+- Backend reports module created (`backend/src/modules/reports/`):
+  - `reports.dto.ts` — Zod validation schemas for sales report queries (`salesReportSchema`, `salesSummarySchema`) with filters (date range, product, category, payment method, status) and grouping options (day, week, month, category, paymentMethod)
+  - `reports.service.ts` — Sales aggregation logic using Prisma raw SQL with `DATE_FORMAT` grouping, flexible WHERE clause construction, parallel query execution for data + summary + count
+  - `reports.controller.ts` — Three endpoints: `GET /api/reports/sales`, `GET /api/reports/sales/summary`, `GET /api/reports/sales/payment-methods`
+  - `reports.routes.ts` — Routes wired in `routes/index.ts` under `/reports` prefix
+- Shared types extended (`packages/types/src/index.ts`):
+  - `SalesReportItem`, `SalesSummaryData`, `SalesReportResponse`, `SalesByPaymentMethod`, `SalesGroupBy`, `SalesReportFilters`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.sales(params?)` — `GET /api/reports/sales` with full filter params
+  - `api.reports.salesSummary(params?)` — `GET /api/reports/sales/summary`
+  - `api.reports.salesByPaymentMethod(params?)` — `GET /api/reports/sales/payment-methods`
+- Frontend hooks created (`frontend/src/hooks/useReports.ts`):
+  - `useSalesReport`, `useSalesSummary`, `useSalesByPaymentMethod` with React Query
+- Frontend components created:
+  - `frontend/src/components/reports/index.ts` — Barrel exports
+  - `frontend/src/components/reports/SalesReportChart.tsx` — Recharts BarChart for sales by group (day/week/month/category/payment method) with Clinical Precision color palette
+  - `frontend/src/app/reports/sales/page.tsx` — Full Sales Reports page with:
+    - Filter bar: date range pickers, quick period selector, group-by dropdown, product/category/payment method filters
+    - KPI cards: Total Revenue, Avg Basket Size, Units Sold, Unique Customers
+    - Main SalesReportChart showing revenue by selected grouping
+    - Payment method breakdown cards
+    - Clinical Precision design with `prescription-border-l`, `data-mono`, `card-elevated`
+    - **Export functionality (Step 6)**: CSV and PDF export buttons with group-by-aware column selection
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Reports` nav item with `FileText` icon, `bg-secondary` dot, `/reports/sales` href
+- Navigation structure updated:
+  - `/reports/sales` — Sales Reports page with filtering and charts
+- Plan spec `specs/phase-3/plan.md` step 2 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 3 COMPLETED ✅ (Inventory Reports)**
+- Backend `GET /api/reports/inventory` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `inventoryReportSchema` DTO (`reports.dto.ts`) with `slowMovingDays`, `expiryDays`, `limit` params
+  - `getInventoryReport` service (`reports.service.ts`) returns summary metrics + categorized item arrays
+  - Summary: `totalProducts`, `totalInventoryValue`, `inStockCount`, `lowStockCount`, `outOfStockCount`, `expiringCount`, `expiredCount`, `slowMovingCount`
+  - Item categories: `lowStockItems`, `slowMovingItems`, `expiringItems`
+  - Slow-moving detection: products with no completed orders in `slowMovingDays` window (NOT EXISTS subquery)
+  - Expiry warnings: products with `expiryDate` between now and now + `expiryDays`
+- Shared types extended (`packages/types/src/index.ts`):
+  - `InventoryReportItem`, `InventoryReportSummary`, `InventoryReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.inventory(params?)` — `GET /api/reports/inventory`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useInventoryReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/InventoryReportChart.tsx` — Stock status comparison bar chart + inventory status donut
+  - `frontend/src/components/reports/index.ts` — Barrel export added
+- Frontend page created (`frontend/src/app/reports/inventory/page.tsx`):
+  - Filter bar: slow-moving window, expiry warning window (days)
+  - KPI cards: Total Products, Inventory Value, Low Stock, Expiring Soon, Out of Stock, Slow Moving, Expired, In Stock
+  - Charts: Stock Status Comparison bar chart + Inventory Distribution donut
+  - Tables: Low Stock Items, Slow-Moving Items, Expiring Soon Items (with product name, SKU, category, qty, price, value, expiry)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Inventory Reports` nav item with `AlertTriangle` icon, `bg-warning` dot, `/reports/inventory` href
+- Navigation structure updated:
+  - `/reports/inventory` — Inventory Reports page with KPIs, charts, and detailed item tables
+- Plan spec `specs/phase-3/plan.md` step 3 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 4 COMPLETED ✅ (Customer Reports)**
+- Backend `GET /api/reports/customers` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `customerReportSchema` DTO (`reports.dto.ts`) with `tier`, `activeDays`, `hasDueAccounts`, `page`, `limit` params
+  - `getCustomerReport` service (`reports.service.ts`) returns summary metrics, paginated customer list, and tier distribution
+  - Summary: `totalCustomers`, `activeCustomers`, `inactiveCustomers`, `averageSpend`, `totalLifetimeSpend`, `totalDueAccounts`, `totalDueAmount`, `tierDistribution`, `totalPointsEarned`, `totalPointsRedeemed`
+  - Uses raw SQL via `prisma.$queryRaw` for aggregated queries with LEFT JOIN on orders
+  - Customer segmentation by spending patterns, loyalty tier filtering, active/inactive status
+- Shared types extended (`packages/types/src/index.ts`):
+  - `CustomerReportSummary`, `CustomerReportItem`, `TierDistributionItem`, `CustomerReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.customers(params?)` — `GET /api/reports/customers`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useCustomerReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/CustomerReportChart.tsx` — Tier distribution bar chart + spending overview donut
+  - `frontend/src/components/reports/index.ts` — Barrel export updated
+- Frontend page created (`frontend/src/app/reports/customers/page.tsx`):
+  - Filter bar: tier selector, active window, due accounts filter, result limit
+  - KPI cards: Total Customers, Active/Inactive, Lifetime Spend, Due Accounts, Points Earned, Points Redeemed, Tier Distribution
+  - Charts: CustomerReportChart (tier bar + spending donut)
+  - Table: Customer Segmentation (name, email, tier, lifetime spend, orders, due amount, active status)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Customer Reports` nav item with `Users` icon, `bg-primary` dot, `/reports/customers` href
+- Navigation structure updated:
+  - `/reports/customers` — Customer Reports page with KPIs, charts, and detailed segmentation table
+- Plan spec `specs/phase-3/plan.md` step 4 marked implemented
+
+**Phase 3: Analytics & Reporting — Step 5 COMPLETED ✅ (Financial Reports)**
+- Backend `GET /api/reports/financial` endpoint implemented (`reports.controller.ts`, `reports.routes.ts`):
+  - `financialReportSchema` DTO (`reports.dto.ts`) with `startDate`, `endDate`, `paymentMethod`, `status`, `groupBy`, `page`, `limit` params
+  - `getFinancialReport` service (`reports.service.ts`) calculates gross revenue, COGS, gross profit, net profit, average order value, total refunds
+  - Uses raw SQL via `prisma.$queryRaw` for aggregated queries with parallel execution
+  - Grouping support: day, week, month with pagination
+- Shared types extended (`packages/types/src/index.ts`):
+  - `FinancialReportSummary`, `FinancialReportItem`, `FinancialReportResponse`
+- Frontend API client updated (`frontend/src/lib/api.ts`):
+  - `api.reports.financial(params?)` — `GET /api/reports/financial`
+- Frontend hook created (`frontend/src/hooks/useReports.ts`):
+  - `useFinancialReport` with React Query
+- Frontend component created:
+  - `frontend/src/components/reports/FinancialReportChart.tsx` — Profit & loss bar chart + margin overview
+  - `frontend/src/components/reports/index.ts` — Barrel export updated
+- Frontend page created (`frontend/src/app/reports/financial/page.tsx`):
+  - Filter bar: date range, quick period, payment method, status
+  - KPI cards: Gross Revenue, COGS, Gross Profit, Net Profit, Avg Order Value, Total Units, Total Refunds, Total Expenses
+  - Charts: FinancialReportChart (profit/loss breakdown + margin overview)
+  - Table: Period Breakdown (revenue, COGS, profit, orders by period)
+  - CSV export and PDF print support
+  - Clinical Precision theme integration throughout
+- Sidebar updated (`frontend/src/components/app-sidebar.tsx`):
+  - Added `Financial Reports` nav item with `Calculator` icon, `bg-secondary` dot, `/reports/financial` href
+- Navigation structure updated:
+  - `/reports/financial` — Financial Reports page with KPIs, charts, and detailed period breakdown
+- Plan spec `specs/phase-3/plan.md` step 5 marked implemented

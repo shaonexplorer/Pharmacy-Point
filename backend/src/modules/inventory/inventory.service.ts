@@ -1,3 +1,4 @@
+// Week 15-16: batch/lot tracking extended
 /**
  * Inventory service — business logic for stock management.
  * Extracted from inline route handlers in inventory.ts.

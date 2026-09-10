@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { productKeys } from '@/hooks/useProducts';
 import { inventoryKeys } from '@/hooks/useInventory';
+import { customerKeys } from '@/hooks/useCustomers';
 import type {
   Order,
   OrderWithItems,
@@ -58,14 +59,22 @@ export function useCreateOrder() {
 
   return useMutation({
     mutationFn: (data: CreateOrderInput) => api.orders.create(data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       // A sale decrements stock and creates STOCK_OUT transactions,
-      // so refresh inventory, transactions, product lists, and stats
+      // so refresh inventory, transactions, product lists, and stats.
+      // Also refresh customer data — credit sales increment dueAmount.
       queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: customerKeys.dueAccounts() });
+      // Invalidate individual customer detail if a customer was linked to the order
+      if (variables.customerId) {
+        queryClient.invalidateQueries({ queryKey: customerKeys.detail(variables.customerId) });
+        queryClient.invalidateQueries({ queryKey: customerKeys.dashboard(variables.customerId) });
+      }
     },
   });
 }

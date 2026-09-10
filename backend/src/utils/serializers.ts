@@ -71,6 +71,9 @@ export function serializeCustomer(customer: Record<string, unknown>): Record<str
     phone: customer.phone as string | null,
     address: customer.address as string | null,
     dueAmount: Number(customer.dueAmount ?? 0),
+    loyaltyPoints: (customer.loyaltyPoints as number) ?? 0,
+    loyaltyTier: (customer.loyaltyTier as string) ?? 'Bronze',
+    lifetimeSpend: Number(customer.lifetimeSpend ?? 0),
     createdAt: customer.createdAt as Date,
     updatedAt: customer.updatedAt as Date,
   };
@@ -89,7 +92,11 @@ export function serializeOrder(order: Record<string, unknown>): Record<string, u
     taxRate: Number(order.taxRate ?? 0),
     paymentMethod: order.paymentMethod as 'cash' | 'card' | null,
     staffId: order.staffId as string | null | undefined,
-    status: order.status as 'PENDING' | 'COMPLETED' | 'CANCELLED',
+    isCreditSale: (order.isCreditSale as boolean) ?? false,
+    redeemedPoints: (order.redeemedPoints as number) ?? 0,
+    receiptEmail: order.receiptEmail as string | null,
+    status: order.status as
+      'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED',
     createdAt: order.createdAt as Date,
     updatedAt: order.updatedAt as Date,
   };

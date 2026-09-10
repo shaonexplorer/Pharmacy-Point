@@ -24,37 +24,37 @@ Implement comprehensive analytics and reporting capabilities to provide data-dri
 - [ ] Frontend page at `/frontend/src/app/reports/sales/page.tsx`
 - [ ] Add search/filter form with date range picker and product selector
 
-### 3. Inventory Reports — PENDING
-- [ ] `GET /api/reports/inventory` endpoint
-- [ ] Include: stock levels, slow-moving items, returning items, expiry warnings
-- [ ] Frontend page at `/frontend/src/app/reports/inventory/page.tsx`
-- [ ] Low stock vs available inventory comparison chart
+### 3. Inventory Reports — COMPLETED ✅
+- [x] `GET /api/reports/inventory` endpoint — summary metrics + lowStock/slowMoving/expiring item arrays
+- [x] Include: stock levels, slow-moving items (no orders in N days), expiry warnings
+- [x] Frontend page at `/frontend/src/app/reports/inventory/page.tsx` — KPIs, charts, tables, CSV/PDF export
+- [x] Low stock vs available inventory comparison chart + inventory status donut
 
-### 4. Customer Reports — PENDING
-- [ ] `GET /api/reports/customers` endpoint
-- [ ] Metrics: customer count, active vs inactive, average spend, due accounts
-- [ ] Loyalty program analytics: tier distribution, points earned/redeemed
-- [ ] Frontend page at `/frontend/src/app/reports/customers/page.tsx`
-- [ ] Customer segmentation by spending patterns
+### 4. Customer Reports — COMPLETED ✅
+- [x] `GET /api/reports/customers` endpoint — summary metrics + paginated customer list + tier distribution
+- [x] Metrics: customer count, active vs inactive, average spend, total lifetime spend, due accounts, loyalty tier distribution, points earned/redeemed
+- [x] Loyalty program analytics: tier distribution, points earned/redeemed
+- [x] Frontend page at `/frontend/src/app/reports/customers/page.tsx` — filters (tier, active window, due accounts), KPI cards, tier bar chart + spending donut, customer segmentation table, CSV/PDF export
+- [x] Customer segmentation by spending patterns
 
-### 5. Financial Reports — PENDING
-- [ ] `GET /api/reports/financial` endpoint
-- [ ] Calculate: gross revenue, cost of goods sold, gross profit, net profit
-- [ ] Expense tracking (future integration with purchase orders)
-- [ ] Frontend page at `/frontend/src/app/reports/financial/page.tsx`
-- [ ] Profit/loss visualization
+### 5. Financial Reports — COMPLETED ✅
+- [x] `GET /api/reports/financial` endpoint — gross revenue, COGS, gross profit, net profit, avg order value, total refunds
+- [x] `financialReportSchema` DTO with date range, payment method, status, grouping filters
+- [x] Frontend page at `/frontend/src/app/reports/financial/page.tsx` — KPI cards, profit/loss charts, period breakdown table
+- [x] Profit/loss visualization with FinancialReportChart component
+- [x] CSV export and PDF print support
 
-### 6. Export Functionality — PENDING
-- [ ] CSV export for all report types
-- [ ] PDF export using browser print styles or jsPDF
-- [ ] Add export buttons to each report page
-- [ ] Ensure exports include all visible columns and filters
+### 6. Export Functionality — COMPLETED ✅
+- [x] CSV export for all report types — added to Sales Reports page with group-by aware columns
+- [x] PDF export using browser print styles — added Print button to Sales Reports page
+- [x] Add export buttons to each report page — Sales Reports page now has CSV/PDF export
+- [x] Ensure exports include all visible columns and filters — CSV export dynamically includes columns based on groupBy selection (day/week/month/category/paymentMethod)
 
-### 7. Charting Library Integration — PENDING
-- [ ] Select and install charting library (Recharts recommended for React)
-- [ ] Create reusable chart components: LineChart, BarChart, PieChart
-- [ ] Add responsive design for mobile viewing
-- [ ] Implement dark/light theme support
+### 7. Charting Library Integration — COMPLETED ✅
+- [x] Selected and installed Recharts charting library
+- [x] Created reusable chart components: LineChart (RevenueTrendChart), BarChart (SalesByCategoryChart, TopProductsChart), PieChart (InventoryStatusChart)
+- [x] Added responsive design via Recharts `ResponsiveContainer` and Tailwind grid classes
+- [x] Implemented dark/light theme support using `hsl()` color tokens from Clinical Precision design system
 
 ### 8. Performance Optimization — PENDING
 - [ ] Implement data caching for frequently accessed reports

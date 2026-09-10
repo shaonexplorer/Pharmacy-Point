@@ -23,8 +23,12 @@ import {
   Store,
   User,
   BarChart3,
+  FileText,
   LogOut,
   Clock,
+  AlertTriangle,
+  Users,
+  Calculator,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -365,6 +369,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
     { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, dotColor: 'bg-secondary' },
+    { name: 'Reports', href: '/reports/sales', icon: FileText, dotColor: 'bg-secondary' },
+    {
+      name: 'Inventory Reports',
+      href: '/reports/inventory',
+      icon: AlertTriangle,
+      dotColor: 'bg-warning',
+    },
+    {
+      name: 'Customer Reports',
+      href: '/reports/customers',
+      icon: Users,
+      dotColor: 'bg-primary',
+    },
+    {
+      name: 'Financial Reports',
+      href: '/reports/financial',
+      icon: Calculator,
+      dotColor: 'bg-secondary',
+    },
   ];
 
   return (

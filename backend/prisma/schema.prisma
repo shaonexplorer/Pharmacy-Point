@@ -8,20 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String?
-  name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  emailVerified Boolean   @default(false)
-  image         String?
-  role          Role      @default(CUSTOMER)
-  accounts      Account[]
-  orders        Order[]
-  sessions      Session[]
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  password              String?
+  name                  String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  emailVerified         Boolean                @default(false)
+  image                 String?
+  role                  Role                   @default(CUSTOMER)
+  accounts              Account[]
+  duePayments           DuePayment[]
   inventoryTransactions InventoryTransaction[]
-  duePayments       DuePayment[]
+  orders                Order[]
+  sessions              Session[]
 
   @@map("users")
 }
@@ -87,12 +87,9 @@ model Product {
   name                  String
   description           String?
   sku                   String                 @unique
-  barcode               String?                @unique
   price                 Float
   quantity              Int                    @default(0)
   lowStock              Int                    @default(10)
-  lowStockThreshold     Int?                   @default(10)
-  batchNo               String?
   category              String?
   image                 String?
   createdAt             DateTime               @default(now())
@@ -102,14 +99,22 @@ model Product {
   expiryDate            DateTime?
   companyId             String?
   deletedAt             DateTime?
+  barcode               String?                @unique
+  batchNo               String?
+  lowStockThreshold     Int?                   @default(10)
+  lotNumber             String?
+  manufactureDate       DateTime?
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
   company               Company?               @relation(fields: [companyId], references: [id])
+  purchaseOrderItems    PurchaseOrderItem[]
 
   @@index([category])
   @@index([deletedAt])
   @@index([companyId])
   @@index([expiryDate])
+  @@index([quantity])
+  @@index([lotNumber])
   @@map("products")
 }
 
@@ -125,19 +130,19 @@ model Category {
 }
 
 model Customer {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   name          String
-  email         String?   @unique
+  email         String?      @unique
   phone         String?
   address       String?
-  dueAmount     Decimal   @default(0) @db.Decimal(10, 2)
-  loyaltyPoints Int       @default(0)
-  loyaltyTier   String    @default("Bronze")
-  lifetimeSpend Decimal   @default(0) @db.Decimal(10, 2)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  orders        Order[]
+  dueAmount     Decimal      @default(0) @db.Decimal(10, 2)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  lifetimeSpend Decimal      @default(0) @db.Decimal(10, 2)
+  loyaltyPoints Int          @default(0)
+  loyaltyTier   String       @default("Bronze")
   duePayments   DuePayment[]
+  orders        Order[]
 
   @@map("customers")
 }
@@ -159,65 +164,116 @@ model DuePayment {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  customerId    String?
-  total         Decimal     @db.Decimal(10, 2)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  status        OrderStatus @default(PENDING)
-  paymentMethod String?     @default("cash")
-  paymentIntentId String?
-  refundReason String?
-  returnWindowDays Int? @default(30)
-  receiptEmail String?
-  isOffline Boolean @default(false)
-  offlineSyncedAt DateTime?
-  staffId       String?
-  subtotal      Decimal     @default(0) @db.Decimal(10, 2)
-  tax           Decimal     @default(0) @db.Decimal(10, 2)
-  taxRate       Float       @default(0.085)
-  isCreditSale  Boolean     @default(false)
-  items         OrderItem[]
-  customer      Customer?   @relation(fields: [customerId], references: [id])
-  user          User?       @relation(fields: [staffId], references: [id])
+  id               String      @id @default(cuid())
+  customerId       String?
+  total            Decimal     @db.Decimal(10, 2)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  status           OrderStatus @default(PENDING)
+  paymentMethod    String?     @default("cash")
+  staffId          String?
+  subtotal         Decimal     @default(0) @db.Decimal(10, 2)
+  tax              Decimal     @default(0) @db.Decimal(10, 2)
+  taxRate          Float       @default(0.085)
+  paymentIntentId  String?
+  isOffline        Boolean     @default(false)
+  offlineSyncedAt  DateTime?
+  receiptEmail     String?
+  refundReason     String?
+  returnWindowDays Int?        @default(30)
+  isCreditSale     Boolean     @default(false)
+  redeemedPoints   Int         @default(0)
+  items            OrderItem[]
+  customer         Customer?   @relation(fields: [customerId], references: [id])
+  user             User?       @relation(fields: [staffId], references: [id])
 
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
   @@map("orders")
 }
 
 model OrderItem {
-  id                 String  @id @default(cuid())
-  orderId            String
-  productId          String
-  quantity           Int
-  returnedQuantity   Int     @default(0)
-  refunded           Boolean @default(false)
-  price              Decimal @db.Decimal(10, 2)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  id               String  @id @default(cuid())
+  orderId          String
+  productId        String
+  quantity         Int
+  price            Decimal @db.Decimal(10, 2)
+  refunded         Boolean @default(false)
+  returnedQuantity Int     @default(0)
+  order            Order   @relation(fields: [orderId], references: [id])
+  product          Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
 }
 
 model InventoryTransaction {
-  id             String          @id @default(cuid())
-  productId      String
-  type           TransactionType
-  quantity       Int
-  batchNo        String?
-  userId         String?
+  id               String          @id @default(cuid())
+  productId        String
+  type             TransactionType
+  quantity         Int
+  notes            String?
+  referenceId      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  batchNo          String?
+  newQuantity      Int?
   previousQuantity Int?
-  newQuantity    Int?
-  notes          String?
-  referenceId    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  product        Product         @relation(fields: [productId], references: [id])
-  user           User?           @relation(fields: [userId], references: [id])
+  userId           String?
+  product          Product         @relation(fields: [productId], references: [id])
+  user             User?           @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([type])
   @@index([createdAt])
   @@map("inventory_transactions")
+}
+
+model Supplier {
+  id                String          @id @default(cuid())
+  name              String
+  contactName       String?
+  email             String?
+  phone             String?
+  address           String?
+  leadTimeDays      Int             @default(7)
+  paymentTerms      String?         @default("Net 30")
+  performanceRating Float?          @default(5.0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  purchaseOrders    PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id          String              @id @default(cuid())
+  supplierId  String
+  poNumber    String              @unique
+  status      POStatus            @default(PENDING)
+  totalAmount Decimal             @default(0) @db.Decimal(10, 2)
+  notes       String?
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  items       PurchaseOrderItem[]
+  supplier    Supplier            @relation(fields: [supplierId], references: [id])
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id          String        @id @default(cuid())
+  poId        String
+  productId   String?
+  quantity    Int
+  unitPrice   Decimal       @db.Decimal(10, 2)
+  receivedQty Int           @default(0)
+  po          PurchaseOrder @relation(fields: [poId], references: [id])
+  product     Product?      @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
 }
 
 enum Role {
@@ -240,4 +296,11 @@ enum TransactionType {
   STOCK_IN
   STOCK_OUT
   ADJUSTMENT
+}
+
+enum POStatus {
+  PENDING
+  APPROVED
+  RECEIVED
+  CANCELLED
 }

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DueAccountAlert } from './DueAccountAlert';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
+import { AlertTriangle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -65,6 +67,21 @@ export function Checkout({
 }: CheckoutProps) {
   const isEmpty = items.length === 0;
 
+  // Expiry identification — flag expired and expiring-soon items before checkout
+  const expiredItems = items.filter(
+    (item) => item.product.expiryDate && getExpiryStatus(item.product.expiryDate) === 'expired'
+  );
+  const expiringItems = items.filter(
+    (item) => item.product.expiryDate && getExpiryStatus(item.product.expiryDate) === 'critical'
+  );
+  const hasExpiredItems = expiredItems.length > 0;
+
+  // Guard: prevent sale if any cart item is expired (pharmacy safety protocol)
+  const handleProcessSale = () => {
+    if (hasExpiredItems) return;
+    onProcessSale();
+  };
+
   return (
     <Card className="card-elevated">
       <CardHeader className="pb-3">
@@ -97,14 +114,70 @@ export function Checkout({
           </div>
         </div>
 
+        {/* Expiry Warning — surfaced at checkout to catch expired items before
+            the sale is finalized. Per pharmacy safety protocol, expired
+            medication must never be dispensed. */}
+        {hasExpiredItems && (
+          <div className="rounded-md border border-error/30 bg-error/5 p-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-error" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-error">
+                  Expired product{expiredItems.length > 1 ? 's' : ''} in cart — cannot process sale.
+                </p>
+                <p className="text-xs text-on-surface-variant">
+                  Remove expired items before proceeding. The "Process Sale" button is disabled
+                  until all expired products are removed from the cart.
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {expiredItems.map((item) => (
+                    <ExpiryChip
+                      key={item.productId}
+                      status="expired"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expiring-soon caution — items expiring within 7 days. This is a
+            soft warning; sale can proceed but staff should verify with the
+            pharmacist. */}
+        {!hasExpiredItems && expiringItems.length > 0 && (
+          <div className="rounded-md border border-warning/30 bg-warning/5 p-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-warning">
+                  {expiringItems.length} item{expiringItems.length > 1 ? 's' : ''} expiring within 7 days.
+                </p>
+                <p className="text-xs text-on-surface-variant">
+                  Verify with the pharmacist that these products are safe to dispense.
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {expiringItems.map((item) => (
+                    <ExpiryChip
+                      key={item.productId}
+                      status="critical"
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Payment Method — Clinical Precision: unified PaymentForm for Cash/Card + Stripe flow */}
         <div className="flex flex-col gap-2">
           <p className="text-label-md text-foreground">Payment Method</p>
           <PaymentForm
             total={total}
+            disabled={hasExpiredItems}
             onSubmit={(method) => {
               onPaymentMethodChange(method);
-              onProcessSale();
+              handleProcessSale();
             }}
           />
         </div>
@@ -171,8 +244,8 @@ export function Checkout({
           size="tablet"
           variant="default"
           className="w-full"
-          disabled={isEmpty || isProcessing}
-          onClick={onProcessSale}
+          disabled={isEmpty || isProcessing || hasExpiredItems}
+          onClick={handleProcessSale}
         >
           {isProcessing ? (
             <>

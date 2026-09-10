@@ -22,6 +22,10 @@ export const inventoryKeys = {
     productId?: string;
     type?: string;
   }) => [...inventoryKeys.transactions(), params] as const,
+  expiring: (params?: { days?: number; limit?: number }) =>
+    [...inventoryKeys.all, 'expiring', params] as const,
+  expired: (params?: { limit?: number }) =>
+    [...inventoryKeys.all, 'expired', params] as const,
 };
 
 /**
@@ -48,6 +52,28 @@ export function useInventoryTransactions(params?: {
   return useQuery({
     queryKey: inventoryKeys.transactionList(params),
     queryFn: () => api.inventory.transactions(params),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Fetch products expiring within N days (default 30).
+ */
+export function useExpiringProducts(params?: { days?: number; limit?: number }) {
+  return useQuery({
+    queryKey: inventoryKeys.expiring(params),
+    queryFn: () => api.inventory.expiring(params),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Fetch expired products still in stock.
+ */
+export function useExpiredProducts(params?: { limit?: number }) {
+  return useQuery({
+    queryKey: inventoryKeys.expired(params),
+    queryFn: () => api.inventory.expired(params),
     staleTime: 30 * 1000, // 30 seconds
   });
 }
@@ -94,6 +120,7 @@ export function useStockAdjust() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
   });
 }
