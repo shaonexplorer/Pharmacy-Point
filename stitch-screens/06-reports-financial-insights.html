@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-surface":"#131b2e","on-primary":"#ffffff","on-surface-variant":"#3e4947","surface-container-low":"#f2f3ff","on-error-container":"#93000a","background":"#faf8ff","on-secondary-fixed-variant":"#004b73","outline":"#6e7977","on-secondary":"#ffffff","on-background":"#131b2e","inverse-on-surface":"#eef0ff","error":"#ba1a1a","primary-fixed":"#9cf2e8","on-tertiary-fixed":"#07006c","secondary-fixed":"#cce5ff","tertiary-container":"#5457e2","surface-container-highest":"#dae2fd","error-container":"#ffdad6","surface-container-high":"#e2e7ff","on-secondary-fixed":"#001d31","surface-dim":"#d2d9f4","primary":"#005c55","surface-container-lowest":"#ffffff","secondary-container":"#5bb8fe","tertiary":"#3b3bc9","on-primary-fixed-variant":"#00504a","inverse-primary":"#80d5cb","on-tertiary-fixed-variant":"#2f2ebe","on-secondary-container":"#00476e","on-tertiary-container":"#eae8ff","surface-bright":"#faf8ff","secondary-fixed-dim":"#93ccff","tertiary-fixed-dim":"#c0c1ff","on-tertiary":"#ffffff","inverse-surface":"#283044","on-error":"#ffffff","primary-fixed-dim":"#80d5cb","primary-container":"#0f766e","tertiary-fixed":"#e1e0ff","secondary":"#006398","surface-variant":"#dae2fd","outline-variant":"#bdc9c6","surface":"#faf8ff","surface-container":"#eaedff","on-primary-container":"#a3faef","on-primary-fixed":"#00201d","surface-tint":"#006a63"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-base":"1rem","space-lg":"1.25rem","pos-touch-min":"2.75rem","space-sm":"0.5rem","space-xs":"0.25rem","space-2xs":"0.125rem","space-xl":"1.5rem","grid-gutter":"0.75rem","space-md":"0.75rem","space-2xl":"2rem"},"fontFamily":{"label-numeric-lg":["JetBrains Mono"],"headline-lg":["Plus Jakarta Sans"],"headline-xl":["Plus Jakarta Sans"],"body-md":["Inter"],"headline-md":["Plus Jakarta Sans"],"body-lg":["Inter"],"body-sm":["Inter"],"label-numeric-md":["JetBrains Mono"],"button-text":["Inter"],"label-caps":["Inter"],"headline-sm":["Plus Jakarta Sans"],"body-xs":["Inter"],"label-numeric-sm":["JetBrains Mono"]},"fontSize":{"label-numeric-lg":["20px",{"lineHeight":"24px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-lg":["22px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-xl":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-md":["13px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-lg":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.005em","fontWeight":"400"}],"label-numeric-md":["13px",{"lineHeight":"16px","letterSpacing":"-0.01em","fontWeight":"500"}],"button-text":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"600"}],"label-caps":["10px",{"lineHeight":"12px","letterSpacing":"0.06em","fontWeight":"700"}],"headline-sm":["15px",{"lineHeight":"20px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-xs":["11px",{"lineHeight":"14px","letterSpacing":"0.01em","fontWeight":"500"}],"label-numeric-sm":["11px",{"lineHeight":"14px","letterSpacing":"0em","fontWeight":"500"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between border-r border-outline-variant/30"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center justify-between border-b border-outline-variant/20"><div class="flex items-center gap-space-sm"><img alt="PharmOS Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1WWALSAn512SJnHjzoElOpGEaXAR4Wt0jevHCM8R-pIvgr3BT0ewTDOCQ7emzJUUsy5kCVO6uXW3wugwvh5p2XIRbfrRIOac8IGdtPr6UWgV-cUF4eEiPW_HEfMS_55QRJ1kBJEH9I3QG-tnrHRBfHFwPI9U4RIsDMrm5ysRdYrroCCukthkjqUNchYHmAJ4oeFR1JbLwSPWtWzB-oG1FKNmgiyw6R-UgQ8JCGr79sXpa0q6vXsz2G2-UA"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">PharmOS</span><span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Dispensary Pro</span></div></div><span class="material-symbols-outlined text-outline text-lg cursor-pointer hover:text-on-surface transition-colors">lock_clock</span></div><div class="p-space-sm"><div class="flex items-center justify-between px-space-sm py-space-xs bg-surface-container-low rounded-lg"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-caps text-label-caps text-primary uppercase font-bold">Shift Active</span></div><span class="font-label-numeric-sm text-label-numeric-sm text-on-surface-variant">Till #03</span></div></div><nav class="flex flex-col gap-space-2xs px-space-sm mt-space-2xs" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded-lg"><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dashboard" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">dashboard</span><span class="font-button-text text-button-text">Dashboard</span></div></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="pos" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">point_of_sale</span><span class="font-button-text text-button-text">Point of Sale (POS)</span></div><span class="font-label-caps text-label-caps bg-primary text-on-primary px-space-xs py-space-2xs rounded-full">Active Bill</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="inventory" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">inventory_2</span><span class="font-button-text text-button-text">Inventory &amp; Stock</span></div><span class="font-label-numeric-sm text-label-numeric-sm bg-error-container text-on-error-container px-space-xs py-space-2xs rounded-lg font-bold">14</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="expiry" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">event_upcoming</span><span class="font-button-text text-button-text">Expiry &amp; Batches</span></div><span class="font-label-caps text-label-caps bg-error-container text-on-error-container px-space-xs py-space-2xs rounded-lg font-bold">8 Expiring</span></a><a class="flex items-center justify-between px-space-sm py-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="customers" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">group</span><span class="font-button-text text-button-text">Customers &amp; Credit</span></div><span class="font-label-caps text-label-caps text-outline uppercase">Dues</span></a><a aria-current="page" class="flex items-center justify-between px-space-sm py-space-xs transition-colors bg-primary-container text-on-primary-container font-bold rounded-lg" data-path="reports" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-lg">analytics</span><span class="font-button-text text-button-text">Financial Reports</span></div></a></nav></div><div class="p-space-sm flex flex-col gap-space-xs border-t border-outline-variant/20 bg-surface-container-lowest"><button class="w-full flex items-center justify-center gap-space-xs py-space-xs bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface transition-colors"><span class="material-symbols-outlined text-base text-primary">barcode_scanner</span><span class="font-button-text text-button-text">Scan Medication (F3)</span></button><div class="flex items-center justify-between px-space-xs py-space-2xs text-on-surface-variant"><div class="flex items-center gap-space-2xs"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="font-body-xs text-body-xs">Online • Cloud Synced</span></div><span class="font-label-numeric-sm text-label-numeric-sm">v2.4.1</span></div><div class="flex items-center gap-space-xs pt-space-xs"><button class="flex-1 flex items-center justify-center gap-space-2xs py-space-xs border border-outline-variant/40 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-sm">settings</span><span class="font-button-text text-button-text">Settings</span></button><button class="flex-1 flex items-center justify-center gap-space-2xs py-space-xs bg-error-container text-on-error-container rounded-lg hover:opacity-90 transition-opacity"><span class="material-symbols-outlined text-sm">swap_horiz</span><span class="font-button-text text-button-text">Handover</span></button></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg border-b border-outline-variant/20"><div class="flex items-center gap-space-md flex-1 max-w-xl"><button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-xl">menu_open</span></button><div class="relative w-full flex items-center"><span class="material-symbols-outlined absolute left-space-sm text-outline text-lg">search</span><input class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg pl-9 pr-14 py-space-xs font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-sm" placeholder="Search drugs by brand, generic name, batch, barcode, or MRN..." type="text"/><kbd class="absolute right-space-sm font-label-numeric-sm text-label-numeric-sm text-outline-variant bg-surface-container px-space-2xs py-space-2xs rounded border border-outline-variant/40">⌘K</kbd></div></div><div class="flex items-center gap-space-md"><div class="hidden xl:flex flex-col text-right"><span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Dr. Sarah Jenkins, PharmD</span><span class="font-body-xs text-body-xs text-on-surface-variant">Main Dispensary Counter A</span></div><button class="h-10 px-space-md bg-primary hover:bg-primary-container text-on-primary font-button-text text-button-text rounded-lg flex items-center gap-space-xs shadow-sm transition-colors active:scale-95"><span class="material-symbols-outlined text-lg">add_shopping_cart</span><span>+ Quick Sale (F2)</span></button><div class="h-6 w-px bg-outline-variant/30 hidden sm:block"></div><button class="relative p-space-xs text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1 right-1 w-2.5 h-2.5 bg-error rounded-full ring-2 ring-surface"></span></button><div class="hidden md:flex flex-col text-right"><span class="font-label-numeric-md text-label-numeric-md text-on-surface leading-tight">14:32:45</span><span class="font-body-xs text-body-xs text-on-surface-variant">Shift: 05h 42m</span></div><div class="flex items-center gap-space-xs pl-space-xs cursor-pointer"><div class="relative"><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoRB_X0Gvc5ZqxPdEIJqzJtmm-Fc6ghmBPqptKfrhCSg2F0Jy0Jk4LtSWcuiX80XWcm2qjQYBxtcwJoOjJDVtRlOFfzi2h85JvyM79loqooyzJAGI9nOXMAR70HlhXVocEsvoL5tZQM7uda6CfmP55eBNQqkbB2ZM2ej0fQskBH_2eL6N64oBI50BONyxoUnKt57V-037PWB3WwpUjBY6GkBCnWEr8f0tnDyOgkgPCEYB_azUsVurm"/><span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-primary ring-1 ring-surface"></span></div><span class="material-symbols-outlined text-outline text-base">expand_more</span></div></div></header><main class="relative pt-16 bg-background min-h-screen w-full px-space-lg py-space-md"><div class="flex flex-col w-full gap-space-md">
+<!-- Top Navigation & Report Hub Selector -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm bg-surface-container-lowest p-space-sm rounded-xl shadow-sm">
+<div class="flex items-center gap-space-xs overflow-x-auto pb-space-2xs lg:pb-0">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container font-button-text text-button-text shadow-sm transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-base">monitoring</span>
+<span>Sales Performance Report</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-button-text text-button-text transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">inventory_2</span>
+<span>Inventory Valuation &amp; Movement</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-button-text text-button-text transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">account_balance</span>
+<span>Profit &amp; Loss (P&amp;L)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-button-text text-button-text transition-colors whitespace-nowrap">
+<span class="material-symbols-outlined text-base">receipt_long</span>
+<span>Tax / VAT Ledger</span>
+</button>
+</div>
+<!-- Export Actions -->
+<div class="flex items-center gap-space-xs self-end lg:self-auto">
+<button class="flex items-center gap-space-2xs px-space-sm py-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-button-text text-button-text transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base text-primary">picture_as_pdf</span>
+<span class="hidden sm:inline">Export PDF</span>
+</button>
+<button class="flex items-center gap-space-2xs px-space-sm py-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-button-text text-button-text transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base text-secondary">table_chart</span>
+<span class="hidden sm:inline">Excel (XLSX)</span>
+</button>
+<button class="flex items-center gap-space-2xs px-space-sm py-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-button-text text-button-text transition-colors shadow-sm">
+<span class="material-symbols-outlined text-base">print</span>
+<span class="hidden sm:inline">Print Statement</span>
+</button>
+</div>
+</div>
+<!-- Custom Global Filter Toolbar -->
+<div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<!-- Date Quick Select -->
+<div class="flex items-center gap-space-2xs overflow-x-auto pb-space-2xs xl:pb-0">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mr-space-2xs">Period:</span>
+<button class="px-space-sm py-space-2xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-button-text text-button-text text-xs transition-colors whitespace-nowrap">Today</button>
+<button class="px-space-sm py-space-2xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-button-text text-button-text text-xs transition-colors whitespace-nowrap">Yesterday</button>
+<button class="px-space-sm py-space-2xs rounded-lg bg-primary text-on-primary font-button-text text-button-text text-xs shadow-sm whitespace-nowrap flex items-center gap-space-2xs">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-fixed"></span>
+<span>Last 7 Days</span>
+</button>
+<button class="px-space-sm py-space-2xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-button-text text-button-text text-xs transition-colors whitespace-nowrap">This Month</button>
+<div class="flex items-center gap-space-2xs bg-surface-container-low px-space-sm py-space-2xs rounded-lg ml-space-xs">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">calendar_today</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-on-surface">Oct 18 - Oct 24, 2024</span>
+</div>
+</div>
+<!-- Parameter Filters -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded-lg min-w-[170px] justify-between">
+<div class="flex items-center gap-space-2xs min-w-0">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">point_of_sale</span>
+<span class="font-body-xs text-body-xs text-on-surface truncate">All Dispensary Counters</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline">expand_more</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded-lg min-w-[140px] justify-between">
+<div class="flex items-center gap-space-2xs min-w-0">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">credit_card</span>
+<span class="font-body-xs text-body-xs text-on-surface truncate">All Modes</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline">expand_more</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded-lg min-w-[140px] justify-between">
+<div class="flex items-center gap-space-2xs min-w-0">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">badge</span>
+<span class="font-body-xs text-body-xs text-on-surface truncate">All Staff (8)</span>
+</div>
+<span class="material-symbols-outlined text-xs text-outline">expand_more</span>
+</div>
+<button class="h-8 w-8 flex items-center justify-center bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface transition-colors">
+<span class="material-symbols-outlined text-base">refresh</span>
+</button>
+</div>
+</div>
+<!-- Executive Financial Overview KPI Row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Gross Sales -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+<div class="flex items-center justify-between pl-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Gross Sales</span>
+<span class="material-symbols-outlined text-primary text-xl">payments</span>
+</div>
+<div class="pl-space-xs mt-space-sm">
+<div class="font-label-numeric-lg text-label-numeric-lg text-on-surface">$54,820.00</div>
+<div class="flex items-center gap-space-2xs mt-space-2xs">
+<span class="font-label-caps text-label-caps px-space-xs py-space-2xs rounded bg-primary-fixed text-on-primary-fixed font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">arrow_upward</span> +14.2%
+          </span>
+<span class="font-body-xs text-body-xs text-on-surface-variant">vs prev 7-days</span>
+</div>
+</div>
+<div class="pl-space-xs mt-space-md pt-space-xs border-t border-outline-variant/20 flex justify-between text-on-surface-variant font-body-xs text-body-xs">
+<span>Target: $50,000</span>
+<span class="text-primary font-bold">109.6% met</span>
+</div>
+</div>
+<!-- COGS -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
+<div class="flex items-center justify-between pl-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Cost of Goods (COGS)</span>
+<span class="material-symbols-outlined text-secondary text-xl">local_shipping</span>
+</div>
+<div class="pl-space-xs mt-space-sm">
+<div class="font-label-numeric-lg text-label-numeric-lg text-on-surface">$34,260.00</div>
+<div class="flex items-center gap-space-2xs mt-space-2xs">
+<span class="font-label-caps text-label-caps px-space-xs py-space-2xs rounded bg-surface-container-high text-on-surface font-bold">62.5%</span>
+<span class="font-body-xs text-body-xs text-on-surface-variant">of total revenue</span>
+</div>
+</div>
+<div class="pl-space-xs mt-space-md pt-space-xs border-t border-outline-variant/20 flex justify-between text-on-surface-variant font-body-xs text-body-xs">
+<span>Direct Drug Cost</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">$31,140</span>
+</div>
+</div>
+<!-- Net Operating Profit -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary-container"></div>
+<div class="flex items-center justify-between pl-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Net Operating Profit</span>
+<span class="material-symbols-outlined text-primary-container text-xl">trending_up</span>
+</div>
+<div class="pl-space-xs mt-space-sm">
+<div class="font-label-numeric-lg text-label-numeric-lg text-primary-container">$17,450.00</div>
+<div class="flex items-center gap-space-2xs mt-space-2xs">
+<span class="font-label-caps text-label-caps px-space-xs py-space-2xs rounded bg-primary-fixed text-on-primary-fixed font-bold">Margin 31.8%</span>
+<span class="font-body-xs text-body-xs text-on-surface-variant">healthy threshold</span>
+</div>
+</div>
+<div class="pl-space-xs mt-space-md pt-space-xs border-t border-outline-variant/20 flex justify-between text-on-surface-variant font-body-xs text-body-xs">
+<span>Net Disbursed Dispense</span>
+<span class="text-primary font-bold">+$2,110 / day</span>
+</div>
+</div>
+<!-- VAT / Tax Collected -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-tertiary"></div>
+<div class="flex items-center justify-between pl-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Total VAT Collected (5%)</span>
+<span class="material-symbols-outlined text-tertiary text-xl">account_balance_wallet</span>
+</div>
+<div class="pl-space-xs mt-space-sm">
+<div class="font-label-numeric-lg text-label-numeric-lg text-on-surface">$3,110.00</div>
+<div class="flex items-center gap-space-2xs mt-space-2xs">
+<span class="font-label-caps text-label-caps px-space-xs py-space-2xs rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold">Remittable</span>
+<span class="font-body-xs text-body-xs text-on-surface-variant">Due in 14 days</span>
+</div>
+</div>
+<div class="pl-space-xs mt-space-md pt-space-xs border-t border-outline-variant/20 flex justify-between text-on-surface-variant font-body-xs text-body-xs">
+<span>Zero-Rated Prescriptions</span>
+<span class="font-label-numeric-sm text-label-numeric-sm">$12,400</span>
+</div>
+</div>
+</div>
+<!-- Analytical Breakdowns & Comparison Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Left Chart: Daily Sales vs Target (Col-span 7) -->
+<div class="lg:col-span-7 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs pb-space-sm border-b border-outline-variant/20">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Daily Dispense Sales vs Target</h2>
+<p class="font-body-xs text-body-xs text-on-surface-variant">Breakdown of Cash, POS Card, and Patient Account Credit</p>
+</div>
+<div class="flex items-center gap-space-sm font-label-caps text-label-caps">
+<span class="flex items-center gap-space-2xs text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary"></span> Card Sales
+          </span>
+<span class="flex items-center gap-space-2xs text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-secondary"></span> Cash Sales
+          </span>
+<span class="flex items-center gap-space-2xs text-on-surface">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary-fixed-dim"></span> Due Credit
+          </span>
+<span class="flex items-center gap-space-2xs text-on-surface">
+<span class="w-3 h-0.5 bg-error"></span> Target
+          </span>
+</div>
+</div>
+<!-- Chart Graphic Area -->
+<div class="py-space-md">
+<svg class="w-full h-56 text-outline-variant" fill="none" preserveaspectratio="none" viewbox="0 0 680 220">
+<!-- Horizontal Grid Lines -->
+<line opacity="0.4" stroke="currentColor" stroke-dasharray="3 3" x1="40" x2="660" y1="20" y2="20"></line>
+<line opacity="0.4" stroke="currentColor" stroke-dasharray="3 3" x1="40" x2="660" y1="65" y2="65"></line>
+<line opacity="0.4" stroke="currentColor" stroke-dasharray="3 3" x1="40" x2="660" y1="110" y2="110"></line>
+<line opacity="0.4" stroke="currentColor" stroke-dasharray="3 3" x1="40" x2="660" y1="155" y2="155"></line>
+<line opacity="0.8" stroke="currentColor" x1="40" x2="660" y1="200" y2="200"></line>
+<!-- Axis Values -->
+<text class="font-label-numeric-sm text-[10px] fill-current" opacity="0.7" x="5" y="24">$10k</text>
+<text class="font-label-numeric-sm text-[10px] fill-current" opacity="0.7" x="10" y="69">$8k</text>
+<text class="font-label-numeric-sm text-[10px] fill-current" opacity="0.7" x="10" y="114">$6k</text>
+<text class="font-label-numeric-sm text-[10px] fill-current" opacity="0.7" x="10" y="159">$4k</text>
+<text class="font-label-numeric-sm text-[10px] fill-current" opacity="0.7" x="15" y="200">$0</text>
+<!-- Day 1: Fri 18 -->
+<rect class="fill-primary" height="50" rx="2" width="36" x="70" y="150"></rect>
+<rect class="fill-secondary" height="35" rx="2" width="36" x="70" y="115"></rect>
+<rect class="fill-tertiary-fixed-dim" height="17" rx="2" width="36" x="70" y="98"></rect>
+<!-- Day 2: Sat 19 -->
+<rect class="fill-primary" height="60" rx="2" width="36" x="155" y="140"></rect>
+<rect class="fill-secondary" height="45" rx="2" width="36" x="155" y="95"></rect>
+<rect class="fill-tertiary-fixed-dim" height="15" rx="2" width="36" x="155" y="80"></rect>
+<!-- Day 3: Sun 20 -->
+<rect class="fill-primary" height="40" rx="2" width="36" x="240" y="160"></rect>
+<rect class="fill-secondary" height="30" rx="2" width="36" x="240" y="130"></rect>
+<rect class="fill-tertiary-fixed-dim" height="12" rx="2" width="36" x="240" y="118"></rect>
+<!-- Day 4: Mon 21 (High Peak) -->
+<rect class="fill-primary" height="90" rx="2" width="36" x="325" y="110"></rect>
+<rect class="fill-secondary" height="55" rx="2" width="36" x="325" y="55"></rect>
+<rect class="fill-tertiary-fixed-dim" height="23" rx="2" width="36" x="325" y="32"></rect>
+<!-- Day 5: Tue 22 -->
+<rect class="fill-primary" height="65" rx="2" width="36" x="410" y="135"></rect>
+<rect class="fill-secondary" height="50" rx="2" width="36" x="410" y="85"></rect>
+<rect class="fill-tertiary-fixed-dim" height="17" rx="2" width="36" x="410" y="68"></rect>
+<!-- Day 6: Wed 23 -->
+<rect class="fill-primary" height="75" rx="2" width="36" x="495" y="125"></rect>
+<rect class="fill-secondary" height="55" rx="2" width="36" x="495" y="70"></rect>
+<rect class="fill-tertiary-fixed-dim" height="18" rx="2" width="36" x="495" y="52"></rect>
+<!-- Day 7: Thu 24 (Today) -->
+<rect class="fill-primary" height="70" rx="2" width="36" x="580" y="130"></rect>
+<rect class="fill-secondary" height="50" rx="2" width="36" x="580" y="80"></rect>
+<rect class="fill-tertiary-fixed-dim" height="20" rx="2" width="36" x="580" y="60"></rect>
+<!-- Target Benchmark Line ($7.5k = y: 76.25) -->
+<path d="M 50 76 L 650 76" opacity="0.85" stroke="#ba1a1a" stroke-dasharray="6 4" stroke-width="2"></path>
+<!-- Peak Tag on Mon 21 -->
+<circle cx="343" cy="32" fill="#005c55" r="4" stroke="#ffffff" stroke-width="1.5"></circle>
+</svg>
+<!-- Chart X Axis Labels -->
+<div class="grid grid-cols-7 text-center font-label-numeric-sm text-label-numeric-sm text-on-surface-variant pt-space-xs pl-8">
+<div><span class="block">Fri 18</span><span class="text-[10px] text-outline">$6,840</span></div>
+<div><span class="block">Sat 19</span><span class="text-[10px] text-outline">$8,120</span></div>
+<div><span class="block">Sun 20</span><span class="text-[10px] text-outline">$5,460</span></div>
+<div><span class="block font-bold text-primary">Mon 21 ★</span><span class="text-[10px] font-bold text-primary">$10,480</span></div>
+<div><span class="block">Tue 22</span><span class="text-[10px] text-outline">$7,990</span></div>
+<div><span class="block">Wed 23</span><span class="text-[10px] text-outline">$8,740</span></div>
+<div><span class="block">Thu 24</span><span class="text-[10px] text-outline">$7,190</span></div>
+</div>
+</div>
+<!-- Quick Summary Footnote -->
+<div class="flex items-center justify-between px-space-sm py-space-xs bg-surface-container-low rounded-lg font-body-xs text-body-xs text-on-surface-variant">
+<span class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-sm text-primary">verified</span>
+          Mon 21 experienced peak footfall (+38%) following weekend prescription refill rush.
+        </span>
+<span class="font-label-numeric-sm text-label-numeric-sm font-semibold text-on-surface">Avg: $7,831.42 / day</span>
+</div>
+</div>
+<!-- Right Chart: Margin by Drug Category (Col-span 5) -->
+<div class="lg:col-span-5 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between pb-space-sm border-b border-outline-variant/20">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Profit Margin by Category</h2>
+<p class="font-body-xs text-body-xs text-on-surface-variant">Top revenue drivers &amp; gross margin split</p>
+</div>
+<span class="font-label-caps text-label-caps bg-surface-container-high px-space-xs py-space-2xs rounded text-on-surface">7-Day Net</span>
+</div>
+<!-- Category Progress List -->
+<div class="flex flex-col gap-space-md py-space-sm">
+<!-- Category 1 -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Chronic Disease Meds</span>
+</div>
+<div class="text-right">
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface font-semibold">$6,200.00</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary ml-space-xs">34.5%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 35.5%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-xs text-[10px]">
+<span>Hypertension, Diabetes, Cardiac Statin scripts</span>
+<span>412 scripts filled</span>
+</div>
+</div>
+<!-- Category 2 -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Antibiotics &amp; Acute Care</span>
+</div>
+<div class="text-right">
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface font-semibold">$4,100.00</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-secondary ml-space-xs">29.8%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 23.5%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-xs text-[10px]">
+<span>Amoxicillin, Azithromycin, Analgesics</span>
+<span>328 scripts filled</span>
+</div>
+</div>
+<!-- Category 3 -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">OTC &amp; Wellness Supplements</span>
+</div>
+<div class="text-right">
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface font-semibold">$3,950.00</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-tertiary ml-space-xs">44.2%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 22.6%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-xs text-[10px]">
+<span>Vitamins, Cold &amp; Flu, First Aid</span>
+<span>510 items scanned</span>
+</div>
+</div>
+<!-- Category 4 -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Medical Consumables</span>
+</div>
+<div class="text-right">
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface font-semibold">$3,200.00</span>
+<span class="font-label-numeric-sm text-label-numeric-sm text-primary-container ml-space-xs">48.0%</span>
+</div>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 18.4%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-body-xs text-[10px]">
+<span>Blood Glucose Strips, Nebulizers, Syringes</span>
+<span>194 orders</span>
+</div>
+</div>
+</div>
+<!-- Margin Health Note -->
+<div class="p-space-xs bg-surface-container-low rounded-lg flex items-center justify-between font-body-xs text-body-xs">
+<span class="text-on-surface-variant">Weighted Margin:</span>
+<span class="font-label-numeric-md text-label-numeric-md font-bold text-primary">36.62% Overall Gross</span>
+</div>
+</div>
+</div>
+<!-- Itemized Financial Audit & Tax Ledger Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-space-md flex flex-col sm:flex-row sm:items-center justify-between gap-space-xs border-b border-outline-variant/20">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Shift-by-Shift Financial Audit &amp; Tax Settlement Ledger</h2>
+<p class="font-body-xs text-body-xs text-on-surface-variant">Synchronized dispensary register handovers and verified tax compliance trails</p>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-caps text-label-caps bg-primary-fixed text-on-primary-fixed px-space-xs py-space-2xs rounded font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> 7/7 Shifts Reconciled
+        </span>
+<button class="flex items-center gap-space-2xs px-space-sm py-space-2xs bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface font-button-text text-button-text transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>CSV Export</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-caps text-label-caps uppercase border-b border-outline-variant/20">
+<th class="py-space-xs px-space-md">Date &amp; Shift</th>
+<th class="py-space-xs px-space-sm">Shift Pharmacist</th>
+<th class="py-space-xs px-space-sm text-right">Invoices</th>
+<th class="py-space-xs px-space-sm text-right">Cash Rec.</th>
+<th class="py-space-xs px-space-sm text-right">Card Settle</th>
+<th class="py-space-xs px-space-sm text-right">Credit Extended</th>
+<th class="py-space-xs px-space-sm text-right">Net Sales</th>
+<th class="py-space-xs px-space-sm text-right">VAT (5%)</th>
+<th class="py-space-xs px-space-sm text-right">Gross Margin</th>
+<th class="py-space-xs px-space-md text-center">Audit &amp; Signature</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 font-body-sm text-body-sm text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-24</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #03 • Till 01</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Dr. Sarah Jenkins</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #4920</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">142</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$2,450.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$4,240.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$500.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$7,190.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$359.50</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">32.4%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-23</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #02 • Till 01</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Marc Vance, RPh</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #5104</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">178</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$3,120.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$5,180.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$440.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$8,740.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$437.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">33.1%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-22</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #02 • Till 02</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Elena Rostova, RPh</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #3988</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">160</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$2,840.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$4,760.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$390.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$7,990.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$399.50</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">31.2%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 4: Peak Day -->
+<tr class="hover:bg-surface-container-high/40 transition-colors bg-primary/5">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-primary">2024-10-21 ★</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #01 • Till 01</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Dr. Sarah Jenkins</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #4920</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold">215</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$3,920.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$5,880.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$680.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$10,480.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary font-bold">$524.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">34.0%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-20</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #01 • Till 01</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Marc Vance, RPh</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #5104</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">112</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$2,100.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$3,050.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$310.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$5,460.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$273.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">29.5%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-19</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #02 • Till 01</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Elena Rostova, RPh</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #3988</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">168</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$3,200.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$4,490.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$430.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$8,120.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$406.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">30.8%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors">
+<td class="py-space-xs px-space-md">
+<div class="font-label-numeric-sm text-label-numeric-sm font-bold text-on-surface">2024-10-18</div>
+<div class="font-body-xs text-body-xs text-on-surface-variant">Shift #01 • Till 03</div>
+</td>
+<td class="py-space-xs px-space-sm">
+<div class="font-body-sm text-body-sm font-medium">Dr. Sarah Jenkins</div>
+<div class="font-body-xs text-[10px] text-outline">PharmD Reg #4920</div>
+</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">138</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$2,380.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">$4,110.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-on-surface-variant">$350.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">$6,840.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md text-tertiary">$342.00</td>
+<td class="py-space-xs px-space-sm text-right font-label-numeric-md text-label-numeric-md">
+<span class="text-primary font-bold">31.4%</span>
+</td>
+<td class="py-space-xs px-space-md text-center">
+<span class="inline-flex items-center gap-space-2xs px-space-xs py-space-2xs bg-primary-fixed text-on-primary-fixed rounded font-label-caps text-label-caps uppercase font-bold">
+<span class="material-symbols-outlined text-xs">verified</span> Reconciled
+              </span>
+</td>
+</tr>
+</tbody>
+<!-- Cumulative Summary Footer -->
+<tfoot>
+<tr class="bg-surface-container font-headline-sm text-headline-sm text-on-surface">
+<td class="py-space-sm px-space-md font-bold" colspan="2">7-Day Period Total</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold">1,113</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold">$20,010.00</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold">$31,710.00</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold">$3,100.00</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-lg text-label-numeric-lg font-bold text-primary">$54,820.00</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-tertiary">$3,110.00</td>
+<td class="py-space-sm px-space-sm text-right font-label-numeric-md text-label-numeric-md font-bold text-primary">31.8%</td>
+<td class="py-space-sm px-space-md text-center">
+<div class="flex items-center justify-center gap-space-2xs text-primary font-button-text text-button-text">
+<span class="material-symbols-outlined text-base">lock</span>
+<span>Ledger Signed</span>
+</div>
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</div>
+<!-- Compliance Disclaimer & Audit Signature Strip -->
+<div class="flex flex-col sm:flex-row items-center justify-between p-space-sm bg-surface-container-low rounded-xl text-on-surface-variant font-body-xs text-body-xs gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-base text-primary">gavel</span>
+<span>Complies with Federal Healthcare Tax Authority Standard G-104. Automated e-filing hash: <code class="font-label-numeric-sm text-label-numeric-sm bg-surface-container px-space-xs py-0.5 rounded">0x8B3A...7F91</code></span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span>Audit Timestamp: <strong>2024-10-24 14:30:11 UTC</strong></span>
+<button class="text-primary hover:underline font-button-text text-button-text">View Cryptographic Proof</button>
+</div>
+</div>
+</div></main></div></body></html>

@@ -137,8 +137,11 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
-- "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary
-- 4 Stitch screens: Dashboard Overview, POS Terminal, Inventory Management, Sales & Analytics Reports
+- "Clinical Precision" theme: Pharma Teal (#0f766e) primary, Medi-Blue (#0284c7) secondary, Royal Indigo (#6366f1) tertiary
+- Updated Stitch project added: "PharmOS Management System" (`7812903941035989024`) with 8 high-fidelity UI screens
+- All 8 screen HTML sources downloaded to `@stitch-screens\` for UI component generation
+- Screens cover: Executive & Analytics Dashboard, Expiry & Batch Tracker, Customer & Due Management, Inventory & Product Management, Reports & Financial Insights, POS Interface, PharmOS Logo, Pharmacist Avatar
+- **Directive**: When generating any UI/component, always reference `@DESIGN.md` for tokens and `@stitch-screens\*.html` for layout/structure
 - Dashboard Overview with KPI cards and quick actions
 - Inventory Management page with product listing and filters
 - Analytics/Reports page with sales insights and charts
@@ -589,7 +592,15 @@ enum OrderStatus {
 - `npm run prisma` - Run Prisma CLI commands
 
 ## Key Files to Reference
-- `DESIGN.md` - Complete design system specification (from Stitch)
+- `DESIGN.md` - Complete design system specification (Clinical Precision theme from Stitch)
+- `@stitch-screens/01-executive-analytics-dashboard.html` - Executive and analytics dashboard screen
+- `@stitch-screens/02-expiry-batch-tracker.html` - Expiry and batch tracker screen
+- `@stitch-screens/03-pharmos-logo.svg` - PharmOS logo vector asset
+- `@stitch-screens/04-customer-due-management.html` - Customer and due (credit) management screen
+- `@stitch-screens/05-inventory-product-management.html` - Inventory and product management screen
+- `@stitch-screens/06-reports-financial-insights.html` - Reports and financial insights screen
+- `@stitch-screens/07-pos-interface.html` - Point of Sale (POS) interface screen
+- `@stitch-screens/08-pharmacist-avatar.png` - Pharmacist avatar photo
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
@@ -605,13 +616,32 @@ The following path aliases are configured for monorepo imports:
 
 The **"Clinical Precision"** design system was created in Google Stitch (`projects/16769129460188176504`) and exported to `DESIGN.md`. Refer to `DESIGN.md` for the complete design specification including all color tokens, typography scales, spacing values, component specs, and screen-by-screen breakdowns.
 
+A second Stitch project — **"PharmOS Management System"** (`projects/7812903941035989024`) — contains high-fidelity UI screens for the complete pharmacy application. HTML source files for all 8 screens have been downloaded to `@stitch-screens\` for reference.
+
+**⚠️ When generating any UI or React component, always reference `@DESIGN.md` for design tokens (colors, typography, spacing, shapes) and the screen references in `@stitch-screens\*.html` for layout, structure, and component hierarchy.**
+
+### Stitch Screens Reference (`@stitch-screens\`)
+
+The following screen HTML sources are available for UI reference:
+
+| File | Screen Title | Dimensions |
+|------|-------------|------------|
+| `01-executive-analytics-dashboard.html` | Executive & Analytics Dashboard | 2560 × 2308 |
+| `02-expiry-batch-tracker.html` | Expiry & Batch Tracker | 2560 × 2380 |
+| `03-pharmos-logo.svg` | PharmOS Logo | 160 × 48 |
+| `04-customer-due-management.html` | Customer & Due (Credit) Management | 2560 × 2114 |
+| `05-inventory-product-management.html` | Inventory & Product Management | 2560 × 2048 |
+| `06-reports-financial-insights.html` | Reports & Financial Insights | 2560 × 2994 |
+| `07-pos-interface.html` | Point of Sale (POS) Interface | 2560 × 2048 |
+| `08-pharmacist-avatar.png` | Pharmacist Avatar Photo | — |
+
 ### Quick Reference — Clinical Precision Theme (from Stitch)
-- **Primary**: Pharma Teal (#00685f) - for primary actions and brand-critical elements
-- **Secondary**: Medi-Blue (#006398) - for informational callouts and secondary actions
-- **Tertiary**: Safety Green (#006b2c) - for success states (In Stock, Verified)
-- **Typography**: Inter font family with JetBrains Mono for numerical data
+- **Primary**: Pharma Teal (#0f766e) - for primary actions and brand-critical elements; hover `#0d9488`, active `#042f2e`
+- **Secondary**: Medi-Blue (#0284c7) - for auxiliary workflows (insurance, patient profiles)
+- **Tertiary**: Royal Indigo (#6366f1) - for Rx script tracking, batch management
+- **Typography**: Inter for body/controls, Plus Jakarta Sans for headers, JetBrains Mono for numerical data (`data-mono`)
 - **Spacing**: 4px base unit (8px rhythm), with lg=24px, xl=40px
-- **Shapes**: Rounded corners (0.5rem/8px base, 1rem/16px for containers, 999px for status chips)
+- **Shapes**: Soft corners — 4px for inputs/badges/tables, 8px for cards/modals
 - **Grid**: 12-column desktop, 4-column mobile
 - **Container Max**: 1440px
 
