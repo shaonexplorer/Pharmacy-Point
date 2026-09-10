@@ -52,7 +52,7 @@ export function FormularyDiversityChart({
 }: FormularyDiversityChartProps) {
   if (isLoading) {
     return (
-      <Card className={cn('border-border bg-card', className)}>
+      <Card className={cn('h-full border-border bg-card', className)}>
         <CardHeader>
           <CardTitle className="text-headline-md">Formulary Diversity</CardTitle>
           <CardDescription className="text-body-md text-on-surface-variant">
@@ -69,15 +69,13 @@ export function FormularyDiversityChart({
   return (
     <Card
       className={cn(
-        'border-border bg-surface-container-lowest shadow-[var(--shadow-card)]',
+        'h-full w-full overflow-x-scroll border-border bg-surface-container-lowest shadow-[var(--shadow-card)]',
         className
       )}
     >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-headline-md text-on-surface">
-            Formulary Diversity
-          </CardTitle>
+          <CardTitle className="text-headline-md text-on-surface">Formulary Diversity</CardTitle>
           <span className="font-label-caps text-label-caps bg-surface-container px-2 py-1 rounded text-on-surface-variant uppercase">
             Real-Time Inventory
           </span>
@@ -85,7 +83,7 @@ export function FormularyDiversityChart({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="relative w-48 h-48 mx-auto my-3 flex items-center justify-center">
+        <div className="relative sm:w-48 sm:h-48 mx-auto my-3 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
             <DonutPath segments={segments} />
           </svg>
@@ -107,7 +105,10 @@ export function FormularyDiversityChart({
               key={seg.label}
               className="flex items-center gap-1.5 p-1.5 bg-surface-container-low rounded"
             >
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: seg.color }}
+              />
               <div className="min-w-0 flex-1">
                 <span className="font-label-caps text-label-caps text-on-surface-variant truncate block">
                   {seg.label}
@@ -123,9 +124,7 @@ export function FormularyDiversityChart({
 
       {footerNote && (
         <div className="pt-3 text-center border-t border-outline-variant/20">
-          <span className="font-body-xs text-body-xs text-on-surface-variant">
-            {footerNote}
-          </span>
+          <span className="font-body-xs text-body-xs text-on-surface-variant">{footerNote}</span>
         </div>
       )}
     </Card>

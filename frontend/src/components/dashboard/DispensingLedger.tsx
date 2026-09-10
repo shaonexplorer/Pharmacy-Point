@@ -41,12 +41,15 @@ export interface DispensingLedgerProps {
   className?: string;
 }
 
-const statusConfig: Record<DispensingStatus, {
-  label: string;
-  badgeVariant: 'success' | 'warning' | 'secondary' | 'destructive' | 'default' | 'outline';
-  color: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = {
+const statusConfig: Record<
+  DispensingStatus,
+  {
+    label: string;
+    badgeVariant: 'success' | 'warning' | 'secondary' | 'destructive' | 'default' | 'outline';
+    color: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
+> = {
   dispensed: {
     label: 'Dispensed',
     badgeVariant: 'success',
@@ -99,7 +102,7 @@ export function DispensingLedger({
 }: DispensingLedgerProps) {
   if (isLoading) {
     return (
-      <Card className={cn('border-border bg-card', className)}>
+      <Card className={cn('h-full border-border bg-card', className)}>
         <CardHeader>
           <CardTitle className="text-headline-md">Dispensing Ledger &amp; Audit Feed</CardTitle>
           <CardDescription className="text-body-md text-on-surface-variant">
@@ -115,7 +118,7 @@ export function DispensingLedger({
 
   if (!items.length) {
     return (
-      <Card className={cn('border-border bg-card', className)}>
+      <Card className={cn('h-full border-border bg-card', className)}>
         <CardHeader>
           <CardTitle className="text-headline-md">Dispensing Ledger &amp; Audit Feed</CardTitle>
           <CardDescription className="text-body-md text-on-surface-variant">
@@ -125,9 +128,7 @@ export function DispensingLedger({
         <CardContent className="flex min-h-[200px] items-center justify-center">
           <div className="space-y-2 text-center">
             <ClipboardList className="h-8 w-8 text-muted-foreground/50 mx-auto" />
-            <p className="text-body-md text-on-surface-variant">
-              No recent activity recorded yet.
-            </p>
+            <p className="text-body-md text-on-surface-variant">No recent activity recorded yet.</p>
           </div>
         </CardContent>
       </Card>
@@ -137,7 +138,7 @@ export function DispensingLedger({
   return (
     <Card
       className={cn(
-        'border-border bg-surface-container-lowest shadow-[var(--shadow-card)]',
+        'h-full w-full overflow-x-scroll border-border bg-surface-container-lowest shadow-[var(--shadow-card)]',
         className
       )}
     >
@@ -152,9 +153,7 @@ export function DispensingLedger({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-body-xs text-body-xs text-on-surface-variant">
-              Sync: 2s ago
-            </span>
+            <span className="font-body-xs text-body-xs text-on-surface-variant">Sync: 2s ago</span>
             <button
               type="button"
               className="p-1 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
@@ -179,8 +178,8 @@ export function DispensingLedger({
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full">
+        <div className="overflow-x-scroll w-full">
+          <table className="w-full overflow-x-scroll">
             <thead>
               <tr className="bg-surface-container-low text-on-surface-variant font-label-caps text-label-caps uppercase">
                 <th className="py-2 px-4 text-left">Rx # / Token</th>
@@ -197,10 +196,7 @@ export function DispensingLedger({
                 const cfg = statusConfig[item.status];
                 const isCritical = item.isControlledSubstance;
                 return (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-surface-container-low/50 transition-colors"
-                  >
+                  <tr key={item.id} className="hover:bg-surface-container-low/50 transition-colors">
                     <td className="py-2 px-4 font-label-numeric-sm text-label-numeric-sm font-semibold text-primary">
                       {item.rxNumber}
                     </td>
@@ -265,9 +261,7 @@ export function DispensingLedger({
 
       {footerText && (
         <div className="pt-3 flex items-center justify-between border-t border-outline-variant/20 px-5">
-          <span className="font-body-xs text-body-xs text-on-surface-variant">
-            {footerText}
-          </span>
+          <span className="font-body-xs text-body-xs text-on-surface-variant">{footerText}</span>
           {footerAction && (
             <button
               type="button"

@@ -45,13 +45,13 @@ export function QuickActionBar({ actions, urgentCount, className }: QuickActionB
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-6 left-72 z-30 pointer-events-none',
+        'container-max  fixed bottom-6 right-[12%] z-30 pointer-events-none',
         className
       )}
     >
       <div
         className={cn(
-          'pointer-events-auto bg-inverse-surface/95 backdrop-blur-md',
+          'pointer-events-auto bg-inverse-surface/10 backdrop-blur-sm',
           'text-inverse-on-surface px-4 py-3 rounded-xl shadow-xl',
           'flex flex-wrap items-center justify-between gap-3'
         )}
@@ -74,14 +74,8 @@ export function QuickActionBar({ actions, urgentCount, className }: QuickActionB
         <div className="flex flex-wrap items-center gap-2">
           {actions.map((action) => {
             const isUrgent = action.variant === 'destructive';
-            return (
-              <ActionButton
-                key={action.label}
-                action={action}
-                isUrgent={isUrgent}
-              />
-            )}
-          )}
+            return <ActionButton key={action.label} action={action} isUrgent={isUrgent} />;
+          })}
         </div>
       </div>
     </div>

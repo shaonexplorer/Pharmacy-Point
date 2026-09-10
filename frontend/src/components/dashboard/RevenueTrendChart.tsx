@@ -58,7 +58,7 @@ export function RevenueTrendChart({
 }: RevenueTrendChartProps) {
   if (isLoading) {
     return (
-      <Card className={cn('border-border bg-card', className)}>
+      <Card className={cn('h-full border-border bg-card', className)}>
         <CardHeader>
           <CardTitle className="text-headline-md">Revenue &amp; Prescription Yield</CardTitle>
           <CardDescription className="text-body-md text-on-surface-variant">
@@ -156,7 +156,7 @@ export function RevenueTrendChart({
         </div>
 
         {/* SVG Chart */}
-        <div className="relative w-full h-56">
+        <div className="relative w-full h-full">
           <ChartSvg data={data} />
         </div>
 
@@ -175,7 +175,7 @@ export function RevenueTrendChart({
 
       {/* Summary Footer */}
       {summary && (
-        <div className=" mx-4 grid grid-cols-3 gap-2 pt-3 mt-3 bg-surface-container-low p-2 rounded-lg border-t border-outline-variant/20">
+        <div className=" mx-4 mt-auto grid grid-cols-3 gap-2 pt-3  bg-surface-container-low p-2 rounded-lg border-t border-outline-variant/20">
           <div className="flex flex-col">
             <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
               Peak Hourly Flow
@@ -336,7 +336,7 @@ function ChartSvg({ data }: { data: TrendPoint[] }) {
         cx={peakPt.x}
         cy={peakPt.y}
         r={5}
-        fill="hsl(var(--surface-container-lowest))"
+        fill="hsl(var(--inverse-primary))"
         stroke="hsl(var(--primary-hsl))"
         strokeWidth={3}
       />
@@ -348,18 +348,11 @@ function ChartSvg({ data }: { data: TrendPoint[] }) {
           height={42}
           filter="drop-shadow(0 4px 6px rgba(0,0,0,0.15))"
         />
-        <text
-          fill="hsl(var(--inverse-on-surface))"
-          fontFamily="Inter"
-          fontSize={10}
-          fontWeight={500}
-          x={10}
-          y={16}
-        >
+        <text fill="#ffffffd8" fontFamily="Inter" fontSize={10} fontWeight={500} x={10} y={16}>
           Friday Record Peak
         </text>
         <text
-          fill="hsl(var(--surface-container-lowest))"
+          fill="#ffffff"
           fontFamily="JetBrains Mono"
           fontSize={13}
           fontWeight={700}

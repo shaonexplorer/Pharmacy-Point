@@ -112,6 +112,11 @@ export const theme = {
     'sidebar-border': 'hsl(166 11% 76%)',
     'sidebar-ring': 'hsl(175 77% 26%)',
 
+    // Inverse tokens (surfaces on primary/brand backgrounds)
+    'inverse-surface': 'hsl(175 90% 12%)',
+    'inverse-on-surface': 'hsl(0 0% 100%)',
+    'inverse-primary': 'hsl(175 90% 81%)',
+
     // ── Dark mode colors (for runtime use) ──────────────────────
 
     // Dark: Surface
@@ -120,8 +125,8 @@ export const theme = {
     'dark-surface-container-lowest': 'hsl(218 45% 16%)',
     'dark-on-surface': 'hsl(220 100% 96%)',
     'dark-on-surface-variant': 'hsl(145 20% 70%)',
-    'dark-inverse-surface': 'hsl(218 45% 16%)',
-    'dark-inverse-on-surface': 'hsl(220 100% 96%)',
+    'dark-inverse-surface': 'hsl(175 80% 20%)',
+    'dark-inverse-on-surface': 'hsl(0 0% 100%)',
     'dark-inverse-primary': 'hsl(175 90% 81%)',
 
     // Dark: Primary
