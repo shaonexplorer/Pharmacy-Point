@@ -5,7 +5,8 @@ import { CartItem as PosCartItem } from '@/components/pos/CartItem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/formatters';
-import { ShoppingCart, Receipt as ReceiptIcon, Trash2 } from 'lucide-react';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
+import { ShoppingCart, Receipt as ReceiptIcon, Trash2, AlertTriangle } from 'lucide-react';
 
 interface CartProps {
   items: CartItemType[];
@@ -29,6 +30,15 @@ export function Cart({
   onClearCart,
 }: CartProps) {
   const isEmpty = items.length === 0;
+
+  // Expiry identification — flag expired and expiring-soon items in the cart
+  const expiredItems = items.filter(
+    (item) => item.product.expiryDate && getExpiryStatus(item.product.expiryDate) === 'expired'
+  );
+  const expiringItems = items.filter(
+    (item) => item.product.expiryDate && getExpiryStatus(item.product.expiryDate) === 'critical'
+  );
+  const hasExpiryWarnings = expiredItems.length > 0 || expiringItems.length > 0;
 
   return (
     <Card className="card-elevated">
@@ -85,6 +95,39 @@ export function Cart({
               <span className="text-data-mono text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
+
+          {/* Expiry warnings — surfaced at the cart level so staff can review
+              before checkout. Expired items are a hard stop; expiring-soon
+              items are a caution. Per pharmacy safety protocol, expired
+              medication must never be dispensed. */}
+          {hasExpiryWarnings && (
+            <div className="rounded-md border border-error/30 bg-error/5 p-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-error" />
+                <div className="space-y-1">
+                  {expiredItems.length > 0 && (
+                    <p className="text-sm font-medium text-error">
+                      Expired product{expiredItems.length > 1 ? 's' : ''} in cart — must be removed before sale.
+                    </p>
+                  )}
+                  {expiringItems.length > 0 && (
+                    <p className="text-sm text-warning">
+                      {expiringItems.length} item{expiringItems.length > 1 ? 's' : ''} expiring within
+                      7 days — verify with pharmacist.
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {expiredItems.map((item) => (
+                      <ExpiryChip key={item.productId} status="expired" />
+                    ))}
+                    {expiringItems.map((item) => (
+                      <ExpiryChip key={item.productId} status="critical" />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Destructive outline — outlined until activated per spec to avoid accidents */}
           <Button variant="outline" size="sm" onClick={onClearCart} className="w-full">

@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { Package } from 'lucide-react';
 
 interface ProductGridProps {
@@ -137,11 +138,19 @@ export function ProductGrid({
     <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3">
       {products.slice(0, 9).map((product) => {
         const isOutOfStock = product.quantity <= 0;
+        const isExpired =
+          product.expiryDate !== null &&
+          product.expiryDate !== undefined &&
+          getExpiryStatus(product.expiryDate) === 'expired';
 
         return (
           <Card
             key={product.id}
-            className={cn('relative card-elevated p-3', isOutOfStock && 'opacity-60')}
+            className={cn(
+              'relative card-elevated p-3',
+              isOutOfStock && 'opacity-60',
+              isExpired && 'border-error/50'
+            )}
           >
             <div className="flex gap-3">
               {/* Product Image or Placeholder */}
@@ -165,7 +174,12 @@ export function ProductGrid({
                   <h4 className="text-sm font-medium leading-tight text-foreground truncate">
                     {product.name}
                   </h4>
-                  <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
+                    {product.expiryDate && (
+                      <ExpiryChip status={getExpiryStatus(product.expiryDate)} />
+                    )}
+                  </div>
                   {/* Stock status + vial indicator — pharmacy signature element */}
                   {/* <div className="flex items-center gap-1.5 shrink-0">
                     <StockStatusBadge quantity={product.quantity} lowStock={product.lowStock} />
@@ -179,7 +193,18 @@ export function ProductGrid({
                 </p>
 
                 {/* SKU — data-mono prevents 0/O confusion per DESIGN.md */}
-                <p className="text-data-mono text-on-surface-variant">SKU: {product.sku}</p>
+                <p className="text-data-mono text-on-surface-variant">
+                  SKU: {product.sku}
+                  {product.batchNo && <span className="mx-1 text-on-surface-variant/30">·</span>}
+                  {product.batchNo && <span>Batch: {product.batchNo}</span>}
+                </p>
+
+                {/* Expiry date — shown when available so staff can identify at-a-glance */}
+                {product.expiryDate && (
+                  <p className="text-xs text-on-surface-variant">
+                    Expires: {formatDate(product.expiryDate)}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -187,12 +212,12 @@ export function ProductGrid({
             <div className="mt-auto">
               <Button
                 size="tablet"
-                variant={isOutOfStock ? 'ghost' : 'secondary'}
-                onClick={() => onAddItem(product, 1)}
-                disabled={!canAddToCart(product, 1) || isOutOfStock}
+                variant={isOutOfStock ? 'ghost' : isExpired ? 'destructive' : 'secondary'}
+                onClick={() => !isExpired && onAddItem(product, 1)}
+                disabled={!canAddToCart(product, 1) || isOutOfStock || isExpired}
                 className="h-12 w-full text-xs"
               >
-                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+                {isOutOfStock ? 'Out of Stock' : isExpired ? 'Expired' : 'Add to Cart'}
               </Button>
             </div>
           </Card>

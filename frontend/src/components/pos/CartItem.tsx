@@ -4,8 +4,9 @@ import Image from 'next/image';
 import { CartItem as CartItemType } from '@/context/PosContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { Minus, Plus, Trash2, Package } from 'lucide-react';
 
 interface CartItemProps {
@@ -61,6 +62,14 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         <p className="text-xs text-on-surface-variant">
           SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each
         </p>
+        {product.expiryDate && (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <ExpiryChip status={getExpiryStatus(product.expiryDate)} />
+            <span className="text-xs text-on-surface-variant">
+              {formatDate(product.expiryDate)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Quantity Controls — DESIGN.md: 48px minimum touch target on tablet/POS */}
