@@ -159,6 +159,14 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
       await redeemPoints(data.customerId, data.redeemedPoints);
     }
 
+    // 2c. Update customer due amount for credit sales
+    if (data.isCreditSale && data.customerId) {
+      await tx.customer.update({
+        where: { id: data.customerId },
+        data: { dueAmount: { increment: data.total } },
+      });
+    }
+
     // 3. Create order items
     const orderItemsData = data.items.map((item) => ({
       orderId: order.id,
@@ -302,6 +310,15 @@ export async function processRefund(
     if (isFull) {
       await tx.orderItem.updateMany({ where: { orderId }, data: { refunded: true } });
     }
+
+    // Adjust customer due amount for credit sale refunds
+    if (order.isCreditSale && order.customerId) {
+      await tx.customer.update({
+        where: { id: order.customerId },
+        data: { dueAmount: { decrement: data.amount } },
+      });
+    }
+
     return tx.order.update({
       where: { id: orderId },
       data: { status: isFull ? 'REFUNDED' : 'PARTIALLY_REFUNDED' },
@@ -325,6 +342,7 @@ export async function processReturn(
     throw new AppError(400, 'Order already returned');
 
   await prisma.$transaction(async (tx) => {
+    let returnedValue = 0;
     for (const ret of data.items) {
       const item = await tx.orderItem.findUnique({
         where: { id: ret.orderItemId },
@@ -337,6 +355,8 @@ export async function processReturn(
         where: { id: ret.orderItemId },
         data: { returnedQuantity: (item.returnedQuantity || 0) + ret.quantity },
       });
+      // Accumulate value of returned items for credit-sale dueAmount adjustment
+      returnedValue += Number(item.price) * ret.quantity;
       // Restock inventory and create RETURN transaction
       await tx.product.update({
         where: { id: item.productId },
@@ -354,6 +374,13 @@ export async function processReturn(
           notes: `Return for order ${orderId}`,
           referenceId: orderId,
         },
+      });
+    }
+    // Adjust customer due amount for credit sale returns
+    if (order.isCreditSale && order.customerId && returnedValue > 0) {
+      await tx.customer.update({
+        where: { id: order.customerId },
+        data: { dueAmount: { decrement: returnedValue } },
       });
     }
     await tx.order.update({ where: { id: orderId }, data: { status: 'RETURNED' } });

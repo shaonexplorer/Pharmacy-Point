@@ -25,6 +25,7 @@ const router = Router();
 
 router.get('/', list);
 router.get('/due-accounts', listDueAccounts);
+router.get('/loyalty-tiers', getLoyaltyTiers);
 router.get('/:id/dashboard', getDashboard);
 router.get('/:id', getOne);
 router.post('/', validate(customerCreateSchema), create);
@@ -34,7 +35,6 @@ router.delete('/:id', remove);
 router.post('/:id/due-payments', validate(duePaymentSchema), recordPayment);
 router.get('/:id/due-payments', listPayments);
 
-router.get('/loyalty-tiers', getLoyaltyTiers);
 router.post('/:id/loyalty/points', validate(adjustPointsSchema), adjustLoyaltyPoints);
 
 export const customerRouter = router;

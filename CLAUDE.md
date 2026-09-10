@@ -123,6 +123,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 - `DueAccountAlertSettings` frontend component (`frontend/src/components/customers/DueAccountAlertSettings.tsx`) with threshold/recipients inputs
 - Uses existing SMTP notification infrastructure (`SMTP_HOST`, `SMTP_USER`, `SMTP_FROM`, `ALERT_RECIPIENTS`)
 
+### Credit Sale / Due Management Fixes
+
+The credit sale flow had several bugs where `Customer.dueAmount` was never updated on credit sale orders, causing due accounts to be invisible in the POS and due-account listings. The following fixes were applied:
+
+- **Order creation updates `dueAmount`** (`backend/src/modules/orders/order.service.ts`): Inside the `createOrder` Prisma transaction, when `isCreditSale` is `true` and `customerId` is set, the customer's `dueAmount` is incremented by the order `total`. Previously this step was missing entirely.
+- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Previously only orders/inventory/products/stats and customer lists were invalidated.
+- **Refund adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processRefund`): Within the refund transaction, if the order is a credit sale with a linked customer, the customer's `dueAmount` is decremented by the refunded amount.
+- **Return adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processReturn`): The returned item value (`Σ item.price × returnedQty`) is accumulated during the return transaction; if the order is a credit sale with a linked customer, `dueAmount` is decremented by that value.
+- **Refund/returned orders excluded from balance recalculation** (`backend/src/modules/customers/customer.service.ts` `recordDuePayment`): The recalculation query now excludes `CANCELLED`, `REFUNDED`, and `RETURNED` orders (previously only `CANCELLED` was excluded).
+- **Customer detail includes payment history** (`backend/src/modules/customers/customer.service.ts` `getCustomer`): The `duePayments` relation (with user attribution) is now included alongside `orders`.
+- **Loyalty-tiers route ordering** (`backend/src/modules/customers/customer.routes.ts`): `GET /api/customers/loyalty-tiers` is now registered before `GET /api/customers/:id` to prevent route shadowing (previously `/loyalty-tiers` was matched as `/:id` → 404). `/due-accounts` and `/:id/dashboard` were already correctly ordered.
+
 **Phase 4: Modern Pharmacy Dashboard - COMPLETED ✅**
 - Design system created in Google Stitch (project `16769129460188176504`) and exported to `DESIGN.md`
 - "Clinical Precision" theme: Pharma Teal primary, Medi-Blue secondary, Safety Green tertiary

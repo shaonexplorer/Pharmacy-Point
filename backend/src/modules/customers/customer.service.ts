@@ -56,7 +56,10 @@ export async function listCustomers(params: CustomerListParams): Promise<Paginat
 export async function getCustomer(id: string): Promise<PrismaResult> {
   const customer = await prisma.customer.findUnique({
     where: { id },
-    include: { orders: true },
+    include: {
+      orders: true,
+      duePayments: { include: { user: { select: { id: true, name: true, email: true } } } },
+    },
   });
 
   if (!customer) {
@@ -150,7 +153,7 @@ export async function recordDuePayment(
   const paid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
 
   const orders = await prisma.order.findMany({
-    where: { customerId, status: { notIn: ['CANCELLED'] } },
+    where: { customerId, status: { notIn: ['CANCELLED', 'REFUNDED', 'RETURNED'] } },
     select: { total: true, isCreditSale: true },
   });
   const totalCredit = orders
