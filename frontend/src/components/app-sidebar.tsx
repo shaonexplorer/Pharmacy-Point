@@ -29,6 +29,8 @@ import {
   AlertTriangle,
   Users,
   Calculator,
+  Pill,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -386,6 +388,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       name: 'Financial Reports',
       href: '/reports/financial',
       icon: Calculator,
+      dotColor: 'bg-secondary',
+    },
+    {
+      name: 'Prescriptions',
+      href: '/prescriptions',
+      icon: Pill,
+      dotColor: 'bg-tertiary',
+    },
+    {
+      name: 'Settings',
+      href: '/settings',
+      icon: Settings,
       dotColor: 'bg-secondary',
     },
   ];

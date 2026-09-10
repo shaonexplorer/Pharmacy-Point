@@ -142,7 +142,19 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 - All 8 screen HTML sources downloaded to `@stitch-screens\` for UI component generation
 - Screens cover: Executive & Analytics Dashboard, Expiry & Batch Tracker, Customer & Due Management, Inventory & Product Management, Reports & Financial Insights, POS Interface, PharmOS Logo, Pharmacist Avatar
 - **Directive**: When generating any UI/component, always reference `@DESIGN.md` for tokens and `@stitch-screens\*.html` for layout/structure
-- Dashboard Overview with KPI cards and quick actions
+- Dashboard Overview rebuilt from `@stitch-screens/01-executive-analytics-dashboard.html`:
+  - **Modular architecture**: `frontend/src/components/dashboard/` with self-contained, reusable components (ExecutiveDashboard, KpiCard, RevenueTrendChart, TopProductsChart, FormularyDiversityChart, DispensingLedger, ShiftTelemetryStrip, QuickActionBar)
+  - **ExecutiveDashboard** orchestrates data from `useStats`, `useInventory`, `useExpiringProducts`, `useOrders`, `useInventoryTransactions`, `useRevenueTrends`, `useTopProducts`, `useSalesByCategory`
+  - **KpiCard** with trend indicators (up/down/neutral), supporting metrics, sparkline
+  - **RevenueTrendChart**: SVG dual-series line/area chart (Gross Sales teal + Net Profit indigo)
+  - **TopProductsChart**: horizontal bar chart for top-selling medications
+  - **FormularyDiversityChart**: donut chart with category legend
+  - **DispensingLedger**: high-density transaction table with status badges
+  - **ShiftTelemetryStrip**: license + DEA compliance indicator
+  - **QuickActionBar**: floating dispensary quick-action bar
+  - Old components removed: QuickActionCard, InventorySnapshot, ActivityTimeline, LowStockAlerts
+  - Retained: Sparkline, TearLine, StockVial (still used by products pages)
+- Theme colors aligned with `DESIGN.md` tokens (Pharma Teal `#0f766e`/Royal Indigo `#3b3bc9`)
 - Inventory Management page with product listing and filters
 - Analytics/Reports page with sales insights and charts
 - Navigation component with responsive sidebar
@@ -649,7 +661,7 @@ The following screen HTML sources are available for UI reference:
 
 ```
 / (protected)
-├── dashboard/ - KPI cards, quick actions, recent activity
+├── dashboard/ - Executive dashboard (KPI grid, revenue charts, formulary diversity, dispensing ledger, quick-bar)
 ├── products/ - Product list with search and filters
 ├── products/new/ - Add product form
 ├── products/[id]/ - View product details

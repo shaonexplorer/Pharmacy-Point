@@ -15,35 +15,35 @@
 export const theme = {
   // Colors from DESIGN.md — mapped to HSL values matching globals.css
   colors: {
-    // Primary — Pharma Teal  #00685f
-    primary: 'hsl(175 100% 20%)',
+    // Primary — Pharma Teal  #005c55 / #0f766e (container)
+    primary: 'hsl(175 100% 18%)',
     'on-primary': 'hsl(0 0% 100%)',
-    'primary-container': 'hsl(175 100% 26%)',
-    'on-primary-container': 'hsl(164 100% 98%)',
-    'primary-fixed': 'hsl(172 84% 75%)',
-    'primary-fixed-dim': 'hsl(173 58% 63%)',
-    'on-primary-fixed': 'hsl(174 100% 6%)',
-    'on-primary-fixed-variant': 'hsl(175 100% 16%)',
+    'primary-container': 'hsl(175 77% 26%)',
+    'on-primary-container': 'hsl(175 90% 81%)',
+    'primary-fixed': 'hsl(175 90% 81%)',
+    'primary-fixed-dim': 'hsl(175 77% 26%)',
+    'on-primary-fixed': 'hsl(175 100% 6%)',
+    'on-primary-fixed-variant': 'hsl(175 100% 14%)',
 
-    // Secondary — Medi-Blue  #006398
-    secondary: 'hsl(201 100% 30%)',
+    // Secondary — Medi-Blue  #0284c7
+    secondary: 'hsl(200 99% 39%)',
     'on-secondary': 'hsl(0 0% 100%)',
-    'secondary-container': 'hsl(206 99% 68%)',
-    'on-secondary-container': 'hsl(201 100% 22%)',
-    'secondary-fixed': 'hsl(211 100% 90%)',
-    'secondary-fixed-dim': 'hsl(207 100% 72%)',
-    'on-secondary-fixed': 'hsl(204 100% 10%)',
-    'on-secondary-fixed-variant': 'hsl(201 100% 23%)',
+    'secondary-container': 'hsl(206 100% 68%)',
+    'on-secondary-container': 'hsl(205 80% 22%)',
+    'secondary-fixed': 'hsl(206 100% 82%)',
+    'secondary-fixed-dim': 'hsl(206 100% 68%)',
+    'on-secondary-fixed': 'hsl(205 100% 8%)',
+    'on-secondary-fixed-variant': 'hsl(205 80% 18%)',
 
-    // Tertiary — Safety Green  #006b2c
-    tertiary: 'hsl(145 100% 21%)',
+    // Tertiary — Royal Indigo  #3b3bc9
+    tertiary: 'hsl(239 57% 51%)',
     'on-tertiary': 'hsl(0 0% 100%)',
-    'tertiary-container': 'hsl(146 100% 26%)',
-    'on-tertiary-container': 'hsl(97 100% 97%)',
-    'tertiary-fixed': 'hsl(132 95% 74%)',
-    'tertiary-fixed-dim': 'hsl(133 66% 63%)',
-    'on-tertiary-fixed': 'hsl(136 100% 6%)',
-    'on-tertiary-fixed-variant': 'hsl(143 100% 16%)',
+    'tertiary-container': 'hsl(239 65% 61%)',
+    'on-tertiary-container': 'hsl(245 96% 95%)',
+    'tertiary-fixed': 'hsl(245 96% 95%)',
+    'tertiary-fixed-dim': 'hsl(239 65% 61%)',
+    'on-tertiary-fixed': 'hsl(240 100% 8%)',
+    'on-tertiary-fixed-variant': 'hsl(239 57% 18%)',
 
     // Error  #ba1a1a
     error: 'hsl(0 75% 42%)',
@@ -110,7 +110,7 @@ export const theme = {
     'sidebar-accent': 'hsl(221 100% 97%)',
     'sidebar-accent-foreground': 'hsl(212 63% 12%)',
     'sidebar-border': 'hsl(166 11% 76%)',
-    'sidebar-ring': 'hsl(175 100% 20%)',
+    'sidebar-ring': 'hsl(175 77% 26%)',
 
     // ── Dark mode colors (for runtime use) ──────────────────────
 
@@ -122,19 +122,19 @@ export const theme = {
     'dark-on-surface-variant': 'hsl(145 20% 70%)',
     'dark-inverse-surface': 'hsl(218 45% 16%)',
     'dark-inverse-on-surface': 'hsl(220 100% 96%)',
-    'dark-inverse-primary': 'hsl(173 58% 63%)',
+    'dark-inverse-primary': 'hsl(175 90% 81%)',
 
     // Dark: Primary
-    'dark-primary': 'hsl(173 58% 63%)',
-    'dark-on-primary': 'hsl(172 100% 11%)',
+    'dark-primary': 'hsl(175 80% 65%)',
+    'dark-on-primary': 'hsl(175 100% 18%)',
 
     // Dark: Secondary
-    'dark-secondary': 'hsl(208 100% 79%)',
-    'dark-on-secondary': 'hsl(208 100% 15%)',
+    'dark-secondary': 'hsl(200 95% 60%)',
+    'dark-on-secondary': 'hsl(205 100% 20%)',
 
-    // Dark: Tertiary
-    'dark-tertiary': 'hsl(133 66% 63%)',
-    'dark-on-tertiary': 'hsl(144 100% 11%)',
+    // Dark: Tertiary — Royal Indigo
+    'dark-tertiary': 'hsl(239 70% 70%)',
+    'dark-on-tertiary': 'hsl(240 100% 25%)',
 
     // Dark: Warning
     'dark-warning': 'hsl(41 73% 59%)',
