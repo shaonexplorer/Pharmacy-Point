@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePathname } from 'next/navigation';
 
 /* ============================================================================
  *  Pharmacy Point — Navigation Shell
@@ -60,6 +61,7 @@ function AuthShell({ children }: { children: React.ReactNode }) {
 
 export function Navigation({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
+  const pathname = usePathname();
 
   if (isPending) {
     return <NavigationLoading />;
@@ -68,6 +70,15 @@ export function Navigation({ children }: { children: React.ReactNode }) {
   if (!session) {
     // Public pages (login, signup) — no navigation shell
     return <div className="flex min-h-screen flex-col">{children}</div>;
+  }
+
+  // POS terminal uses its own full-screen shell (PosShell) with a dedicated
+  // dark sidebar and header — does NOT use the app-wide shadcn Sidebar.
+  // The PosShell component inside the page handles its own layout.
+  const isPosRoute = pathname.startsWith('/pos');
+
+  if (isPosRoute) {
+    return <>{children}</>;
   }
 
   return (

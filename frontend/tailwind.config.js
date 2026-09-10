@@ -26,6 +26,8 @@ module.exports = {
       },
       fontFamily: {
         ...theme.fontFamily,
+        heading: ['var(--font-plus-jakarta-sans)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'material-symbols': ['var(--font-material-symbols)', 'sans-serif'],
       },
       boxShadow: {
         ...theme.boxShadow,

@@ -35,6 +35,8 @@ export interface Product {
   expiryDate?: string | null;
   category: string;
   image?: string | null;
+  brandName?: string | null;
+  genericName?: string | null;
   deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;

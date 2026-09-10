@@ -24,20 +24,20 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
         <head>
           <title>Receipt #${order.id.slice(0, 8)}</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-            body { font-family: 'JetBrains Mono', 'Courier New', monospace; margin: 0; padding: 20px; font-size: 12px; color: #0b1c30; background: #f8f9ff; }
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap');
+            body { font-family: 'JetBrains Mono', 'Courier New', monospace; margin: 0; padding: 20px; font-size: 12px; color: #0f172a; background: #faf8ff; }
             .receipt { max-width: 280px; margin: 0 auto; }
-            .header { text-align: center; border-bottom: 2px solid #00685f; padding-bottom: 10px; margin-bottom: 14px; }
-            .shop-name { font-size: 16px; font-weight: 700; color: #00685f; }
-            .shop-info { font-size: 11px; color: #5b6b6b; }
+            .header { text-align: center; border-bottom: 2px solid #0f766e; padding-bottom: 10px; margin-bottom: 14px; }
+            .shop-name { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 700; color: #0f766e; }
+            .shop-info { font-size: 11px; color: #64748b; }
             .section { margin: 12px 0; }
             .item { display: flex; justify-content: space-between; margin: 5px 0; }
             .item-name { flex: 2; }
             .item-qty { flex: 1; text-align: center; }
             .item-price { flex: 1; text-align: right; font-weight: 600; }
-            .total-row { border-top: 2px solid #00685f; font-weight: 700; margin-top: 6px; padding-top: 6px; }
-            .footer { text-align: center; margin-top: 14px; font-size: 11px; color: #5b6b6b; }
-            .divider { border-top: 1px dashed #bcc9c6; }
+            .total-row { border-top: 2px solid #0f766e; font-weight: 700; margin-top: 6px; padding-top: 6px; }
+            .footer { text-align: center; margin-top: 14px; font-size: 11px; color: #64748b; }
+            .divider { border-top: 1px dashed #cbd5e1; }
           </style>
         </head>
         <body>

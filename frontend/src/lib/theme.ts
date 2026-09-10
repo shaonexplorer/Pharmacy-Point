@@ -174,8 +174,10 @@ export const theme = {
 
   // Typography from DESIGN.md
   fontFamily: {
-    sans: ['Inter', 'system-ui', 'sans-serif'],
-    mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+    sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+    heading: ['var(--font-plus-jakarta-sans)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+    mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'ui-monospace', 'monospace'],
+    'material-symbols': ['var(--font-material-symbols)', 'sans-serif'],
   },
 
   // Typography scale (matches globals.css utility classes)
