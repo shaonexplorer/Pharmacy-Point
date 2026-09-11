@@ -54,7 +54,7 @@ export function LowStockAlerts({ items, isLoading }: LowStockAlertsProps) {
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((product) => {
+      {items.slice(0, 3).map((product) => {
         const isCritical = product.quantity <= (product.lowStock || 10) / 2;
         const statusVariant = isCritical ? 'destructive' : 'warning';
 
