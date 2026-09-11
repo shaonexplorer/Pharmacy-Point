@@ -254,6 +254,20 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 - Frontend inventory page export button wired to `/api/inventory/export`
 - Expiration report retains local CSV/PDF export
 
+**Phase 2: Inventory Management - Step 9 COMPLETED ✅ (Batch / Lot Tracking)**
+- New `ProductBatch` model tracks individual batches per product (batchNo, lotNumber, expiryDate, manufactureDate, quantity, initialQuantity, costPrice, referenceId)
+- `Product.quantity` remains a denormalised aggregate of all batch quantities (kept in sync via `updateProductPrimaryBatch` inside every transaction)
+- `Product.batchNo` / `Product.expiryDate` reflect the primary (earliest-expiring) batch for backward compatibility
+- Added `batchId` FK to `InventoryTransaction` and `OrderItem` for batch-level traceability
+- **Stock-in** (`POST /api/inventory/stock-in`): Creates a `ProductBatch` record, links the transaction to it, syncs product primary batch fields
+- **Stock-out** (`POST /api/inventory/stock-out`): FIFO allocation (oldest expiring batch first); if quantity spans multiple batches, multiple `STOCK_OUT` transactions are created; optional `batchId` for batch-specific deduction; backfills a default batch if product has quantity but no batch records (migration safety)
+- **Adjustment** (`PATCH /api/inventory/:productId/adjust`): When `batchNo` is provided, sets that batch's quantity and recalculates the product aggregate; otherwise uses product-level absolute adjustment (legacy)
+- **Order creation** (`POST /api/orders`): FIFO batch deduction linked to `OrderItem.batchId`; backfills default batch for legacy products
+- **Returns** (`POST /api/orders/:id/return`): Restores to the original batch (by `batchId` or `batchNo`)
+- **New endpoint**: `GET /api/inventory/:productId/batches` — list all batches for a product ordered by expiry
+- **Frontend**: `StockAdjustmentModal` with batch fields (batchNo, lotNumber, expiryDate, manufactureDate, costPrice for STOCK_IN; batch dropdown with FIFO fallback for STOCK_OUT); product detail page shows a "Batch / Lot Tracking" table; POS receipt shows batch number and expiry per line item; inventory table shows batch count badges; `useProductBatches` hook added
+- Shared types extended: `ProductBatch` interface, `Product.batches`, `InventoryItem.batches`/`primaryBatch`, `InventoryTransaction.batchId`/`batch`/`batchNo`, `OrderItem.batchId`/`batch`, `StockInInput.lotNumber`/`manufactureDate`/`costPrice`, `StockOutInput.batchId`, `Stats.totalBatches`
+
 ## Project Structure
 
 The backend has been refactored from a flat route-centric structure to a
@@ -379,6 +393,7 @@ model User {
   orders        Order[]
   sessions      Session[]
   inventoryTransactions InventoryTransaction[]
+  productBatches        ProductBatch[]
 
   @@map("users")
 }
@@ -415,6 +430,7 @@ model Product {
   deletedAt             DateTime?
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
+  batches               ProductBatch[]
   company               Company?               @relation(fields: [companyId], references: [id])
 
   @@index([category])
@@ -424,25 +440,54 @@ model Product {
   @@map("products")
 }
 
+model ProductBatch {
+  id                String                 @id @default(cuid())
+  productId         String
+  batchNo           String?                @unique
+  lotNumber         String?
+  expiryDate        DateTime?
+  manufactureDate   DateTime?
+  quantity          Int                    @default(0)
+  initialQuantity   Int                    @default(0)
+  costPrice         Decimal?               @db.Decimal(10, 2)
+  referenceId       String?
+  userId            String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  product           Product                @relation(fields: [productId], references: [id])
+  user              User?                  @relation(fields: [userId], references: [id])
+  inventoryTransactions InventoryTransaction[]
+  orderItems        OrderItem[]
+
+  @@index([productId])
+  @@index([batchNo])
+  @@index([expiryDate])
+  @@index([productId, batchNo])
+  @@map("product_batches")
+}
+
 model InventoryTransaction {
-  id             String          @id @default(cuid())
-  productId      String
-  type           TransactionType
-  quantity       Int
-  batchNo        String?
-  userId         String?
+  id               String          @id @default(cuid())
+  productId        String
+  type             TransactionType
+  quantity         Int
+  batchNo          String?
+  batchId          String?
+  userId           String?
   previousQuantity Int?
-  newQuantity    Int?
-  notes          String?
-  referenceId    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  product        Product         @relation(fields: [productId], references: [id])
-  user           User?           @relation(fields: [userId], references: [id])
+  newQuantity      Int?
+  notes            String?
+  referenceId      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  product          Product         @relation(fields: [productId], references: [id])
+  batch            ProductBatch?   @relation(fields: [batchId], references: [id])
+  user             User?           @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([type])
   @@index([createdAt])
+  @@index([batchId])
   @@map("inventory_transactions")
 }
 
@@ -507,13 +552,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  id               String        @id @default(cuid())
+  orderId          String
+  productId        String
+  quantity         Int
+  price            Decimal       @db.Decimal(10, 2)
+  batchId          String?
+  order            Order         @relation(fields: [orderId], references: [id])
+  product          Product       @relation(fields: [productId], references: [id])
+  batch            ProductBatch? @relation(fields: [batchId], references: [id])
+
+  @@index([batchId])
 }
 
 enum OrderStatus {
@@ -540,12 +589,13 @@ enum OrderStatus {
 - `DELETE /api/products/:id` - Soft delete product
 
 ### Inventory API (`/api/inventory`) [NEW]
-- `GET /api/inventory` - List inventory with pagination, low stock filter (search handled client-side via TanStack Table globalFilter)
+- `GET /api/inventory` - List inventory with pagination, low stock filter, barcode/batchNo/expiryDate filters
 - Note: the `search` query param is no longer passed to the API — client-side search is handled by TanStack Table's `globalFilter` in the `InventoryTable` component
-- `GET /api/inventory/transactions` - List transaction history
-- `POST /api/inventory/stock-in` - Record stock in (purchase receipt)
-- `POST /api/inventory/stock-out` - Record stock out (sale)
-- `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment
+- `GET /api/inventory/transactions` - List transaction history (includes batch and user attribution)
+- `POST /api/inventory/stock-in` - Record stock in (creates a ProductBatch, links transaction to batch; accepts batchNo, lotNumber, expiryDate, manufactureDate, costPrice)
+- `POST /api/inventory/stock-out` - Record stock out (FIFO batch allocation or specific batchId; creates STOCK_OUT transactions per batch)
+- `GET /api/inventory/:productId/batches` - List all batches for a product (ordered by expiry)
+- `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment (batch-specific via batchNo, or product-level)
 
 ### Customers API (`/api/customers`) [NEW]
 - `GET /api/customers` - List with pagination and search (page, limit, search)
@@ -567,13 +617,13 @@ enum OrderStatus {
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard (returns flat `Stats` object)
 - Frontend: `useStats` hook (`frontend/src/hooks/useStats.ts`) fetches via the `api` client (`api.stats.get()` → axios GET to `http://localhost:5000/api/stats`)
-- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, pending orders, total expenses, and expenses this month
+- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, pending orders, total expenses, and expenses this month. Includes `totalBatches` count (batches with quantity > 0)
 
 ### Analytics API (`/api/analytics`) [Phase 3 - NEW]
 - `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
 - `GET /api/analytics/revenue-trends?period=month&days=30` — Revenue trend data for charting (labels, revenue, orders arrays)
 - `GET /api/analytics/sales-by-category?days=30` — Sales breakdown by product category
-- `GET /api/analytics/inventory-status` — Inventory status summary (inStock, lowStock, outOfStock, totalInventoryValue)
+- `GET /api/analytics/inventory-status` — Inventory status summary (totalProducts, totalBatches, inStock, lowStock, outOfStock, totalInventoryValue)
 - `GET /api/analytics/top-products?days=30&limit=5` — Top products by revenue
 
 ### Reports API (`/api/reports`) [Phase 3 - NEW]
