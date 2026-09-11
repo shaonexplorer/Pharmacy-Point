@@ -16,6 +16,7 @@ import { reportsRouter } from '../modules/reports/reports.routes';
 import supplierRouter from '../modules/suppliers/supplier.routes';
 import purchaseOrderRouter from '../modules/purchase-orders/purchase-order.routes';
 import paymentRouter from '../modules/payments/payment.routes';
+import { expenseRouter } from '../modules/expenses/expense.routes';
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use('/reports', reportsRouter);
 router.use('/payments', paymentRouter);
 router.use('/suppliers', supplierRouter);
 router.use('/purchase-orders', purchaseOrderRouter);
+router.use('/expenses', expenseRouter);
 
 export { router as apiRouter };

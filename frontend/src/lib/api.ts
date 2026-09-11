@@ -26,6 +26,11 @@ import type {
   CreateDuePaymentInput,
   CustomerDashboard,
   Stats,
+  Expense,
+  CreateExpenseInput,
+  UpdateExpenseInput,
+  ExpenseListParams,
+  ExpenseStats,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -335,5 +340,33 @@ export const api = {
           data,
         }
       ),
+  },
+
+  // Expenses
+  expenses: {
+    list: (params?: ExpenseListParams) =>
+      request<PaginatedResponse<Expense>>('/api/expenses', { params }),
+
+    get: (id: string) => request<ApiResponse<Expense>>(`/api/expenses/${id}`),
+
+    create: (data: CreateExpenseInput) =>
+      request<ApiResponse<Expense>>('/api/expenses', {
+        method: 'POST',
+        data,
+      }),
+
+    update: (id: string, data: UpdateExpenseInput) =>
+      request<ApiResponse<Expense>>(`/api/expenses/${id}`, {
+        method: 'PUT',
+        data,
+      }),
+
+    delete: (id: string) =>
+      request<ApiResponse<never>>(`/api/expenses/${id}`, {
+        method: 'DELETE',
+      }),
+
+    stats: () =>
+      request<ApiResponse<ExpenseStats>>('/api/expenses/stats'),
   },
 };

@@ -146,3 +146,30 @@ export function serializeUser(user: Record<string, unknown>): Record<string, unk
     email: user.email as string,
   };
 }
+
+/**
+ * Serialize a Prisma Expense row for API responses.
+ * Converts Decimal to Number and Date to ISO string for JSON-safe output.
+ */
+export function serializeExpense(expense: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: expense.id as string,
+    amount: Number(expense.amount),
+    category: expense.category as string,
+    description: expense.description as string | null,
+    expenseDate: expense.expenseDate as Date,
+    vendor: expense.vendor as string | null,
+    paymentMethod: expense.paymentMethod as string | null,
+    receiptImage: expense.receiptImage as string | null,
+    userId: expense.userId as string | null | undefined,
+    user: expense.user
+      ? {
+          id: (expense.user as Record<string, unknown>).id as string,
+          name: (expense.user as Record<string, unknown>).name as string | null,
+          email: (expense.user as Record<string, unknown>).email as string,
+        }
+      : null,
+    createdAt: expense.createdAt as Date,
+    updatedAt: expense.updatedAt as Date,
+  };
+}

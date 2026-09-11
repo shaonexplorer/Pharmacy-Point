@@ -322,6 +322,11 @@ backend/src/
       reports.service.ts     # Sales aggregation, inventory and customer reports
       reports.controller.ts  # GET /api/reports/sales, /sales/summary, /sales/payment-methods, /inventory, /customers
       reports.routes.ts      # Routes wired in routes/index.ts
+    expenses/
+      expense.dto.ts         # Zod validation schemas (category enum, amount, payment method)
+      expense.service.ts     # Expense CRUD + stats aggregation (aggregate, groupBy)
+      expense.controller.ts  # HTTP handlers with serializeExpense
+      expense.routes.ts      # Routes wired in routes/index.ts under /api/expenses
 `
 
 ### Backend module layer responsibilities
@@ -348,7 +353,7 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
 - **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS, shadcn/ui
 - **Backend**: Express.js 5.x with TypeScript, PostgreSQL via Prisma ORM
   - Backend uses **modular MVC**: each feature (products, companies, customers,
-    inventory, orders, stats, categories) is a self-contained module with
+    inventory, orders, stats, categories, expenses) is a self-contained module with
     DTO + Service + Controller + Routes (under `src/modules/`). Cross-cutting
     concerns (validation, error handling, serialization) are shared middleware/utils.
 - **Database**: PostgreSQL 15+ with Prisma migrations
@@ -446,6 +451,39 @@ enum TransactionType {
   STOCK_OUT
   ADJUSTMENT
 }
+
+enum ExpenseCategory {
+  INVENTORY_PURCHASE
+  UTILITIES
+  RENT
+  SALARIES
+  MARKETING
+  SUPPLIES
+  INSURANCE
+  MAINTENANCE
+  TAXES
+  OTHER
+}
+
+model Expense {
+  id            String       @id @default(cuid())
+  amount        Decimal      @db.Decimal(10, 2)
+  category      String
+  description   String?
+  expenseDate   DateTime     @default(now())
+  vendor        String?
+  paymentMethod String?      @default("cash")
+  receiptImage  String?
+  userId        String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@index([category])
+  @@index([expenseDate])
+  @@index([createdAt])
+  @@map("expenses")
+}
 ```
 
 **Models** (partial — see `backend/prisma/schema.prisma` for full schema):
@@ -529,7 +567,7 @@ enum OrderStatus {
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard (returns flat `Stats` object)
 - Frontend: `useStats` hook (`frontend/src/hooks/useStats.ts`) fetches via the `api` client (`api.stats.get()` → axios GET to `http://localhost:5000/api/stats`)
-- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, and pending orders
+- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, pending orders, total expenses, and expenses this month
 
 ### Analytics API (`/api/analytics`) [Phase 3 - NEW]
 - `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
@@ -544,6 +582,14 @@ enum OrderStatus {
 - `GET /api/reports/sales/payment-methods` — Sales breakdown by payment method for a date range
 - `GET /api/reports/inventory` — Inventory report with stock levels, slow-moving, and expiry warnings
 - `GET /api/reports/customers` — Customer report with segmentation, loyalty analytics, and due account metrics (tier, activeDays, hasDueAccounts filters)
+
+### Expenses API (`/api/expenses`) [NEW]
+- `GET /api/expenses` — List with pagination, search (vendor/description/category), category & paymentMethod filters, date range (startDate, endDate)
+- `GET /api/expenses/stats` — Aggregated statistics (total, this month, this year, by category, by payment method)
+- `GET /api/expenses/:id` — Get single expense with user attribution
+- `POST /api/expenses` — Create expense (category validates against 10-standard enum, receiptImage accepts empty string)
+- `PUT /api/expenses/:id` — Update expense
+- `DELETE /api/expenses/:id` — Delete expense (hard delete; no child records)
 
 ## Development Workflow
 
@@ -640,6 +686,10 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── customers/[id]/edit/ - Edit customer form
 ├── orders/ - Order list with status filters and TanStack Table
 ├── orders/[id]/ - View order details with refund/return actions
+├── expenses/ - Expense list with search and filters
+├── expenses/new/ - Record new expense form
+├── expenses/[id]/ - View expense details
+├── expenses/[id]/edit/ - Edit expense form
 └── (auth)/login - Authentication page
 ```
 
@@ -962,6 +1012,34 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Navigation structure updated:
   - `/reports/financial` — Financial Reports page with KPIs, charts, and detailed period breakdown
 - Plan spec `specs/phase-3/plan.md` step 5 marked implemented
+
+**Phase 2: Expense Management - COMPLETED ✅**
+- `Expense` model added to Prisma schema with `ExpenseCategory` enum: amount (Decimal), category (String), description, expenseDate, vendor, paymentMethod, receiptImage, userId (FK → User), timestamps
+- `expenses` relation added to `User` model
+- Backend `expenses` module (`backend/src/modules/expenses/`):
+  - `expense.dto.ts` — Zod schemas with 10-category enum validation, payment method enum, URL validation for receipt image (allows empty strings)
+  - `expense.service.ts` — CRUD service with search/category/payment-method/date-range filters, `getExpenseStats()` using Prisma `aggregate` + `groupBy`
+  - `expense.controller.ts` — HTTP handlers with `serializeExpense` (Decimal→Number conversion)
+  - `expense.routes.ts` — Routes with `/stats` before `/:id` to prevent shadowing
+- API endpoints:
+  - `GET /api/expenses` — List with pagination, search (vendor/description/category), category & paymentMethod filters, date range
+  - `GET /api/expenses/stats` — Totals (all-time/month/year) + breakdowns by category and payment method
+  - `GET /api/expenses/:id` — Single expense with user relation
+  - `POST /api/expenses` — Create expense
+  - `PUT /api/expenses/:id` — Update expense
+  - `DELETE /api/expenses/:id` — Delete expense
+- Frontend:
+  - `frontend/src/components/expenses/ExpenseCategoryBadge.tsx` — Color-coded category badges
+  - `frontend/src/components/expenses/ExpenseTable.tsx` — TanStack Table v8 with sorting, pagination
+  - `frontend/src/components/expenses/ExpenseForm.tsx` — Zod-validated form with category & payment method Selects
+  - `frontend/src/app/expenses/page.tsx` — List page with search + filters, dashboard KPIs
+  - `frontend/src/app/expenses/new/page.tsx` — Create page
+  - `frontend/src/app/expenses/[id]/page.tsx` — Detail page with receipt image preview
+  - `frontend/src/app/expenses/[id]/edit/page.tsx` — Edit page
+  - `frontend/src/hooks/useExpenses.ts` — React Query hooks with proper invalidation
+- Stats integration: `GET /api/stats` now includes `totalExpenses` and `expensesThisMonth`
+- Dashboard updated with "Total Expenses" KPI card and "Record Expense" quick action
+- Sidebar: "Expenses" nav item added with `PiggyBank` icon, `bg-warning` dot
 
 ## Troubleshooting
 

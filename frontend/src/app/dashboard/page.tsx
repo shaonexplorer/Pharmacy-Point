@@ -15,6 +15,7 @@ import {
   UserPlus,
   Clock,
   RefreshCw,
+  PiggyBank,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useStats } from '@/hooks/useStats';
@@ -79,6 +80,16 @@ const KPI_CARDS: KpiCardSpec[] = [
     iconBg: 'bg-tertiary/10',
   },
   {
+    icon: PiggyBank,
+    label: 'Total Expenses',
+    getValue: (stats) => formatCurrency(stats.totalExpenses ?? 0),
+    getSubtext: () => 'All recorded expenses',
+    sparkColor: 'hsl(var(--error-hsl))',
+    getSparkValue: (stats) => Math.round(stats.totalExpenses ?? 0),
+    iconColor: 'text-error',
+    iconBg: 'bg-error/10',
+  },
+  {
     icon: Clock,
     label: 'Pending Orders',
     getValue: (stats) => (stats.pendingOrders ?? 0).toLocaleString(),
@@ -114,6 +125,14 @@ const QUICK_ACTIONS = [
     href: '/inventory',
     iconColor: 'text-warning',
     iconBg: 'bg-warning/10',
+  },
+  {
+    icon: PiggyBank,
+    label: 'Record Expense',
+    description: 'Log an operational expense',
+    href: '/expenses/new',
+    iconColor: 'text-error',
+    iconBg: 'bg-error/10',
   },
   {
     icon: UserPlus,
@@ -166,6 +185,8 @@ export default function DashboardPage() {
     stockInThisMonth: 0,
     stockOutThisMonth: 0,
     pendingOrders: 0,
+    totalExpenses: 0,
+    expensesThisMonth: 0,
   };
 
   const stats = statsData ?? fallbackStats;
