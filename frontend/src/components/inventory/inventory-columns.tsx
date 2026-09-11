@@ -4,7 +4,12 @@ import { Plus, Edit, AlertTriangle } from 'lucide-react';
 
 import type { InventoryItem } from '@pharmacy-point/types';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
-import { StockChip, getStockStatus, ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
+import {
+  StockChip,
+  getStockStatus,
+  ExpiryChip,
+  getExpiryStatus,
+} from '@/components/inventory/StockChip';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TableCellMono } from '@/components/ui/table';
@@ -29,29 +34,31 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       header: 'Product',
       cell: ({ row }) => <div className="font-medium text-foreground">{row.original.name}</div>,
     },
-    {
-      accessorKey: 'sku',
-      header: 'SKU',
-      cell: ({ row }) => (
-        <TableCellMono>
-          {row.original.sku || `SKU-${row.original.id.slice(0, 6).toUpperCase()}`}
-        </TableCellMono>
-      ),
-    },
+    // temporarily hiding SKU column until we have a proper SKU system in place
+
+    // {
+    //   accessorKey: 'sku',
+    //   header: 'SKU',
+    //   cell: ({ row }) => (
+    //     <TableCellMono>
+    //       {row.original.sku || `SKU-${row.original.id.slice(0, 6).toUpperCase()}`}
+    //     </TableCellMono>
+    //   ),
+    // },
     {
       accessorKey: 'batchNo',
       header: 'Batch',
-      cell: ({ row }) => (
-        <TableCellMono>{row.original.batchNo || '—'}</TableCellMono>
-      ),
+      cell: ({ row }) => <TableCellMono>{row.original.batchNo || '—'}</TableCellMono>,
     },
-    {
-      accessorKey: 'barcode',
-      header: 'Barcode',
-      cell: ({ row }) => (
-        <TableCellMono>{row.original.barcode || '—'}</TableCellMono>
-      ),
-    },
+    // temporarily hiding barcode column until we have a proper barcode system in place
+    // {
+
+    //   accessorKey: 'barcode',
+    //   header: 'Barcode',
+    //   cell: ({ row }) => (
+    //     <TableCellMono>{row.original.barcode || '—'}</TableCellMono>
+    //   ),
+    // },
     {
       accessorKey: 'category',
       header: 'Category',
@@ -67,7 +74,8 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       cell: ({ row }) => {
         const product = row.original;
         const stockStatus = getStockStatus(product);
-        const batchCount = product.batches?.length ?? 0;
+        // Only count active batches (quantity > 0)
+        const batchCount = (product.batches ?? []).filter((b) => (b.quantity ?? 0) > 0).length;
 
         return (
           <div className="flex items-center gap-2">
@@ -89,11 +97,16 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       header: 'Expiry',
       cell: ({ row }) => {
         const product = row.original;
-        const expStatus = getExpiryStatus(product.expiryDate);
+        // Filter out batches with 0 quantity — only consider active batches
+        // for expiry status. The batches array is already ordered by
+        // expiryDate: 'asc', so the first active batch is the earliest-expiring.
+        const activeBatches = (product.batches ?? []).filter((b) => (b.quantity ?? 0) > 0);
+        const expiryDate = activeBatches[0]?.expiryDate ?? product.expiryDate;
+        const expStatus = getExpiryStatus(expiryDate);
         return (
           <div className="flex items-center gap-2">
             <span className="text-xs text-on-surface-variant">
-              {product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : '—'}
+              {expiryDate ? new Date(expiryDate).toLocaleDateString() : '—'}
             </span>
             <ExpiryChip status={expStatus} />
           </div>

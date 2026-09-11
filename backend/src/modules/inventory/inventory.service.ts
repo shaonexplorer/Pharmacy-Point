@@ -639,7 +639,83 @@ export async function adjustStock(
       };
     }
 
-    // No batchNo — product-level adjustment (legacy behaviour)
+    // No batchNo specified — distribute the adjustment across active batches
+    // proportionally so batch quantities stay in sync with the product aggregate.
+    // If the product has no active batches, fall back to legacy product-level adjustment.
+    const activeBatches = product.batches.filter(
+      (b: PrismaResult) => (b.quantity as number) > 0
+    );
+
+    if (activeBatches.length > 0) {
+      const totalBatchQty = activeBatches.reduce(
+        (sum: number, b: PrismaResult) => sum + (b.quantity as number),
+        0
+      );
+      const quantityDifference = data.quantity - totalBatchQty;
+
+      // Distribute the difference proportionally across active batches.
+      // The last batch absorbs any rounding remainder to avoid drift.
+      let allocatedDiff = 0;
+      for (let i = 0; i < activeBatches.length; i++) {
+        const batch = activeBatches[i];
+        if (i === activeBatches.length - 1) {
+          // Last batch gets the remainder
+          const remaining = quantityDifference - allocatedDiff;
+          await tx.productBatch.update({
+            where: { id: batch.id as string },
+            data: { quantity: { increment: remaining } },
+          });
+        } else {
+          const proportion = (batch.quantity as number) / totalBatchQty;
+          const batchDiff = Math.round(quantityDifference * proportion);
+          if (batchDiff !== 0) {
+            await tx.productBatch.update({
+              where: { id: batch.id as string },
+              data: { quantity: { increment: batchDiff } },
+            });
+          }
+          allocatedDiff += batchDiff;
+        }
+      }
+
+      // Recalculate product aggregate from updated batch quantities
+      const batchSum = await tx.productBatch.aggregate({
+        where: { productId },
+        _sum: { quantity: true },
+      });
+      const newQty = Number(batchSum._sum.quantity ?? 0);
+
+      const updatedProduct = await tx.product.update({
+        where: { id: productId },
+        data: { quantity: newQty },
+      });
+
+      await updateProductPrimaryBatch(tx, productId);
+
+      const transaction = await tx.inventoryTransaction.create({
+        data: {
+          productId,
+          type: 'ADJUSTMENT',
+          quantity: quantityDifference,
+          notes:
+            data.notes ??
+            `Proportional adjustment across ${activeBatches.length} active batch(es)`,
+          userId: (data as { userId?: string }).userId ?? undefined,
+          previousQuantity,
+          newQuantity: updatedProduct.quantity,
+        },
+      });
+
+      return {
+        product: updatedProduct,
+        transaction,
+        previousQuantity,
+        newQuantity: updatedProduct.quantity,
+        difference: quantityDifference,
+      };
+    }
+
+    // No active batches — legacy product-level adjustment
     const quantityDifference = data.quantity - product.quantity;
     const updatedProduct = await tx.product.update({
       where: { id: productId },

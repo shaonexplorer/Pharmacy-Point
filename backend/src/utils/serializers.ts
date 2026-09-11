@@ -11,6 +11,10 @@
  */
 export function serializeProduct(product: Record<string, unknown>): Record<string, unknown> {
   const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
+  // Filter out exhausted batches (quantity === 0) — these are no longer
+  // active and should not clutter the product's batch list. The dedicated
+  // /api/inventory/:productId/batches endpoint still shows all batches for audit.
+  const activeBatches = batches.filter((b) => (b.quantity as number) > 0);
   return {
     id: product.id as string,
     name: product.name as string,
@@ -29,7 +33,7 @@ export function serializeProduct(product: Record<string, unknown>): Record<strin
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
     lotNumber: (product.lotNumber as string | null | undefined) ?? null,
     manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
-    batches: batches ? batches.map((b: Record<string, unknown>) => serializeProductBatch(b)) : undefined,
+    batches: activeBatches.map((b: Record<string, unknown>) => serializeProductBatch(b)),
     deletedAt: product.deletedAt as Date | null,
     createdAt: product.createdAt as Date,
     updatedAt: product.updatedAt as Date,
@@ -43,6 +47,10 @@ export function serializeInventoryItem(product: Record<string, unknown>): Record
   const qty = product.quantity as number;
   const lowStock = product.lowStock as number;
   const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
+  // Filter out exhausted batches (quantity === 0) — these are no longer
+  // active and should not appear in inventory views. The dedicated
+  // /api/inventory/:productId/batches endpoint still shows all batches for audit.
+  const activeBatches = batches.filter((b) => (b.quantity as number) > 0);
   return {
     id: product.id,
     name: product.name,
@@ -62,9 +70,9 @@ export function serializeInventoryItem(product: Record<string, unknown>): Record
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
     lotNumber: (product.lotNumber as string | null | undefined) ?? null,
     manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
-    batches: batches ? batches.map((b: Record<string, unknown>) => serializeProductBatch(b)) : undefined,
-    primaryBatch: batches && batches.length > 0
-      ? serializeProductBatch(batches[0])
+    batches: activeBatches.map((b: Record<string, unknown>) => serializeProductBatch(b)),
+    primaryBatch: activeBatches.length > 0
+      ? serializeProductBatch(activeBatches[0])
       : null,
     deletedAt: product.deletedAt,
     createdAt: product.createdAt,

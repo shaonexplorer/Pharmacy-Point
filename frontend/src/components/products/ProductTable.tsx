@@ -142,13 +142,14 @@ export function ProductTable({
         header: 'Batch',
         cell: ({ row }) => {
           const product = row.original;
-          const hasBatches = (product.batches ?? []).length > 0;
+          // Only count active batches (quantity > 0)
+          const activeBatches = (product.batches ?? []).filter((b) => (b.quantity ?? 0) > 0);
           return (
             <span className="text-xs text-on-surface-variant">
               {product.batchNo || '—'}
-              {hasBatches && (
+              {activeBatches.length > 0 && (
                 <Badge variant="outline" size="sm" className="ml-1">
-                  {(product.batches ?? []).length} batches
+                  {activeBatches.length} batches
                 </Badge>
               )}
             </span>
@@ -159,9 +160,15 @@ export function ProductTable({
         accessorKey: 'expiryDate',
         header: 'Expiry',
         cell: ({ row }) => {
-          const d = row.original.expiryDate ? new Date(row.original.expiryDate) : null;
+          const product = row.original;
+          // Filter out batches with 0 quantity — only consider active batches
+          // for expiry status. The batches array is already ordered by
+          // expiryDate: 'asc', so the first active batch is the earliest-expiring.
+          const activeBatches = (product.batches ?? []).filter((b) => (b.quantity ?? 0) > 0);
+          const expiryDate = activeBatches[0]?.expiryDate ?? product.expiryDate;
+          const d = expiryDate ? new Date(expiryDate) : null;
           if (!d) return <span className="text-xs text-on-surface-variant">—</span>;
-          const status = getExpiryStatus(row.original.expiryDate ? row.original.expiryDate.toString() : null);
+          const status = getExpiryStatus(expiryDate);
           return (
             <div className="flex items-center gap-2">
               <span className="text-xs">{d.toLocaleDateString()}</span>

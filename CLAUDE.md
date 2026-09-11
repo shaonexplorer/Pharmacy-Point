@@ -128,7 +128,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 The credit sale flow had several bugs where `Customer.dueAmount` was never updated on credit sale orders, causing due accounts to be invisible in the POS and due-account listings. The following fixes were applied:
 
 - **Order creation updates `dueAmount`** (`backend/src/modules/orders/order.service.ts`): Inside the `createOrder` Prisma transaction, when `isCreditSale` is `true` and `customerId` is set, the customer's `dueAmount` is incremented by the order `total`. Previously this step was missing entirely.
-- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Previously only orders/inventory/products/stats and customer lists were invalidated.
+- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Additionally, `productKeys.detail(item.productId)` is now invalidated for each order item so product detail pages reflect stock decrements immediately. `useReturnOrder` now invalidates `productKeys.lists()` since returns restock product aggregate quantities. Previously only orders/inventory/products/stats and customer lists were invalidated.
 - **Refund adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processRefund`): Within the refund transaction, if the order is a credit sale with a linked customer, the customer's `dueAmount` is decremented by the refunded amount.
 - **Return adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processReturn`): The returned item value (`Σ item.price × returnedQty`) is accumulated during the return transaction; if the order is a credit sale with a linked customer, `dueAmount` is decremented by that value.
 - **Refund/returned orders excluded from balance recalculation** (`backend/src/modules/customers/customer.service.ts` `recordDuePayment`): The recalculation query now excludes `CANCELLED`, `REFUNDED`, and `RETURNED` orders (previously only `CANCELLED` was excluded).
@@ -212,7 +212,7 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 **Phase 2: Inventory Management - Step 7 COMPLETED ✅ (Enhanced Search and Filtering)**
 - `barcode`, `batchNo`, `expiryDate` query filters added to `GET /api/inventory` (`inventory.service.ts`, `inventory.controller.ts`): case-insensitive `contains` for barcode/batchNo; date-range filter for expiryDate
 - `InventoryListParams` interface extended with optional `barcode`, `batchNo`, `expiryDate`
-- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
+- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param); Expiry column now filters out batches with 0 quantity to determine the earliest-expiring active batch for the expiry status chip; batch count badge only counts active (quantity > 0) batches; same filtering applied to ProductTable batch count and expiry columns
 - Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
 
 **Phase 4: Advanced Inventory — Week 15-16 COMPLETED ✅**
@@ -261,11 +261,11 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 - Added `batchId` FK to `InventoryTransaction` and `OrderItem` for batch-level traceability
 - **Stock-in** (`POST /api/inventory/stock-in`): Creates a `ProductBatch` record, links the transaction to it, syncs product primary batch fields
 - **Stock-out** (`POST /api/inventory/stock-out`): FIFO allocation (oldest expiring batch first); if quantity spans multiple batches, multiple `STOCK_OUT` transactions are created; optional `batchId` for batch-specific deduction; backfills a default batch if product has quantity but no batch records (migration safety)
-- **Adjustment** (`PATCH /api/inventory/:productId/adjust`): When `batchNo` is provided, sets that batch's quantity and recalculates the product aggregate; otherwise uses product-level absolute adjustment (legacy)
+- **Adjustment** (`PATCH /api/inventory/:productId/adjust`): When `batchNo` is provided, sets that batch's quantity and recalculates the product aggregate; when no `batchNo` is provided but the product has active batches, the adjustment is **distributed proportionally** across all active batches (quantity > 0) to keep batch quantities in sync with the product aggregate. Falls back to legacy product-level adjustment when no active batches exist.
 - **Order creation** (`POST /api/orders`): FIFO batch deduction linked to `OrderItem.batchId`; backfills default batch for legacy products
 - **Returns** (`POST /api/orders/:id/return`): Restores to the original batch (by `batchId` or `batchNo`)
 - **New endpoint**: `GET /api/inventory/:productId/batches` — list all batches for a product ordered by expiry
-- **Frontend**: `StockAdjustmentModal` with batch fields (batchNo, lotNumber, expiryDate, manufactureDate, costPrice for STOCK_IN; batch dropdown with FIFO fallback for STOCK_OUT); product detail page shows a "Batch / Lot Tracking" table; POS receipt shows batch number and expiry per line item; inventory table shows batch count badges; `useProductBatches` hook added
+- **Frontend**: `StockAdjustmentModal` with batch fields (batchNo, lotNumber, expiryDate, manufactureDate, costPrice for STOCK_IN; batch dropdown with FIFO fallback for STOCK_OUT); product detail page shows a "Batch / Lot Tracking" table with an "Add Stock" button that opens `ReceiveStockForm` — a simplified stock-in dialog with prefilled product context (name, SKU, current stock) and only three editable fields (Quantity, Batch No, Expiry Date); POS receipt shows batch number and expiry per line item; inventory table shows batch count badges; `useProductBatches` hook added
 - Shared types extended: `ProductBatch` interface, `Product.batches`, `InventoryItem.batches`/`primaryBatch`, `InventoryTransaction.batchId`/`batch`/`batchNo`, `OrderItem.batchId`/`batch`, `StockInInput.lotNumber`/`manufactureDate`/`costPrice`, `StockOutInput.batchId`, `Stats.totalBatches`
 
 ## Project Structure
@@ -1102,3 +1102,28 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 **Fix**:
 - Added `Stats` type import and `stats` section to the `api` axios client in `frontend/src/lib/api.ts`: `stats: { get: () => request<Stats>('/api/stats') }`
 - Rewrote `useStats.ts` to use `api.stats.get()` instead of raw `fetch('/api/stats')`, consistent with all other hooks (`useInventory`, `useOrders`, `useCustomers`).
+
+### Expired batches not automatically excluded from FIFO allocation
+
+**Symptom**: After a batch's expiry date has passed, it still appears in the product detail page's Batch / Lot Tracking table and may still be allocated during FIFO stock-out.
+
+**Root cause**: The `adjustStock` function's "no batchNo" path previously only updated the product's aggregate `quantity` field without touching individual `ProductBatch.quantity` values, causing batch quantities to become stale and out of sync with the product aggregate. Additionally, the `serializeProduct` and `serializeInventoryItem` serializers returned ALL batches (including `quantity: 0` ones) in the `batches` array, cluttering the UI with exhausted batches.
+
+**Fixes applied**:
+1. **Backend** (`backend/src/modules/inventory/inventory.service.ts`, `adjustStock` function): When no `batchNo` is provided but the product has active batches (quantity > 0), the adjustment is now **distributed proportionally** across all active batches, keeping batch quantities in sync with the product aggregate. Falls back to legacy product-level adjustment when no active batches exist.
+2. **Backend** (`backend/src/utils/serializers.ts`): `serializeProduct` and `serializeInventoryItem` now filter out batches with `quantity === 0` from the `batches` array. The standalone `GET /api/inventory/:productId/batches` audit endpoint is unaffected (maps batches manually in the controller, not via `serializeProduct`).
+3. **Frontend** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates `productKeys.detail(productId)` for each order item, so product detail pages reflect stock decrements immediately after a sale. `useReturnOrder` now invalidates `productKeys.lists()`.
+
+**Note**: Expired batches CAN still be sold — there is no backend FIFO filter that excludes expired batches. The POS UI blocks expired products at the product level (based on `product.expiryDate`), but this only works when the primary batch's expiry is reflected on the product. Direct API sales bypass this guard. Adding expiry validation in `allocateStockFromBatches` and `recordStockOut` is recommended for future work.
+
+### Dispose button sets quantity to 0, not delete
+
+**Symptom**: Clicking "Dispose" on the expiration report page sets batch quantity to 0 but the batch record still exists.
+
+**Root cause**: This is **intentional behavior**. The `ProductBatch` model is referenced by `OrderItem.batchId` and `InventoryTransaction.batchId` foreign keys with `RESTRICT` (no cascade). Deleting a batch that has been used in past sales would cause a foreign key constraint violation. Setting quantity to 0:
+- Preserves the audit trail (batch record + ADJUSTMENT transaction remain)
+- Allows `updateProductPrimaryBatch` to skip it automatically (it filters by `quantity > 0`)
+- Makes the batch invisible in product detail, inventory table, and POS grid (via the serializer filter)
+- Enables the "Dispose" action to be safely reversible (adjust back to a positive quantity)
+
+To fully remove a batch record, you would need to add `onDelete: SetNull` to both FK relations in `schema.prisma`, run a migration, and then implement batch deletion logic.

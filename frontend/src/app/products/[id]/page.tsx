@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import type { ProductBatch } from '@pharmacy-point/types';
 import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
+import { ReceiveStockForm } from '@/components/inventory/ReceiveStockForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -285,14 +286,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
         </div>
 
         {/* Batch Tracking */}
-        {product.batches && product.batches.length > 0 && (
-          <Card className="bg-card border-border card-elevated mt-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-headline-md">Batch / Lot Tracking</CardTitle>
-              <CardDescription className="text-body-md text-on-surface-variant">
-                Individual batch records with quantities, expiry dates, and lot numbers
-              </CardDescription>
-            </CardHeader>
+        <Card className="bg-card border-border card-elevated mt-6">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-headline-md">Batch / Lot Tracking</CardTitle>
+                <CardDescription className="text-body-md text-on-surface-variant">
+                  Individual batch records with quantities, expiry dates, and lot numbers
+                </CardDescription>
+              </div>
+              <ReceiveStockForm product={product} />
+            </div>
+          </CardHeader>
+          {product.batches && product.batches.length > 0 ? (
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -330,8 +336,19 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 </table>
               </div>
             </CardContent>
-          </Card>
-        )}
+          ) : (
+            <CardContent>
+              <div className="py-6 text-center">
+                <p className="text-body-sm text-on-surface-variant">
+                  No batches recorded for this product yet.
+                </p>
+                <p className="text-label-md text-on-surface-variant mt-1">
+                  Click &ldquo;Receive Stock&rdquo; to add your first batch.
+                </p>
+              </div>
+            </CardContent>
+          )}
+        </Card>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmDialog
