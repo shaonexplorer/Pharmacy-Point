@@ -71,9 +71,9 @@ function PosContent() {
   const {
     items,
     subtotal,
-    taxAmount,
+    discountAmount,
+    discountPercent,
     total,
-    taxRate,
     paymentMethod,
     customerId,
     redeemedPoints,
@@ -89,6 +89,7 @@ function PosContent() {
     setCustomer,
     setPaymentMethod,
     canAddToCart,
+    setDiscountPercent,
     setRedeemedPoints,
     setCreditSale,
   } = usePos();
@@ -110,8 +111,7 @@ function PosContent() {
         customerId: customerId ?? null,
         items: orderItems,
         subtotal: Number(subtotal || 0),
-        tax: Number(taxAmount || 0),
-        taxRate: Number(taxRate || 0.085),
+        discount: Number(discountAmount || 0),
         total: Number(total || 0),
         paymentMethod: paymentMethod || 'cash',
         staffId: sessionData?.user?.id ?? null,
@@ -303,9 +303,7 @@ function PosContent() {
             <Cart
               items={items}
               subtotal={subtotal}
-              taxAmount={taxAmount}
               total={total}
-              taxRate={taxRate}
               onUpdateQuantity={updateQuantity}
               onRemove={removeItem}
               onClearCart={clearCart}
@@ -314,9 +312,9 @@ function PosContent() {
             <Checkout
               items={items}
               subtotal={subtotal}
-              taxAmount={taxAmount}
+              discountAmount={discountAmount}
+              discountPercent={discountPercent}
               total={total}
-              taxRate={taxRate}
               paymentMethod={paymentMethod}
               customerId={customerId}
               customers={customers}
@@ -337,6 +335,7 @@ function PosContent() {
                   loyaltyTier: (c as any)?.loyaltyTier ?? 'Bronze',
                 });
               }}
+              onDiscountChange={setDiscountPercent}
               onProcessSale={handleProcessSale}
               onRedeemPoints={setRedeemedPoints}
               onCreditSaleToggle={setCreditSale}

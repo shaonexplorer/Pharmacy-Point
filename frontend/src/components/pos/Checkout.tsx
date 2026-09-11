@@ -23,9 +23,9 @@ import PaymentForm from './PaymentForm';
 interface CheckoutProps {
   items: CartItem[];
   subtotal: number;
-  taxAmount: number;
+  discountAmount: number;
+  discountPercent: number;
   total: number;
-  taxRate: number;
   paymentMethod: PaymentMethod;
   customerId: string | null;
   customers: Customer[];
@@ -33,6 +33,7 @@ interface CheckoutProps {
   isProcessing: boolean;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onCustomerChange: (customerId: string) => void;
+  onDiscountChange: (percent: number) => void;
   onProcessSale: () => void;
   dueAmount?: number;
   loyaltyPoints?: number;
@@ -46,9 +47,9 @@ interface CheckoutProps {
 export function Checkout({
   items,
   subtotal,
-  taxAmount,
+  discountAmount,
+  discountPercent,
   total,
-  taxRate,
   paymentMethod,
   customerId,
   customers,
@@ -61,6 +62,7 @@ export function Checkout({
   isCreditSale = false,
   onPaymentMethodChange,
   onCustomerChange,
+  onDiscountChange,
   onProcessSale,
   onRedeemPoints,
   onCreditSaleToggle,
@@ -102,9 +104,9 @@ export function Checkout({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
-              <span className="text-data-mono font-medium text-foreground">
-                {formatCurrency(taxAmount)}
+              <span className="text-on-surface-variant">Discount ({discountPercent}%)</span>
+              <span className="text-data-mono font-medium text-destructive">
+                -{formatCurrency(discountAmount)}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-xl font-bold">
@@ -168,6 +170,30 @@ export function Checkout({
             </div>
           </div>
         )}
+
+        {/* Discount — dynamic percentage discount applied to the order total */}
+        <div className="flex flex-col gap-2">
+          <Label className="text-label-md text-foreground" htmlFor="discount-percent">
+            Discount (%)
+          </Label>
+          <input
+            id="discount-percent"
+            type="number"
+            min={0}
+            max={100}
+            step={0.1}
+            value={discountPercent}
+            onChange={(e) => onDiscountChange(Number(e.target.value))}
+            placeholder="e.g. 10"
+            disabled={isProcessing}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+          {discountAmount > 0 && (
+            <p className="text-xs text-on-surface-variant">
+              Saves {formatCurrency(discountAmount)} on this order
+            </p>
+          )}
+        </div>
 
         {/* Payment Method — Clinical Precision: unified PaymentForm for Cash/Card + Stripe flow */}
         <div className="flex flex-col gap-2">

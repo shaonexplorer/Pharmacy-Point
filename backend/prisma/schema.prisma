@@ -173,8 +173,7 @@ model Order {
   paymentMethod    String?     @default("cash")
   staffId          String?
   subtotal         Decimal     @default(0) @db.Decimal(10, 2)
-  tax              Decimal     @default(0) @db.Decimal(10, 2)
-  taxRate          Float       @default(0.085)
+  discount         Decimal     @default(0) @db.Decimal(10, 2)
   paymentIntentId  String?
   isOffline        Boolean     @default(false)
   offlineSyncedAt  DateTime?

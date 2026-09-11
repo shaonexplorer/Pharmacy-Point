@@ -65,7 +65,7 @@ export const getOne = asyncHandler(async (req: Request, res: Response) => {
 /**
  * POST /api/orders
  * Create a new order.
- * Body: { customerId?, items: [{ productId, quantity, price }], subtotal, tax, taxRate, total, paymentMethod, staffId? }
+ * Body: { customerId?, items: [{ productId, quantity, price }], subtotal, discount, total, paymentMethod, staffId? }
  */
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const order = await orderService.createOrder(req.body);
@@ -152,7 +152,7 @@ export const sendReceiptEmail = asyncHandler(async (req: Request, res: Response)
 ${order.items.map(i => `<tr><td>${i.product?.name ?? 'Unknown'}</td><td style="text-align:center">${i.quantity}</td><td style="text-align:right">$${Number(i.price).toFixed(2)}</td></tr>`).join('')}
 </table>
 <p><strong>Subtotal:</strong> $${Number(order.subtotal ?? order.total).toFixed(2)}</p>
-<p><strong>Tax:</strong> $${Number(order.tax ?? 0).toFixed(2)}</p>
+<p><strong>Discount:</strong> -$${Number(order.discount ?? 0).toFixed(2)}</p>
 <p><strong>Total:</strong> $${Number(order.total).toFixed(2)}</p>
 <p style="font-size:12px;color:#5b6b6b">License #PH-28491-NE • 1200 Medical Center Dr, Suite 300</p>
 </body></html>`;

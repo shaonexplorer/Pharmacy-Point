@@ -73,8 +73,7 @@ export interface Order {
   status: OrderStatus;
   total: number;
   subtotal: number;
-  tax: number;
-  taxRate: number;
+  discount: number;
   paymentMethod?: PaymentMethod | null;
   paymentIntentId?: string | null;
   refundReason?: string | null;
@@ -118,8 +117,7 @@ export interface CreateOrderInput {
   customerId?: string | null;
   items: CreateOrderItemInput[];
   subtotal: number;
-  tax: number;
-  taxRate: number;
+  discount: number;
   total: number;
   paymentMethod: PaymentMethod;
   staffId?: string | null;
