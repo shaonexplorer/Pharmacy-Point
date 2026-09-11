@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useStockAdjust, useStockIn, useStockOut } from '@/hooks/useInventory';
+import { useState, useEffect } from 'react';
+import { useStockAdjust, useStockIn, useStockOut, useProductBatches, inventoryKeys } from '@/hooks/useInventory';
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import type { Product } from '@pharmacy-point/types';
+import type { Product, ProductBatch } from '@pharmacy-point/types';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface StockAdjustmentModalProps {
   trigger?: React.ReactNode;
@@ -37,11 +38,22 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   );
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
+  const [batchNo, setBatchNo] = useState('');
+  const [lotNumber, setLotNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
+  const [manufactureDate, setManufactureDate] = useState('');
+  const [costPrice, setCostPrice] = useState('');
+  const [selectedBatchId, setSelectedBatchId] = useState('');
+
+  const queryClient = useQueryClient();
 
   const stockInMutation = useStockIn();
   const stockOutMutation = useStockOut();
   const adjustMutation = useStockAdjust();
+
+  // Fetch batches for this product (for STOCK_OUT batch selection)
+  const { data: batchesData } = useProductBatches(product.id);
+  const batches: ProductBatch[] = batchesData?.data ?? [];
 
   const isPending =
     stockInMutation.isPending || stockOutMutation.isPending || adjustMutation.isPending;
@@ -49,7 +61,12 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
   const resetForm = () => {
     setQuantity('');
     setNotes('');
+    setBatchNo('');
+    setLotNumber('');
     setExpiryDate('');
+    setManufactureDate('');
+    setCostPrice('');
+    setSelectedBatchId('');
     setAdjustmentType('ADJUSTMENT');
     setOpen(false);
   };
@@ -66,12 +83,17 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
         await stockInMutation.mutateAsync({
           productId: product.id,
           quantity: qty,
-          notes: notes || undefined,
+          batchNo: batchNo || undefined,
+          lotNumber: lotNumber || undefined,
           expiryDate: expiryDate || undefined,
+          manufactureDate: manufactureDate || undefined,
+          costPrice: costPrice ? Number(costPrice) : undefined,
+          notes: notes || undefined,
         });
       } else if (adjustmentType === 'STOCK_OUT') {
         await stockOutMutation.mutateAsync({
           productId: product.id,
+          batchId: selectedBatchId || undefined,
           quantity: qty,
           notes: notes || undefined,
         });
@@ -80,6 +102,7 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
           productId: product.id,
           data: {
             quantity: qty,
+            batchNo: batchNo || undefined,
             notes: notes || undefined,
           },
         });
@@ -91,8 +114,26 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
     }
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Refresh batches when modal closes
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.batches(product.id) });
+    }
+    setOpen(open);
+  };
+
+  // Available batches for STOCK_OUT (only those with quantity > 0)
+  const availableBatches = batches.filter((b) => b.quantity > 0);
+
+  useEffect(() => {
+    if (open) {
+      // Reset selected batch when type changes to STOCK_OUT
+      setSelectedBatchId('');
+    }
+  }, [adjustmentType, open]);
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>{trigger ?? <button>Adjust</button>}</AlertDialogTrigger>
       <AlertDialogContent className="max-w-[90%] sm:max-w-md">
         <AlertDialogHeader>
@@ -154,6 +195,127 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
             />
           </div>
 
+          {/* Batch selection for STOCK_OUT */}
+          {adjustmentType === 'STOCK_OUT' && (
+            <div className="space-y-2">
+              <Label htmlFor="batch-select" className="text-body-md text-foreground">
+                Batch (leave blank for FIFO)
+              </Label>
+              <Select
+                value={selectedBatchId}
+                onValueChange={setSelectedBatchId}
+                disabled={isPending || availableBatches.length === 0}
+              >
+                <SelectTrigger id="batch-select" className="w-full">
+                  <SelectValue placeholder={availableBatches.length === 0 ? 'No batches available' : 'Auto (FIFO)'} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Auto (FIFO — oldest expiry first)</SelectItem>
+                  {availableBatches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.batchNo ?? `Batch #${b.id.slice(0, 6)}`} — {b.quantity} units
+                      {b.expiryDate && ` (expires ${new Date(b.expiryDate).toLocaleDateString()})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Batch fields for STOCK_IN */}
+          {adjustmentType === 'STOCK_IN' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="batch-no" className="text-body-md text-foreground">
+                  Batch No
+                </Label>
+                <Input
+                  id="batch-no"
+                  type="text"
+                  placeholder="e.g., B001"
+                  value={batchNo}
+                  onChange={(e) => setBatchNo(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lot-number" className="text-body-md text-foreground">
+                  Lot Number
+                </Label>
+                <Input
+                  id="lot-number"
+                  type="text"
+                  placeholder="e.g., LOT-ABC123"
+                  value={lotNumber}
+                  onChange={(e) => setLotNumber(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiry-date" className="text-body-md text-foreground">
+                  Expiry Date (optional)
+                </Label>
+                <Input
+                  id="expiry-date"
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  disabled={isPending}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+                <p className="text-xs text-on-surface-variant">Required for medication products. Cannot be in the past.</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manufacture-date" className="text-body-md text-foreground">
+                  Manufacture Date (optional)
+                </Label>
+                <Input
+                  id="manufacture-date"
+                  type="date"
+                  value={manufactureDate}
+                  onChange={(e) => setManufactureDate(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cost-price" className="text-body-md text-foreground">
+                  Cost Price (optional)
+                </Label>
+                <Input
+                  id="cost-price"
+                  type="number"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Batch number for ADJUSTMENT */}
+          {adjustmentType === 'ADJUSTMENT' && (
+            <div className="space-y-2">
+              <Label htmlFor="adjust-batch-no" className="text-body-md text-foreground">
+                Batch No (optional — for batch-specific adjustment)
+              </Label>
+              <Input
+                id="adjust-batch-no"
+                type="text"
+                placeholder="Leave blank for product-wide adjustment"
+                value={batchNo}
+                onChange={(e) => setBatchNo(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-body-md text-foreground">
               Notes (optional)
@@ -167,23 +329,6 @@ export function StockAdjustmentModal({ trigger, product }: StockAdjustmentModalP
               rows={3}
             />
           </div>
-
-          {adjustmentType === 'STOCK_IN' && (
-            <div className="space-y-2">
-              <Label htmlFor="expiry-date" className="text-body-md text-foreground">
-                Expiry Date (optional)
-              </Label>
-              <Input
-                id="expiry-date"
-                type="date"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                disabled={isPending}
-                min={new Date().toISOString().split('T')[0]}
-              />
-              <p className="text-xs text-on-surface-variant">Required for medication products. Cannot be in the past.</p>
-            </div>
-          )}
         </div>
 
         <AlertDialogFooter>

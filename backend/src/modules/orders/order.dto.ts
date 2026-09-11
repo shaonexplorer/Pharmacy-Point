@@ -13,6 +13,7 @@ const orderItemSchema = z.object({
   price: z
     .number({ invalid_type_error: 'Price must be a number' })
     .positive('Price must be a positive number'),
+  batchId: z.string().optional().nullable(),
 });
 
 export const orderCreateSchema = z.object({

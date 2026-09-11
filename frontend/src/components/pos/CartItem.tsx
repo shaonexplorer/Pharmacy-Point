@@ -62,6 +62,11 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         <p className="text-xs text-on-surface-variant">
           SKU: {product.sku} • <span className="text-data-mono">{formatCurrency(price)}</span> each
         </p>
+        {product.batchNo && (
+          <p className="text-xs text-on-surface-variant">
+            Batch: {product.batchNo}
+          </p>
+        )}
         {product.expiryDate && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             <ExpiryChip status={getExpiryStatus(product.expiryDate)} />

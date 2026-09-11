@@ -56,7 +56,7 @@ export async function listProducts(params: ProductListParams): Promise<Paginated
       skip,
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: { company: true },
+      include: { company: true, batches: { orderBy: { expiryDate: 'asc' } } },
     }),
     prisma.product.count({ where }),
   ]);
@@ -73,7 +73,7 @@ export async function listProducts(params: ProductListParams): Promise<Paginated
 export async function getProduct(id: string): Promise<PrismaResult> {
   const product = await prisma.product.findFirst({
     where: { id, deletedAt: null },
-    include: { company: true },
+    include: { company: true, batches: { orderBy: { expiryDate: 'asc' } } },
   });
 
   if (!product) {
@@ -108,10 +108,12 @@ export async function createProduct(data: ProductCreateInput): Promise<PrismaRes
       batchNo: data.batchNo ?? undefined,
       lowStockThreshold: data.lowStockThreshold ?? undefined,
       expiryDate: data.expiryDate ? new Date(data.expiryDate as string) : undefined,
+      lotNumber: data.lotNumber ?? undefined,
+      manufactureDate: data.manufactureDate ? new Date(data.manufactureDate as string) : undefined,
       category: data.category,
       image: data.image ?? undefined,
     },
-    include: { company: true },
+    include: { company: true, batches: { orderBy: { expiryDate: 'asc' } } },
   });
 
   return product;
@@ -155,8 +157,10 @@ export async function updateProduct(id: string, data: ProductUpdateInput): Promi
       batchNo: data.batchNo ?? undefined,
       lowStockThreshold: data.lowStockThreshold ?? undefined,
       expiryDate: data.expiryDate ? new Date(data.expiryDate as string) : undefined,
+      lotNumber: data.lotNumber ?? undefined,
+      manufactureDate: data.manufactureDate ? new Date(data.manufactureDate as string) : undefined,
     },
-    include: { company: true },
+    include: { company: true, batches: { orderBy: { expiryDate: 'asc' } } },
   });
 
   return product;
@@ -184,7 +188,7 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function getProductByBarcode(barcode: string): Promise<PrismaResult> {
   const product = await prisma.product.findUnique({
     where: { barcode },
-    include: { company: true, inventoryTransactions: true },
+    include: { company: true, batches: { orderBy: { expiryDate: 'asc' } } },
   });
   if (!product) throw new AppError(404, 'Product not found');
   return product;

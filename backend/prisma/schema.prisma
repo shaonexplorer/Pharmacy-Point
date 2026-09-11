@@ -22,6 +22,7 @@ model User {
   expenses              Expense[]
   inventoryTransactions InventoryTransaction[]
   orders                Order[]
+  productBatches        ProductBatch[]
   sessions              Session[]
 
   @@map("users")
@@ -107,6 +108,7 @@ model Product {
   manufactureDate       DateTime?
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
+  batches               ProductBatch[]
   company               Company?               @relation(fields: [companyId], references: [id])
   purchaseOrderItems    PurchaseOrderItem[]
 
@@ -117,6 +119,32 @@ model Product {
   @@index([quantity])
   @@index([lotNumber])
   @@map("products")
+}
+
+model ProductBatch {
+  id                String                 @id @default(cuid())
+  productId         String
+  batchNo           String?                @unique
+  lotNumber         String?
+  expiryDate        DateTime?
+  manufactureDate   DateTime?
+  quantity          Int                    @default(0)
+  initialQuantity   Int                    @default(0)
+  costPrice         Decimal?               @db.Decimal(10, 2)
+  referenceId       String?
+  userId            String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  product           Product                @relation(fields: [productId], references: [id])
+  user              User?                  @relation(fields: [userId], references: [id])
+  inventoryTransactions InventoryTransaction[]
+  orderItems        OrderItem[]
+
+  @@index([productId])
+  @@index([batchNo])
+  @@index([expiryDate])
+  @@index([productId, batchNo])
+  @@map("product_batches")
 }
 
 model Category {
@@ -194,16 +222,19 @@ model Order {
 }
 
 model OrderItem {
-  id               String  @id @default(cuid())
+  id               String        @id @default(cuid())
   orderId          String
   productId        String
   quantity         Int
-  price            Decimal @db.Decimal(10, 2)
-  refunded         Boolean @default(false)
-  returnedQuantity Int     @default(0)
-  order            Order   @relation(fields: [orderId], references: [id])
-  product          Product @relation(fields: [productId], references: [id])
+  price            Decimal       @db.Decimal(10, 2)
+  batchId          String?
+  refunded         Boolean       @default(false)
+  returnedQuantity Int           @default(0)
+  order            Order         @relation(fields: [orderId], references: [id])
+  product          Product       @relation(fields: [productId], references: [id])
+  batch            ProductBatch? @relation(fields: [batchId], references: [id])
 
+  @@index([batchId])
   @@map("order_items")
 }
 
@@ -217,15 +248,18 @@ model InventoryTransaction {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   batchNo          String?
+  batchId          String?
   newQuantity      Int?
   previousQuantity Int?
   userId           String?
   product          Product         @relation(fields: [productId], references: [id])
+  batch            ProductBatch?   @relation(fields: [batchId], references: [id])
   user             User?           @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([type])
   @@index([createdAt])
+  @@index([batchId])
   @@map("inventory_transactions")
 }
 

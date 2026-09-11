@@ -6,6 +6,7 @@ import type { InventoryItem } from '@pharmacy-point/types';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
 import { StockChip, getStockStatus, ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { TableCellMono } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/formatters';
 
@@ -66,6 +67,7 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       cell: ({ row }) => {
         const product = row.original;
         const stockStatus = getStockStatus(product);
+        const batchCount = product.batches?.length ?? 0;
 
         return (
           <div className="flex items-center gap-2">
@@ -73,6 +75,11 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
               {product.quantity} units
             </span>
             <StockChip status={stockStatus} />
+            {batchCount > 1 && (
+              <Badge variant="outline" size="sm" className="ml-1">
+                {batchCount} batches
+              </Badge>
+            )}
           </div>
         );
       },

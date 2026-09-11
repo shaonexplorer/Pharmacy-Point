@@ -23,6 +23,8 @@ export const productCreateSchema = z.object({
   batchNo: z.string().optional(),
   lowStockThreshold: z.number().int().optional(),
   expiryDate: z.string().optional().or(z.date()).optional(),
+  lotNumber: z.string().optional(),
+  manufactureDate: z.string().optional().or(z.date()).optional(),
 });
 
 export const productUpdateSchema = productCreateSchema.partial();

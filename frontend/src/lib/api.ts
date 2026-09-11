@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import type {
   Product,
+  ProductBatch,
   Category,
   Company,
   Customer,
@@ -236,6 +237,9 @@ export const api = {
       search?: string;
       lowStock?: boolean;
       companyId?: string;
+      barcode?: string;
+      batchNo?: string;
+      expiryDate?: string;
     }) => request<PaginatedResponse<InventoryItem>>('/api/inventory', { params }),
 
     transactions: (params?: { page?: number; limit?: number; productId?: string; type?: string }) =>
@@ -258,6 +262,9 @@ export const api = {
         method: 'PATCH',
         data,
       }),
+
+    batches: (productId: string) =>
+      request<ApiResponse<ProductBatch[]>>(`/api/inventory/${productId}/batches`),
 
     expiring: (params?: { days?: number; limit?: number }) =>
       request<PaginatedResponse<InventoryItem>>('/api/inventory/expiring', { params }),

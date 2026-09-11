@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate';
 import { stockInSchema, stockOutSchema, stockAdjustSchema } from './inventory.dto';
-import { list, listTransactions, stockIn, stockOut, adjust, expiring, expired, exportInventory, exportExpiring } from './inventory.controller';
+import { list, listTransactions, stockIn, stockOut, adjust, batches, expiring, expired, exportInventory, exportExpiring } from './inventory.controller';
 
 const router = Router();
 
@@ -17,6 +17,7 @@ router.get('/export', exportInventory);
 router.get('/expiring/export', exportExpiring);
 router.post('/stock-in', validate(stockInSchema), stockIn);
 router.post('/stock-out', validate(stockOutSchema), stockOut);
+router.get('/:productId/batches', batches);
 router.patch('/:productId/adjust', validate(stockAdjustSchema), adjust);
 
 export const inventoryRouter = router;

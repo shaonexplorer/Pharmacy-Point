@@ -140,7 +140,20 @@ export function ProductTable({
       {
         accessorKey: 'batchNo',
         header: 'Batch',
-        cell: ({ row }) => <span className="text-xs text-on-surface-variant">{row.original.batchNo || '—'}</span>,
+        cell: ({ row }) => {
+          const product = row.original;
+          const hasBatches = (product.batches ?? []).length > 0;
+          return (
+            <span className="text-xs text-on-surface-variant">
+              {product.batchNo || '—'}
+              {hasBatches && (
+                <Badge variant="outline" size="sm" className="ml-1">
+                  {(product.batches ?? []).length} batches
+                </Badge>
+              )}
+            </span>
+          );
+        },
       },
       {
         accessorKey: 'expiryDate',

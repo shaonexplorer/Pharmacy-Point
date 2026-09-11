@@ -37,6 +37,8 @@ const productSchema = z.object({
   batchNo: z.string().optional(),
   lowStockThreshold: z.number().int().min(0).optional(),
   expiryDate: z.string().optional(),
+  lotNumber: z.string().optional(),
+  manufactureDate: z.string().optional(),
 });
 
 type FormData = z.infer<typeof productSchema>;
@@ -60,6 +62,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     barcode: product?.barcode ?? '',
     batchNo: product?.batchNo ?? '',
     expiryDate: product?.expiryDate ? (product.expiryDate as unknown as string).split('T')[0] : '',
+    lotNumber: product?.lotNumber ?? '',
+    manufactureDate: product?.manufactureDate ? (product.manufactureDate as unknown as string).split('T')[0] : '',
     companyId: product?.companyId ?? null,
     description: product?.description ?? '',
     image: product?.image ?? '',
@@ -91,6 +95,8 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         lowStock: product.lowStock,
         barcode: product.barcode ?? '',
         batchNo: product.batchNo ?? '',
+        lotNumber: product.lotNumber ?? '',
+        manufactureDate: product.manufactureDate ? (product.manufactureDate as unknown as string).split('T')[0] : '',
         companyId: product.companyId ?? null,
         description: product.description ?? '',
         image: product.image ?? '',
@@ -371,7 +377,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
 
         {/* Batch No */}
         <div className="space-y-2">
-          <Label htmlFor="batchNo" className="text-body-md text-foreground">Batch No</Label>
+          <Label htmlFor="batchNo" className="text-body-md text-foreground">Batch No (Primary)</Label>
           <Input
             id="batchNo"
             type="text"
@@ -381,15 +387,39 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           />
         </div>
 
+        {/* Lot Number */}
+        <div className="space-y-2">
+          <Label htmlFor="lotNumber" className="text-body-md text-foreground">Lot Number</Label>
+          <Input
+            id="lotNumber"
+            type="text"
+            placeholder="LOT-ABC123"
+            value={formData.lotNumber}
+            onChange={(e) => handleChange('lotNumber', e.target.value)}
+          />
+        </div>
+
+        {/* Manufacture Date */}
+        <div className="space-y-2">
+          <Label htmlFor="manufactureDate" className="text-body-md text-foreground">Manufacture Date</Label>
+          <Input
+            id="manufactureDate"
+            type="date"
+            value={formData.manufactureDate}
+            onChange={(e) => handleChange('manufactureDate', e.target.value)}
+          />
+        </div>
+
         {/* Expiry Date */}
         <div className="space-y-2">
-          <Label htmlFor="expiryDate" className="text-body-md text-foreground">Expiry Date</Label>
+          <Label htmlFor="expiryDate" className="text-body-md text-foreground">Expiry Date (Primary)</Label>
           <Input
             id="expiryDate"
             type="date"
             value={formData.expiryDate}
             onChange={(e) => handleChange('expiryDate', e.target.value)}
           />
+          <p className="text-xs text-on-surface-variant">These fields reflect the primary (earliest expiring) batch. Manage individual batches via Inventory → Stock In.</p>
         </div>
 
         {/* Image URL */}

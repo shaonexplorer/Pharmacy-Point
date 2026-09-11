@@ -4,6 +4,8 @@ import { useEffect, use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/auth-client';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
+import type { ProductBatch } from '@pharmacy-point/types';
+import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -281,6 +283,55 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
             </Card>
           </div>
         </div>
+
+        {/* Batch Tracking */}
+        {product.batches && product.batches.length > 0 && (
+          <Card className="bg-card border-border card-elevated mt-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-headline-md">Batch / Lot Tracking</CardTitle>
+              <CardDescription className="text-body-md text-on-surface-variant">
+                Individual batch records with quantities, expiry dates, and lot numbers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-surface-container text-xs font-medium uppercase tracking-wider text-on-surface-variant">
+                    <tr>
+                      <th className="text-left px-4 py-2">Batch No</th>
+                      <th className="text-left px-4 py-2">Lot</th>
+                      <th className="text-left px-4 py-2">Qty</th>
+                      <th className="text-left px-4 py-2">Expiry</th>
+                      <th className="text-right px-4 py-2">Cost Price</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {product.batches.map((batch) => (
+                      <tr key={batch.id} className="hover:bg-surface-container/40">
+                        <td className="px-4 py-2 text-data-mono">{batch.batchNo || '—'}</td>
+                        <td className="px-4 py-2 text-xs text-on-surface-variant">{batch.lotNumber || '—'}</td>
+                        <td className="px-4 py-2 text-data-mono font-medium">{batch.quantity}</td>
+                        <td className="px-4 py-2">
+                          {batch.expiryDate ? (
+                            <div className="flex items-center gap-2">
+                              <span>{new Date(batch.expiryDate).toLocaleDateString()}</span>
+                              <ExpiryChip status={getExpiryStatus(batch.expiryDate)} />
+                            </div>
+                          ) : (
+                            <span className="text-xs text-on-surface-variant">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-right text-data-mono">
+                          {batch.costPrice ? formatCurrency(batch.costPrice) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Delete Confirmation Dialog */}
         <ConfirmDialog

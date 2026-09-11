@@ -33,9 +33,28 @@ export interface Product {
   batchNo?: string | null;
   lowStockThreshold?: number | null;
   expiryDate?: string | null;
+  lotNumber?: string | null;
+  manufactureDate?: string | null;
   category: string;
   image?: string | null;
   deletedAt?: string | null;
+  batches?: ProductBatch[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductBatch {
+  id: string;
+  productId: string;
+  batchNo?: string | null;
+  lotNumber?: string | null;
+  expiryDate?: string | null;
+  manufactureDate?: string | null;
+  quantity: number;
+  initialQuantity: number;
+  costPrice?: number | null;
+  referenceId?: string | null;
+  userId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +114,8 @@ export interface OrderItem {
   returnedQuantity?: number;
   refunded?: boolean;
   price: number;
+  batchId?: string | null;
+  batch?: ProductBatch | null;
 }
 
 export interface OrderItemWithProduct extends OrderItem {
@@ -111,6 +132,7 @@ export interface CreateOrderItemInput {
   productId: string;
   quantity: number;
   price: number;
+  batchId?: string | null;
 }
 
 export interface CreateOrderInput {
@@ -209,12 +231,21 @@ export interface InventoryTransaction {
   quantity: number;
   notes?: string | null;
   referenceId?: string | null;
+  batchNo?: string | null;
+  batchId?: string | null;
+  batch?: ProductBatch | null;
+  userId?: string | null;
+  user?: { id: string; name?: string | null; email: string } | null;
+  previousQuantity?: number | null;
+  newQuantity?: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface InventoryItem extends Product {
   isLowStock: boolean;
+  batches?: ProductBatch[];
+  primaryBatch?: ProductBatch | null;
 }
 
 export interface StockInInput {
@@ -222,21 +253,29 @@ export interface StockInInput {
   barcode?: string;
   quantity: number;
   batchNo?: string;
+  lotNumber?: string;
   expiryDate?: string;
+  manufactureDate?: string;
+  costPrice?: number;
   notes?: string;
   referenceId?: string;
+  userId?: string;
 }
 
 export interface StockOutInput {
   productId: string;
+  batchId?: string;
   quantity: number;
   notes?: string;
   referenceId?: string;
+  userId?: string;
 }
 
 export interface StockAdjustInput {
   quantity: number;
+  batchNo?: string;
   notes?: string;
+  userId?: string;
 }
 
 /**
@@ -251,6 +290,7 @@ export interface Stats {
   salesThisMonth: number;
   totalInventoryValue?: number;
   totalTransactions?: number;
+  totalBatches?: number;
   stockInThisMonth?: number;
   stockOutThisMonth?: number;
   pendingOrders?: number;

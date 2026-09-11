@@ -10,6 +10,7 @@
  * Serialize a Prisma Product row for API responses.
  */
 export function serializeProduct(product: Record<string, unknown>): Record<string, unknown> {
+  const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
   return {
     id: product.id as string,
     name: product.name as string,
@@ -26,6 +27,9 @@ export function serializeProduct(product: Record<string, unknown>): Record<strin
     batchNo: (product.batchNo as string | null | undefined) ?? null,
     lowStockThreshold: (product.lowStockThreshold as number | null | undefined) ?? null,
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
+    lotNumber: (product.lotNumber as string | null | undefined) ?? null,
+    manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
+    batches: batches ? batches.map((b: Record<string, unknown>) => serializeProductBatch(b)) : undefined,
     deletedAt: product.deletedAt as Date | null,
     createdAt: product.createdAt as Date,
     updatedAt: product.updatedAt as Date,
@@ -38,6 +42,7 @@ export function serializeProduct(product: Record<string, unknown>): Record<strin
 export function serializeInventoryItem(product: Record<string, unknown>): Record<string, unknown> {
   const qty = product.quantity as number;
   const lowStock = product.lowStock as number;
+  const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
   return {
     id: product.id,
     name: product.name,
@@ -53,10 +58,40 @@ export function serializeInventoryItem(product: Record<string, unknown>): Record
     image: product.image,
     barcode: (product.barcode as string | null | undefined) ?? null,
     batchNo: (product.batchNo as string | null | undefined) ?? null,
+    lowStockThreshold: (product.lowStockThreshold as number | null | undefined) ?? null,
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
+    lotNumber: (product.lotNumber as string | null | undefined) ?? null,
+    manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
+    batches: batches ? batches.map((b: Record<string, unknown>) => serializeProductBatch(b)) : undefined,
+    primaryBatch: batches && batches.length > 0
+      ? serializeProductBatch(batches[0])
+      : null,
     deletedAt: product.deletedAt,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
+  };
+}
+
+/**
+ * Serialize a Prisma ProductBatch row for API responses.
+ */
+export function serializeProductBatch(batch: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: batch.id as string,
+    productId: batch.productId as string,
+    batchNo: (batch.batchNo as string | null | undefined) ?? null,
+    lotNumber: (batch.lotNumber as string | null | undefined) ?? null,
+    expiryDate: (batch.expiryDate as Date | null | undefined) ?? null,
+    manufactureDate: (batch.manufactureDate as Date | null | undefined) ?? null,
+    quantity: (batch.quantity as number) ?? 0,
+    initialQuantity: (batch.initialQuantity as number) ?? 0,
+    costPrice: batch.costPrice !== undefined && batch.costPrice !== null
+      ? Number(batch.costPrice)
+      : null,
+    referenceId: (batch.referenceId as string | null | undefined) ?? null,
+    userId: (batch.userId as string | null | undefined) ?? null,
+    createdAt: batch.createdAt as Date,
+    updatedAt: batch.updatedAt as Date,
   };
 }
 
@@ -111,12 +146,15 @@ export function serializeOrder(order: Record<string, unknown>): Record<string, u
  */
 export function serializeOrderItem(item: Record<string, unknown>): Record<string, unknown> {
   const product = item.product as Record<string, unknown> | null | undefined;
+  const batch = item.batch as Record<string, unknown> | null | undefined;
   return {
     id: item.id as string,
     orderId: item.orderId as string,
     productId: item.productId as string,
     quantity: item.quantity as number,
     price: Number(item.price),
+    batchId: (item.batchId as string | null | undefined) ?? null,
+    batch: batch ? serializeProductBatch(batch) : null,
     returnedQuantity: (item.returnedQuantity as number) ?? 0,
     refunded: (item.refunded as boolean) ?? false,
     product: product ? serializeProductLite(product) : undefined,
