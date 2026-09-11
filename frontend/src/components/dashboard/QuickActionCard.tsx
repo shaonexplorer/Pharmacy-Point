@@ -43,7 +43,7 @@ export function QuickActionCard({
   return (
     <Card
       className={cn(
-        'border-border bg-card transition-all duration-200',
+        'h-full border-border bg-card transition-all duration-200',
         'group hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5',
         className
       )}
@@ -61,7 +61,7 @@ export function QuickActionCard({
             >
               <Icon className="h-5 w-5" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className=" min-w-0">
               <p
                 className={cn(
                   'font-medium text-foreground transition-colors',

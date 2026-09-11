@@ -20,6 +20,7 @@ import type {
   DuePaymentWithCustomer,
   CreateDuePaymentInput,
   CustomerDashboard,
+  Stats,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -295,6 +296,11 @@ export const api = {
       page?: number;
       limit?: number;
     }) => request<any>('/api/reports/financial', { params }),
+  },
+
+  // Stats
+  stats: {
+    get: () => request<Stats>('/api/stats'),
   },
 
   // Notifications
