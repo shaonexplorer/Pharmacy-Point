@@ -14,10 +14,10 @@ import { analyticsDashboardSchema } from './analytics.dto';
 
 const router = Router();
 
-router.get('/analytics/dashboard', validate(analyticsDashboardSchema, 'query'), getAnalyticsDashboard);
-router.get('/analytics/revenue-trends', validate(analyticsDashboardSchema, 'query'), getRevenueTrends);
-router.get('/analytics/sales-by-category', getSalesByCategory);
-router.get('/analytics/inventory-status', getInventoryStatus);
-router.get('/analytics/top-products', getTopProducts);
+router.get('/dashboard', validate(analyticsDashboardSchema, 'query'), getAnalyticsDashboard);
+router.get('/revenue-trends', validate(analyticsDashboardSchema, 'query'), getRevenueTrends);
+router.get('/sales-by-category', getSalesByCategory);
+router.get('/inventory-status', getInventoryStatus);
+router.get('/top-products', getTopProducts);
 
 export const analyticsRouter = router;

@@ -147,17 +147,16 @@ export default function FinancialReportsPage() {
                       type: 'Revenue',
                     })),
                   ];
-                  downloadCsv(rows, `financial-report-${new Date().toISOString().split('T')[0]}.csv`);
+                  downloadCsv(
+                    rows,
+                    `financial-report-${new Date().toISOString().split('T')[0]}.csv`
+                  );
                 }
               }}
             >
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-            >
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
               <FileText className="mr-2 h-4 w-4" /> PDF
             </Button>
           </div>
@@ -172,9 +171,9 @@ export default function FinancialReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="flex flex-wrap gap-4 ">
               {/* Date Range */}
-              <div className="space-y-1">
+              <div className="">
                 <label className="text-label-sm text-on-surface-variant flex items-center gap-1">
                   Date Range
                 </label>
@@ -257,9 +256,7 @@ export default function FinancialReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {formatCurrency(summary.grossRevenue)}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                {summary.totalOrders} orders
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">{summary.totalOrders} orders</p>
             </CardContent>
           </Card>
 
@@ -293,9 +290,7 @@ export default function FinancialReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {formatCurrency(summary.grossProfit)}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                revenue minus COGS
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">revenue minus COGS</p>
             </CardContent>
           </Card>
 
@@ -311,9 +306,7 @@ export default function FinancialReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {formatCurrency(summary.netProfit)}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                after expenses
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">after expenses</p>
             </CardContent>
           </Card>
         </div>
@@ -431,11 +424,20 @@ export default function FinancialReportsPage() {
                   </thead>
                   <tbody className="divide-y divide-border/40">
                     {reportData.data.map((item: any) => (
-                      <tr key={item.groupLabel} className="hover:bg-surface-container/40 transition-colors">
+                      <tr
+                        key={item.groupLabel}
+                        className="hover:bg-surface-container/40 transition-colors"
+                      >
                         <td className="px-4 py-3 font-medium text-on-surface">{item.groupLabel}</td>
-                        <td className="px-4 py-3 text-right font-mono text-xs text-tertiary">{formatCurrency(item.revenue)}</td>
-                        <td className="px-4 py-3 text-right font-mono text-xs text-warning">{formatCurrency(item.cogs)}</td>
-                        <td className="px-4 py-3 text-right font-mono text-xs text-secondary">{formatCurrency(item.profit)}</td>
+                        <td className="px-4 py-3 text-right font-mono text-xs text-tertiary">
+                          {formatCurrency(item.revenue)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-xs text-warning">
+                          {formatCurrency(item.cogs)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-xs text-secondary">
+                          {formatCurrency(item.profit)}
+                        </td>
                         <td className="px-4 py-3 text-right font-mono text-xs">{item.orders}</td>
                       </tr>
                     ))}
@@ -451,7 +453,9 @@ export default function FinancialReportsPage() {
           <Card className="border-border bg-card card-elevated">
             <CardContent className="p-8 text-center">
               <DollarSign className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-              <p className="text-on-surface-variant">No financial data found for the selected period.</p>
+              <p className="text-on-surface-variant">
+                No financial data found for the selected period.
+              </p>
             </CardContent>
           </Card>
         )}
@@ -460,8 +464,16 @@ export default function FinancialReportsPage() {
       {/* Print styles */}
       <style jsx global>{`
         @media print {
-          header, button, .no-print { display: none !important; }
-          main { margin: 0; padding: 0; max-width: 100%; }
+          header,
+          button,
+          .no-print {
+            display: none !important;
+          }
+          main {
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+          }
         }
       `}</style>
     </div>

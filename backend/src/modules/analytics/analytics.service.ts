@@ -3,6 +3,7 @@
  * Provides aggregated data for the analytics overview page.
  */
 import { prisma } from '../../config/database';
+import { Prisma } from '@prisma/client';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnalyticsResult = Record<string, any>;
@@ -27,33 +28,30 @@ export async function getRevenueTrends(
 
   switch (period) {
     case 'day':
-      dateFormat = '%Y-%m-%d';
+      dateFormat = 'YYYY-MM-DD';
       break;
     case 'week':
-      dateFormat = '%Y-%u';
+      dateFormat = 'YYYY-WW';
       break;
     case 'quarter':
-      dateFormat = '%Y-%m';
+      dateFormat = 'YYYY-MM';
       break;
     default: // month
-      dateFormat = '%Y-%m';
+      dateFormat = 'YYYY-MM';
       break;
   }
 
-  const query = buildQuery(
-    `SELECT
-      DATE_FORMAT(createdAt, '${dateFormat}') as period_label,
+  const results = await prisma.$queryRaw<RawRow[]>`
+    SELECT
+      TO_CHAR("createdAt", ${dateFormat}) as period_label,
       SUM(total) as total_revenue,
       COUNT(*) as order_count
     FROM orders
     WHERE status = 'COMPLETED'
-      AND createdAt >= ?
-    GROUP BY DATE_FORMAT(createdAt, '${dateFormat}')
-    ORDER BY createdAt ASC`,
-    cutoff
-  );
-
-  const results = (await prisma.$queryRaw<RawRow[]>(query as any)) as RawRow[];
+      AND "createdAt" >= ${cutoff}
+    GROUP BY TO_CHAR("createdAt", ${dateFormat})
+    ORDER BY "createdAt" ASC
+  `;
 
   const labels: string[] = [];
   const revenue: number[] = [];
@@ -84,24 +82,21 @@ export async function getSalesByCategory(
   const cutoff = new Date(now);
   cutoff.setDate(cutoff.getDate() - days);
 
-  const query = buildQuery(
-    `SELECT
+  const results = await prisma.$queryRaw<RawRow[]>`
+    SELECT
       COALESCE(p.category, 'Uncategorized') as category,
       SUM(oi.price * oi.quantity) as total_sales,
       COUNT(DISTINCT o.id) as order_count
     FROM order_items oi
-    JOIN products p ON oi.productId = p.id
-    JOIN orders o ON oi.orderId = o.id
+    JOIN products p ON oi."productId" = p.id
+    JOIN orders o ON oi."orderId" = o.id
     WHERE o.status = 'COMPLETED'
-      AND o.createdAt >= ?
-      AND p.deletedAt IS NULL
+      AND o."createdAt" >= ${cutoff}
+      AND p."deletedAt" IS NULL
     GROUP BY p.category
     ORDER BY total_sales DESC
-    LIMIT 8`,
-    cutoff
-  );
-
-  const results = (await prisma.$queryRaw<RawRow[]>(query as any)) as RawRow[];
+    LIMIT 8
+  `;
 
   const categories: string[] = [];
   const sales: number[] = [];
@@ -167,25 +162,22 @@ export async function getTopProducts(
   const cutoff = new Date(now);
   cutoff.setDate(cutoff.getDate() - days);
 
-  const query = buildQuery(
-    `SELECT
+  const results = await prisma.$queryRaw<RawRow[]>`
+    SELECT
       p.name,
       COALESCE(p.category, 'Uncategorized') as category,
       SUM(oi.price * oi.quantity) as total_revenue,
       SUM(oi.quantity) as total_units
     FROM order_items oi
-    JOIN products p ON oi.productId = p.id
-    JOIN orders o ON oi.orderId = o.id
+    JOIN products p ON oi."productId" = p.id
+    JOIN orders o ON oi."orderId" = o.id
     WHERE o.status = 'COMPLETED'
-      AND o.createdAt >= ?
-      AND p.deletedAt IS NULL
+      AND o."createdAt" >= ${cutoff}
+      AND p."deletedAt" IS NULL
     GROUP BY p.id, p.name, p.category
     ORDER BY total_revenue DESC
-    LIMIT ${limit}`,
-    cutoff
-  );
-
-  const results = (await prisma.$queryRaw<RawRow[]>(query as any)) as RawRow[];
+    LIMIT ${limit}
+  `;
 
   return results.map((row) => ({
     name: (row.name as string) ?? 'Unknown',
@@ -193,14 +185,6 @@ export async function getTopProducts(
     revenue: Number(row.total_revenue ?? 0),
     unitsSold: Number(row.total_units ?? 0),
   }));
-}
-
-/**
- * Build a raw query with parameters for prisma.$queryRaw.
- * Uses template string to construct the SQL and passes params separately.
- */
-function buildQuery(sql: string, ...params: any[]): string {
-  return sql;
 }
 
 /**

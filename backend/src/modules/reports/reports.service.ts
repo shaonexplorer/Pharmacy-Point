@@ -3,6 +3,7 @@
  * Provides aggregated sales data with flexible grouping and filtering.
  */
 import { prisma } from '../../config/database';
+import { Prisma } from '@prisma/client';
 import { parsePagination, buildPagination } from '../../utils/pagination';
 import type {
   SalesReportInput,
@@ -29,6 +30,15 @@ interface SalesSummaryData {
 }
 
 /**
+ * Build a WHERE clause as Prisma.Sql fragments from optional conditions.
+ */
+function buildWhereClause(conditions: Prisma.Sql[]): Prisma.Sql {
+  if (conditions.length === 0) return Prisma.sql``;
+  if (conditions.length === 1) return conditions[0];
+  return conditions.reduce((acc, cond) => Prisma.sql`${acc} AND ${cond}`);
+}
+
+/**
  * Get sales report data with flexible grouping and filtering.
  */
 export async function getSalesReport(input: SalesReportInput): Promise<{
@@ -41,115 +51,105 @@ export async function getSalesReport(input: SalesReportInput): Promise<{
 
   const { skip } = parsePagination({ page: String(page), limit: String(limit) });
 
-  // Determine cutoff date
-  const cutoff = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const cutoff = startDate
+    ? new Date(startDate)
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  // Build WHERE conditions for raw SQL
-  const conditions: string[] = ['o.status = :status'];
-  const params: Record<string, unknown> = {
-    status: status ?? 'COMPLETED',
-    cutoff,
-    ...(productId ? { productId } : {}),
-    ...(category ? { category } : {}),
-    ...(paymentMethod ? { paymentMethod } : {}),
-    ...(endDate ? { endDate: new Date(endDate) } : {}),
-    limit,
-    skip,
-  };
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`o.status::text = ${(status ?? 'COMPLETED') as string}`,
+  ];
 
   if (!startDate) {
-    conditions.push('o.createdAt >= :cutoff');
+    conditions.push(Prisma.sql`o."createdAt" >= ${cutoff}`);
   }
   if (startDate) {
-    conditions.push('o.createdAt >= :startDate');
-    params.startDate = new Date(startDate);
+    conditions.push(Prisma.sql`o."createdAt" >= ${new Date(startDate)}`);
   }
   if (endDate) {
-    conditions.push('o.createdAt <= :endDate');
+    conditions.push(Prisma.sql`o."createdAt" <= ${new Date(endDate)}`);
   }
   if (productId) {
-    conditions.push('oi.productId = :productId');
+    conditions.push(Prisma.sql`oi."productId" = ${productId}`);
   }
   if (category) {
-    conditions.push('p.category = :category');
+    conditions.push(Prisma.sql`p.category = ${category}`);
   }
   if (paymentMethod) {
-    conditions.push('o.paymentMethod = :paymentMethod');
+    conditions.push(Prisma.sql`o."paymentMethod" = ${paymentMethod}`);
   }
 
-  const whereClause = conditions.join(' AND ');
+  const whereClause = buildWhereClause(conditions);
 
-  // Build GROUP BY and SELECT based on groupBy
-  let groupByClause: string[];
-  let selectClause: string;
-  let orderByClause: string;
+  let selectClause: Prisma.Sql;
+  let groupByClause: Prisma.Sql;
+  let orderByClause: Prisma.Sql;
 
   switch (groupBy) {
     case 'category':
-      groupByClause = ["COALESCE(p.category, 'Uncategorized')"];
-      selectClause = `COALESCE(p.category, 'Uncategorized') as group_label, SUM(oi.price * oi.quantity) as total_sales, COUNT(DISTINCT o.id) as order_count, SUM(oi.quantity) as total_units`;
-      orderByClause = 'total_sales DESC';
+      selectClause = Prisma.sql`COALESCE(p.category, 'Uncategorized') as group_label, SUM(oi.price * oi.quantity) as total_sales, COUNT(DISTINCT o.id) as order_count, SUM(oi.quantity) as total_units`;
+      groupByClause = Prisma.sql`COALESCE(p.category, 'Uncategorized')`;
+      orderByClause = Prisma.sql`total_sales DESC`;
       break;
     case 'paymentMethod':
-      groupByClause = ['o.paymentMethod'];
-      selectClause = `o.paymentMethod as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
-      orderByClause = 'total_sales DESC';
+      selectClause = Prisma.sql`o."paymentMethod" as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
+      groupByClause = Prisma.sql`o."paymentMethod"`;
+      orderByClause = Prisma.sql`total_sales DESC`;
       break;
     case 'week':
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%u')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%u') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-WW') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-WW')`;
+      orderByClause = Prisma.sql`group_label ASC`;
       break;
     case 'month':
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM')`;
+      orderByClause = Prisma.sql`group_label ASC`;
       break;
     case 'day':
     default:
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m-%d')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m-%d') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM-DD') as group_label, SUM(o.total) as total_sales, COUNT(*) as order_count, SUM(oi.quantity) as total_units`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM-DD')`;
+      orderByClause = Prisma.sql`group_label ASC`;
       break;
   }
 
-  const countQuery = `
+
+  const countQuery = Prisma.sql`
     SELECT COUNT(DISTINCT o.id) as total
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
-    JOIN products p ON p.id = oi.productId
+    JOIN order_items oi ON oi."orderId" = o.id
+    JOIN products p ON p.id = oi."productId"
     WHERE ${whereClause}
   `;
 
-  const query = `
+  const query = Prisma.sql`
     SELECT ${selectClause}
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
-    JOIN products p ON p.id = oi.productId
+    JOIN order_items oi ON oi."orderId" = o.id
+    JOIN products p ON p.id = oi."productId"
     WHERE ${whereClause}
-    GROUP BY ${groupByClause.join(', ')}
+    GROUP BY ${groupByClause}
     ORDER BY ${orderByClause}
-    LIMIT :limit OFFSET :skip
+    LIMIT ${limit} OFFSET ${skip}
   `;
 
-  const summaryQuery = `
+  const summaryQuery = Prisma.sql`
     SELECT
       SUM(o.total) as total_revenue,
       COUNT(DISTINCT o.id) as transaction_count,
       AVG(o.total) as avg_basket,
       SUM(oi.quantity) as total_units,
-      COUNT(DISTINCT oi.productId) as unique_products,
-      COUNT(DISTINCT o.customerId) as unique_customers
+      COUNT(DISTINCT oi."productId") as unique_products,
+      COUNT(DISTINCT o."customerId") as unique_customers
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
+    JOIN order_items oi ON oi."orderId" = o.id
     WHERE ${whereClause}
   `;
 
-  // Execute all queries in parallel
   const [countResult, results, summaryResult] = await Promise.all([
-    prisma.$queryRaw<RawRow[]>(countQuery as any, params),
-    prisma.$queryRaw<RawRow[]>(query as any, params),
-    prisma.$queryRaw<RawRow[]>(summaryQuery as any, params),
+    prisma.$queryRaw<RawRow[]>(countQuery),
+    prisma.$queryRaw<RawRow[]>(query),
+    prisma.$queryRaw<RawRow[]>(summaryQuery),
   ]);
 
   const total = Number((countResult as RawRow[])[0]?.total ?? 0);
@@ -162,12 +162,12 @@ export async function getSalesReport(input: SalesReportInput): Promise<{
   }));
 
   const summary: SalesSummaryData = {
-    totalRevenue: Number((summaryResult as RawRow).total_revenue ?? 0),
-    transactionCount: Number((summaryResult as RawRow).transaction_count ?? 0),
-    averageBasketSize: Number((summaryResult as RawRow).avg_basket ?? 0),
-    totalUnits: Number((summaryResult as RawRow).total_units ?? 0),
-    uniqueProducts: Number((summaryResult as RawRow).unique_products ?? 0),
-    uniqueCustomers: Number((summaryResult as RawRow).unique_customers ?? 0),
+    totalRevenue: Number(((summaryResult as RawRow[])[0]).total_revenue ?? 0),
+    transactionCount: Number(((summaryResult as RawRow[])[0]).transaction_count ?? 0),
+    averageBasketSize: Number(((summaryResult as RawRow[])[0]).avg_basket ?? 0),
+    totalUnits: Number(((summaryResult as RawRow[])[0]).total_units ?? 0),
+    uniqueProducts: Number(((summaryResult as RawRow[])[0]).unique_products ?? 0),
+    uniqueCustomers: Number(((summaryResult as RawRow[])[0]).unique_customers ?? 0),
   };
 
   return {
@@ -190,29 +190,28 @@ export async function getSalesSummary(
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
 
-  const query = `
+  const results = await prisma.$queryRaw<RawRow[]>`
     SELECT
       SUM(o.total) as total_revenue,
       COUNT(DISTINCT o.id) as transaction_count,
       AVG(o.total) as avg_basket,
       SUM(oi.quantity) as total_units,
-      COUNT(DISTINCT oi.productId) as unique_products,
-      COUNT(DISTINCT o.customerId) as unique_customers
+      COUNT(DISTINCT oi."productId") as unique_products,
+      COUNT(DISTINCT o."customerId") as unique_customers
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
-    WHERE o.status = 'COMPLETED'
-      AND o.createdAt >= :cutoff
+    JOIN order_items oi ON oi."orderId" = o.id
+    WHERE o.status::text = ${'COMPLETED'}
+      AND o."createdAt" >= ${cutoff}
   `;
 
-  const [result] = await prisma.$queryRaw<RawRow[]>(query as any, { cutoff });
-
+  const result = results[0];
   return {
-    totalRevenue: Number((result as RawRow).total_revenue ?? 0),
-    transactionCount: Number((result as RawRow).transaction_count ?? 0),
-    averageBasketSize: Number((result as RawRow).avg_basket ?? 0),
-    totalUnits: Number((result as RawRow).total_units ?? 0),
-    uniqueProducts: Number((result as RawRow).unique_products ?? 0),
-    uniqueCustomers: Number((result as RawRow).unique_customers ?? 0),
+    totalRevenue: Number((result as RawRow)?.total_revenue ?? 0),
+    transactionCount: Number((result as RawRow)?.transaction_count ?? 0),
+    averageBasketSize: Number((result as RawRow)?.avg_basket ?? 0),
+    totalUnits: Number((result as RawRow)?.total_units ?? 0),
+    uniqueProducts: Number((result as RawRow)?.unique_products ?? 0),
+    uniqueCustomers: Number((result as RawRow)?.unique_customers ?? 0),
   };
 }
 
@@ -223,19 +222,17 @@ export async function getSalesByPaymentMethod(
   startDate: string,
   endDate: string
 ): Promise<Array<{ paymentMethod: string; totalSales: number; orderCount: number }>> {
-  const query = `
-    SELECT o.paymentMethod as paymentMethod,
+  const results = await prisma.$queryRaw<RawRow[]>`
+    SELECT o."paymentMethod" as paymentMethod,
            SUM(o.total) as total_sales,
            COUNT(*) as order_count
     FROM orders o
-    WHERE o.status = 'COMPLETED'
-      AND o.createdAt >= :startDate
-      AND o.createdAt <= :endDate
-    GROUP BY o.paymentMethod
+    WHERE o.status::text = ${'COMPLETED'}
+      AND o."createdAt" >= ${new Date(startDate)}
+      AND o."createdAt" <= ${new Date(endDate)}
+    GROUP BY o."paymentMethod"
     ORDER BY total_sales DESC
   `;
-
-  const results = await prisma.$queryRaw<RawRow[]>(query as any, { startDate, endDate });
 
   return (results as RawRow[]).map((row) => ({
     paymentMethod: row.paymentMethod as string,
@@ -271,65 +268,57 @@ export async function getCustomerReport(input: CustomerReportInput): Promise<{
 
   const { skip } = parsePagination({ page: String(page), limit: String(limit) });
   const now = new Date();
-
-  // Build WHERE conditions
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = { limit, skip };
-
-  if (tier) {
-    conditions.push('c.loyalty_tier = :tier');
-    params.tier = tier;
-  }
-
-  if (activeDays) {
-    const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - activeDays);
-    conditions.push(
-      `EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :activeCutoff AND o.status = 'COMPLETED')`
-    );
-    params.activeCutoff = cutoff;
-  }
-
-  if (hasDueAccounts === true) {
-    conditions.push('c.due_amount > 0');
-  }
-
-  if (hasDueAccounts === false) {
-    conditions.push('c.due_amount <= 0');
-  }
-
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-  // Main query: paginated customers with order stats
-  const query = `
-    SELECT c.id, c.name, c.email, c.phone, c.loyalty_tier as loyaltyTier,
-           c.loyalty_points as loyaltyPoints, c.lifetime_spend as lifetimeSpend,
-           c.due_amount as dueAmount,
-           COUNT(DISTINCT o.id) as orderCount,
-           MAX(o.created_at) as lastPurchaseDate,
-           COUNT(DISTINCT CASE WHEN o.created_at >= :activeCutoff THEN o.id END) > 0 as isActive
-    FROM customers c
-    LEFT JOIN orders o ON o.customer_id = c.id
-    ${whereClause}
-    GROUP BY c.id, c.name, c.email, c.phone, c.loyalty_tier, c.loyalty_points,
-             c.lifetime_spend, c.due_amount
-    ORDER BY c.lifetime_spend DESC
-    LIMIT :limit OFFSET :skip
-  `;
-
   const activeCutoff = new Date(now);
   activeCutoff.setDate(activeCutoff.getDate() - (activeDays ?? 30));
-  params.activeCutoff = activeCutoff;
+
+  // Build WHERE conditions using Prisma.Sql fragments
+  const conditions: Prisma.Sql[] = [];
+
+  if (tier) {
+    conditions.push(Prisma.sql`c."loyaltyTier" = ${tier}`);
+  }
+  if (activeDays) {
+    conditions.push(
+      Prisma.sql`EXISTS (SELECT 1 FROM orders o WHERE o."customerId" = c.id AND o."createdAt" >= ${activeCutoff} AND o.status = 'COMPLETED')`
+    );
+  }
+  if (hasDueAccounts === true) {
+    conditions.push(Prisma.sql`c."dueAmount" > 0`);
+  }
+  if (hasDueAccounts === false) {
+    conditions.push(Prisma.sql`c."dueAmount" <= 0`);
+  }
+
+  const whereClause = buildWhereClause(conditions);
+
+  const mainQuery = Prisma.sql`
+    SELECT c.id, c.name, c.email, c.phone, c."loyaltyTier" as loyaltyTier,
+           c."loyaltyPoints" as loyaltyPoints, c."lifetimeSpend" as lifetimeSpend,
+           c."dueAmount" as dueAmount,
+           COUNT(DISTINCT o.id) as orderCount,
+           MAX(o."createdAt") as lastPurchaseDate,
+           COUNT(DISTINCT CASE WHEN o."createdAt" >= ${activeCutoff} THEN o.id END) > 0 as isActive
+    FROM customers c
+    LEFT JOIN orders o ON o."customerId" = c.id
+    WHERE ${whereClause}
+    GROUP BY c.id, c.name, c.email, c.phone, c."loyaltyTier", c."loyaltyPoints",
+             c."lifetimeSpend", c."dueAmount"
+    ORDER BY c."lifetimeSpend" DESC
+    LIMIT ${limit} OFFSET ${skip}
+  `;
+
+  const countQuery = Prisma.sql`
+    SELECT COUNT(*) as total
+    FROM customers c
+    WHERE ${whereClause}
+  `;
 
   const [countResult, results] = await Promise.all([
-    prisma.$queryRaw<RawRow[]>(
-      `SELECT COUNT(*) as total FROM customers c ${whereClause}` as any,
-      params
-    ),
-    prisma.$queryRaw<RawRow[]>(query as any, { ...params, activeCutoff }),
+    prisma.$queryRaw<RawRow[]>(countQuery),
+    prisma.$queryRaw<RawRow[]>(mainQuery),
   ]);
 
-  const total = Number((countResult as RawRow)[0]?.total ?? 0);
+  const total = Number((countResult as RawRow[])[0]?.total ?? 0);
 
   const customers = (results as RawRow[]).map((row) => ({
     id: row.id,
@@ -345,18 +334,19 @@ export async function getCustomerReport(input: CustomerReportInput): Promise<{
     isActive: Boolean(row.isActive),
   }));
 
+
   // Summary metrics
-  const [statsResult] = await prisma.$queryRaw<RawRow[]>(
-    `SELECT
+  const [statsResult] = await prisma.$queryRaw<RawRow[]>`
+    SELECT
        COUNT(*) as total_customers,
-       COALESCE(SUM(c.lifetime_spend), 0) as total_lifetime_spend,
-       COALESCE(AVG(c.lifetime_spend), 0) as avg_spend,
-       SUM(CASE WHEN c.due_amount > 0 THEN 1 ELSE 0 END) as total_due_accounts,
-       COALESCE(SUM(c.due_amount), 0) as total_due_amount,
-       SUM(CASE WHEN c.loyalty_points > 0 THEN c.loyalty_points ELSE 0 END) as total_points_earned,
-       SUM(CASE WHEN c.loyalty_points < 0 THEN ABS(c.loyalty_points) ELSE 0 END) as total_points_redeemed
-     FROM customers c` as any
-  );
+       COALESCE(SUM(c."lifetimeSpend"), 0) as total_lifetime_spend,
+       COALESCE(AVG(c."lifetimeSpend"), 0) as avg_spend,
+       SUM(CASE WHEN c."dueAmount" > 0 THEN 1 ELSE 0 END) as total_due_accounts,
+       COALESCE(SUM(c."dueAmount"), 0) as total_due_amount,
+       SUM(CASE WHEN c."loyaltyPoints" > 0 THEN c."loyaltyPoints" ELSE 0 END) as total_points_earned,
+       SUM(CASE WHEN c."loyaltyPoints" < 0 THEN ABS(c."loyaltyPoints") ELSE 0 END) as total_points_redeemed
+     FROM customers c
+  `;
 
   const totalCustomers = Number((statsResult as RawRow).total_customers ?? 0);
   const totalLifetimeSpend = Number((statsResult as RawRow).total_lifetime_spend ?? 0);
@@ -367,24 +357,23 @@ export async function getCustomerReport(input: CustomerReportInput): Promise<{
   const totalPointsRedeemed = Number((statsResult as RawRow).total_points_redeemed ?? 0);
 
   // Active vs inactive counts
-  const [activeResult] = await prisma.$queryRaw<RawRow[]>(
-    `SELECT
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :cutoff AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as active_count,
-       SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id AND o.created_at >= :cutoff AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as inactive_count
-     FROM customers c` as any,
-    { cutoff: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) }
-  );
+  const [activeResult] = await prisma.$queryRaw<RawRow[]>`
+    SELECT
+       SUM(CASE WHEN EXISTS (SELECT 1 FROM orders o WHERE o."customerId" = c.id AND o."createdAt" >= ${activeCutoff} AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as active_count,
+       SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM orders o WHERE o."customerId" = c.id AND o."createdAt" >= ${activeCutoff} AND o.status = 'COMPLETED') THEN 1 ELSE 0 END) as inactive_count
+     FROM customers c
+  `;
 
   const activeCustomers = Number((activeResult as RawRow).active_count ?? 0);
   const inactiveCustomers = Number((activeResult as RawRow).inactive_count ?? 0);
 
   // Tier distribution
-  const tierResults = await prisma.$queryRaw<RawRow[]>(
-    `SELECT c.loyalty_tier as tier, COUNT(*) as count
-     FROM customers c
-     GROUP BY c.loyalty_tier
-     ORDER BY count DESC` as any
-  );
+  const tierResults = await prisma.$queryRaw<RawRow[]>`
+    SELECT c."loyaltyTier" as tier, COUNT(*) as count
+    FROM customers c
+    GROUP BY c."loyaltyTier"
+    ORDER BY count DESC
+  `;
 
   const tierDistribution = (tierResults as RawRow[]).map((row) => ({
     tier: row.tier as string,
@@ -402,10 +391,13 @@ export async function getCustomerReport(input: CustomerReportInput): Promise<{
       totalLifetimeSpend,
       totalDueAccounts,
       totalDueAmount,
-      tierDistribution: tierResults.reduce((acc: Record<string, number>, row: RawRow) => {
-        acc[(row.tier as string) ?? 'Unknown'] = Number(row.count ?? 0);
-        return acc;
-      }, {}),
+      tierDistribution: (tierResults as RawRow[]).reduce(
+        (acc: Record<string, number>, row: RawRow) => {
+          acc[(row.tier as string) ?? 'Unknown'] = Number(row.count ?? 0);
+          return acc;
+        },
+        {}
+      ),
       totalPointsEarned,
       totalPointsRedeemed,
     },
@@ -445,31 +437,31 @@ export async function getInventoryReport(input: InventoryReportInput): Promise<{
   expiryCutoff.setDate(expiryCutoff.getDate() + expiryDays);
 
   // Aggregate metrics
-  const [statsResult] = await prisma.$queryRaw<RawRow[]>(
-    `SELECT
+  const [statsResult] = await prisma.$queryRaw<RawRow[]>`
+    SELECT
        COUNT(*) as total_products,
        COALESCE(SUM(p.quantity * p.price), 0) as total_value
      FROM products p
-     WHERE p.deleted_at IS NULL` as any
-  );
+     WHERE p."deletedAt" IS NULL
+  `;
 
   const totalProducts = Number((statsResult as RawRow).total_products ?? 0);
   const totalInventoryValue = Number((statsResult as RawRow).total_value ?? 0);
 
   // Low stock: quantity <= COALESCE(lowStockThreshold, lowStock)
-  const lowStockItems = await prisma.$queryRaw<RawRow[]>(
-    `SELECT p.id, p.name, p.sku, COALESCE(p.category, 'Uncategorized') as category,
-            p.quantity, p.price, p.expiry_date, p.batch_no,
-            p.low_stock, p.low_stock_threshold
-     FROM products p
-     WHERE p.deleted_at IS NULL
-       AND p.quantity <= COALESCE(p.low_stock_threshold, p.low_stock)
-     ORDER BY p.quantity ASC
-     LIMIT :limit` as any,
-    { limit }
-  );
+  const lowStockItems = await prisma.$queryRaw<RawRow[]>`
+    SELECT p.id, p.name, p.sku, COALESCE(p.category, 'Uncategorized') as category,
+            p.quantity, p.price, p."expiryDate", p."batchNo",
+            p."lowStock", p."lowStockThreshold"
+    FROM products p
+    WHERE p."deletedAt" IS NULL
+      AND p.quantity <= COALESCE(p."lowStockThreshold", p."lowStock")
+    ORDER BY p.quantity ASC
+    LIMIT ${limit}
+  `;
 
   const lowStockCount = lowStockItems.length;
+
 
   // Expiring items (expiryDate between now and now + expiryDays)
   const expiringItems = await prisma.product.findMany({
@@ -497,49 +489,45 @@ export async function getInventoryReport(input: InventoryReportInput): Promise<{
   const expiringCount = expiringItems.length;
 
   // Expired items (expiryDate < now)
-  const [expiredResult] = await prisma.$queryRaw<RawRow[]>(
-    `SELECT COUNT(*) as expired_count
-     FROM products p
-     WHERE p.deleted_at IS NULL
-       AND p.expiry_date < :now
-       AND p.quantity > 0` as any,
-    { now }
-  );
+  const [expiredResult] = await prisma.$queryRaw<RawRow[]>`
+    SELECT COUNT(*) as expired_count
+    FROM products p
+    WHERE p."deletedAt" IS NULL
+      AND p."expiryDate" < ${now}
+      AND p.quantity > 0
+  `;
   const expiredCount = Number((expiredResult as RawRow).expired_count ?? 0);
 
   // Slow-moving: no orders in last slowMovingDays
-  const slowMovingItems = await prisma.$queryRaw<RawRow[]>(
-    `SELECT p.id, p.name, p.sku, COALESCE(p.category, 'Uncategorized') as category,
-            p.quantity, p.price, p.expiry_date, p.batch_no
-     FROM products p
-     WHERE p.deleted_at IS NULL
-       AND p.quantity > 0
-       AND NOT EXISTS (
-         SELECT 1 FROM order_items oi
-         JOIN orders o ON o.id = oi.orderId
-         WHERE oi.productId = p.id
-           AND o.status = 'COMPLETED'
-           AND o.created_at >= :cutoff
-       )
-     ORDER BY p.created_at ASC
-     LIMIT :limit` as any,
-    {
-      cutoff: new Date(now.getTime() - slowMovingDays * 24 * 60 * 60 * 1000),
-      limit,
-    }
-  );
+  const slowMovingCutoff = new Date(now.getTime() - slowMovingDays * 24 * 60 * 60 * 1000);
+  const slowMovingItems = await prisma.$queryRaw<RawRow[]>`
+    SELECT p.id, p.name, p.sku, COALESCE(p.category, 'Uncategorized') as category,
+            p.quantity, p.price, p."expiryDate", p."batchNo"
+    FROM products p
+    WHERE p."deletedAt" IS NULL
+      AND p.quantity > 0
+      AND NOT EXISTS (
+        SELECT 1 FROM order_items oi
+        JOIN orders o ON o.id = oi."orderId"
+        WHERE oi."productId" = p.id
+          AND o.status = 'COMPLETED'
+          AND o."createdAt" >= ${slowMovingCutoff}
+      )
+    ORDER BY p."createdAt" ASC
+    LIMIT ${limit}
+  `;
 
   const slowMovingCount = slowMovingItems.length;
 
   // In-stock and out-of-stock counts
-  const [countsResult] = await prisma.$queryRaw<RawRow[]>(
-    `SELECT
-       SUM(CASE WHEN p.quantity > 0 AND p.quantity > COALESCE(p.low_stock_threshold, p.low_stock) THEN 1 ELSE 0 END) as in_stock,
-       SUM(CASE WHEN p.quantity > 0 AND p.quantity <= COALESCE(p.low_stock_threshold, p.low_stock) THEN 1 ELSE 0 END) as low_stock,
+  const [countsResult] = await prisma.$queryRaw<RawRow[]>`
+    SELECT
+       SUM(CASE WHEN p.quantity > 0 AND p.quantity > COALESCE(p."lowStockThreshold", p."lowStock") THEN 1 ELSE 0 END) as in_stock,
+       SUM(CASE WHEN p.quantity > 0 AND p.quantity <= COALESCE(p."lowStockThreshold", p."lowStock") THEN 1 ELSE 0 END) as low_stock,
        SUM(CASE WHEN p.quantity = 0 THEN 1 ELSE 0 END) as out_of_stock
      FROM products p
-     WHERE p.deleted_at IS NULL` as any
-  );
+     WHERE p."deletedAt" IS NULL
+  `;
 
   const inStockCount = Number((countsResult as RawRow).in_stock ?? 0);
   const lowStockCountFinal = Number((countsResult as RawRow).low_stock ?? 0);
@@ -623,78 +611,68 @@ export async function getFinancialReport(input: FinancialReportInput): Promise<{
 
   const { skip } = parsePagination({ page: String(page), limit: String(limit) });
 
-  // Determine cutoff date
-  const cutoff = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const cutoff = startDate
+    ? new Date(startDate)
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
   // Build WHERE conditions
-  const conditions: string[] = ['o.status = :status'];
-  const params: Record<string, unknown> = {
-    status: status ?? 'COMPLETED',
-    cutoff,
-    limit,
-    skip,
-  };
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`o.status::text = ${(status ?? 'COMPLETED') as string}`,
+  ];
 
   if (!startDate) {
-    conditions.push('o.createdAt >= :cutoff');
+    conditions.push(Prisma.sql`o."createdAt" >= ${cutoff}`);
   }
   if (startDate) {
-    conditions.push('o.createdAt >= :startDate');
-    params.startDate = new Date(startDate);
+    conditions.push(Prisma.sql`o."createdAt" >= ${new Date(startDate)}`);
   }
   if (endDate) {
-    conditions.push('o.createdAt <= :endDate');
-    params.endDate = new Date(endDate);
+    conditions.push(Prisma.sql`o."createdAt" <= ${new Date(endDate)}`);
   }
   if (paymentMethod) {
-    conditions.push('o.paymentMethod = :paymentMethod');
-    params.paymentMethod = paymentMethod;
+    conditions.push(Prisma.sql`o."paymentMethod" = ${paymentMethod}`);
   }
 
-  const whereClause = conditions.join(' AND ');
+  const whereClause = buildWhereClause(conditions);
 
-  // Build GROUP BY
-  let groupByClause: string[];
-  let selectClause: string;
-  let orderByClause: string;
+  // Build SELECT / GROUP BY
+  let selectClause: Prisma.Sql;
+  let groupByClause: Prisma.Sql;
 
   switch (groupBy) {
     case 'week':
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%u')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%u') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-WW') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-WW')`;
       break;
     case 'month':
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM')`;
       break;
     case 'day':
     default:
-      groupByClause = ["DATE_FORMAT(o.createdAt, '%Y-%m-%d')"];
-      selectClause = `DATE_FORMAT(o.createdAt, '%Y-%m-%d') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
-      orderByClause = 'group_label ASC';
+      selectClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM-DD') as group_label, SUM(o.total) as revenue, SUM(oi.price * oi.quantity) as cogs, SUM(oi.quantity) as total_units, COUNT(DISTINCT o.id) as orders`;
+      groupByClause = Prisma.sql`TO_CHAR(o."createdAt", 'YYYY-MM-DD')`;
       break;
   }
 
-  const countQuery = `
+  const countQuery = Prisma.sql`
     SELECT COUNT(DISTINCT o.id) as total
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
+    JOIN order_items oi ON oi."orderId" = o.id
     WHERE ${whereClause}
   `;
 
-  const query = `
+  const query = Prisma.sql`
     SELECT ${selectClause}
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
+    JOIN order_items oi ON oi."orderId" = o.id
     WHERE ${whereClause}
-    GROUP BY ${groupByClause.join(', ')}
-    ORDER BY ${orderByClause}
-    LIMIT :limit OFFSET :skip
+    GROUP BY ${groupByClause}
+    ORDER BY group_label ASC
+    LIMIT ${limit} OFFSET ${skip}
   `;
 
-  const summaryQuery = `
+  const summaryQuery = Prisma.sql`
     SELECT
       COALESCE(SUM(o.total), 0) as gross_revenue,
       COALESCE(SUM(oi.price * oi.quantity), 0) as cost_of_goods_sold,
@@ -705,18 +683,17 @@ export async function getFinancialReport(input: FinancialReportInput): Promise<{
       COALESCE(AVG(o.total), 0) as avg_order_value,
       COALESCE(SUM(CASE WHEN o.status IN ('REFUNDED', 'PARTIALLY_REFUNDED', 'RETURNED') THEN o.total ELSE 0 END), 0) as total_refunds
     FROM orders o
-    JOIN order_items oi ON oi.orderId = o.id
+    JOIN order_items oi ON oi."orderId" = o.id
     WHERE ${whereClause}
   `;
 
-  // Execute all queries in parallel
   const [countResult, results, summaryResult] = await Promise.all([
-    prisma.$queryRaw<RawRow[]>(countQuery as any, params),
-    prisma.$queryRaw<RawRow[]>(query as any, params),
-    prisma.$queryRaw<RawRow[]>(summaryQuery as any, params),
+    prisma.$queryRaw<RawRow[]>(countQuery),
+    prisma.$queryRaw<RawRow[]>(query),
+    prisma.$queryRaw<RawRow[]>(summaryQuery),
   ]);
 
-  const total = Number((countResult as RawRow)[0]?.total ?? 0);
+  const total = Number((countResult as RawRow[])[0]?.total ?? 0);
 
   const data = (results as RawRow[]).map((row) => ({
     groupLabel: row.group_label as string,
@@ -726,7 +703,7 @@ export async function getFinancialReport(input: FinancialReportInput): Promise<{
     orders: Number(row.orders ?? 0),
   }));
 
-  const sr = summaryResult as RawRow;
+  const sr = (summaryResult as RawRow[])[0];
   const summary: FinancialSummary = {
     grossRevenue: Number(sr.gross_revenue ?? 0),
     costOfGoodsSold: Number(sr.cost_of_goods_sold ?? 0),
@@ -739,9 +716,10 @@ export async function getFinancialReport(input: FinancialReportInput): Promise<{
     totalExpenses: 0, // Future: integrate with purchase orders
   };
 
+
   return {
-    data,
     summary,
+    data,
     pagination: {
       ...buildPagination(total, page, limit),
       total,

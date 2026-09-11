@@ -21,7 +21,15 @@ interface SalesReportData {
   isLoading?: boolean;
 }
 
-const COLORS = ['#00685f', '#006398', '#006b2c', '#89f5e7', '#cce5ff', '#7ffc97', '#93ccff', '#6bd8cb'];
+// Clinical Precision palette — hex colors matching the design system tokens.
+// Using hex (not CSS vars) because Recharts applies Cell fill via SVG
+// presentation attributes which don't reliably resolve var() in all browsers.
+const COLORS = [
+  '#00685f', // Pharma Teal — primary
+  '#006398', // Medi-Blue — secondary
+  '#006b2c', // Safety Green — tertiary
+  '#ca8a04', // Amber — warning
+];
 
 /**
  * Sales report bar chart — shows revenue by day/week/month/category/payment method.
@@ -74,11 +82,17 @@ export function SalesReportChart({ data, isLoading }: SalesReportData) {
             fontSize: '14px',
           }}
           // @ts-ignore
-          formatter={(value: number, name: string) =>
-            [name === 'sales' ? formatCurrency(value) : value, name === 'sales' ? 'Revenue' : name === 'orders' ? 'Orders' : 'Units']
-          }
+          formatter={(value: number, name: string) => [
+            name === 'sales' ? formatCurrency(value) : value,
+            name === 'sales' ? 'Revenue' : name === 'orders' ? 'Orders' : 'Units',
+          ]}
         />
-        <Bar dataKey="sales" radius={[4, 4, 0, 0]} name="Revenue">
+        <Bar
+          dataKey="sales"
+          fill="#00685f"
+          radius={[4, 4, 0, 0]}
+          name="Revenue"
+        >
           {chartData.map((_entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
