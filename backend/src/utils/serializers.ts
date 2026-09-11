@@ -88,13 +88,17 @@ export function serializeOrder(order: Record<string, unknown>): Record<string, u
     customerId: order.customerId as string | null | undefined,
     total: Number(order.total),
     subtotal: Number(order.subtotal ?? 0),
-    tax: Number(order.tax ?? 0),
-    taxRate: Number(order.taxRate ?? 0),
+    discount: Number(order.discount ?? 0),
     paymentMethod: order.paymentMethod as 'cash' | 'card' | null,
     staffId: order.staffId as string | null | undefined,
     isCreditSale: (order.isCreditSale as boolean) ?? false,
     redeemedPoints: (order.redeemedPoints as number) ?? 0,
     receiptEmail: order.receiptEmail as string | null,
+    paymentIntentId: order.paymentIntentId as string | null | undefined,
+    refundReason: order.refundReason as string | null | undefined,
+    returnWindowDays: order.returnWindowDays as number | null | undefined,
+    isOffline: (order.isOffline as boolean) ?? false,
+    offlineSyncedAt: order.offlineSyncedAt as Date | null | undefined,
     status: order.status as
       'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED',
     createdAt: order.createdAt as Date,
@@ -113,6 +117,8 @@ export function serializeOrderItem(item: Record<string, unknown>): Record<string
     productId: item.productId as string,
     quantity: item.quantity as number,
     price: Number(item.price),
+    returnedQuantity: (item.returnedQuantity as number) ?? 0,
+    refunded: (item.refunded as boolean) ?? false,
     product: product ? serializeProductLite(product) : undefined,
   };
 }
@@ -138,5 +144,32 @@ export function serializeUser(user: Record<string, unknown>): Record<string, unk
     id: user.id as string,
     name: user.name as string | null,
     email: user.email as string,
+  };
+}
+
+/**
+ * Serialize a Prisma Expense row for API responses.
+ * Converts Decimal to Number and Date to ISO string for JSON-safe output.
+ */
+export function serializeExpense(expense: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: expense.id as string,
+    amount: Number(expense.amount),
+    category: expense.category as string,
+    description: expense.description as string | null,
+    expenseDate: expense.expenseDate as Date,
+    vendor: expense.vendor as string | null,
+    paymentMethod: expense.paymentMethod as string | null,
+    receiptImage: expense.receiptImage as string | null,
+    userId: expense.userId as string | null | undefined,
+    user: expense.user
+      ? {
+          id: (expense.user as Record<string, unknown>).id as string,
+          name: (expense.user as Record<string, unknown>).name as string | null,
+          email: (expense.user as Record<string, unknown>).email as string,
+        }
+      : null,
+    createdAt: expense.createdAt as Date,
+    updatedAt: expense.updatedAt as Date,
   };
 }

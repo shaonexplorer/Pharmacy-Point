@@ -21,15 +21,12 @@ export const orderCreateSchema = z.object({
   subtotal: z
     .number({ invalid_type_error: 'Subtotal must be a number' })
     .nonnegative('Subtotal must be a non-negative number'),
-  tax: z
-    .number({ invalid_type_error: 'Tax must be a number' })
-    .nonnegative('Tax must be a non-negative number'),
+  discount: z
+    .number({ invalid_type_error: 'Discount must be a number' })
+    .nonnegative('Discount must be a non-negative number'),
   total: z
     .number({ invalid_type_error: 'Total must be a number' })
     .nonnegative('Total must be a non-negative number'),
-  taxRate: z
-    .number({ invalid_type_error: 'Tax rate must be a number' })
-    .nonnegative('Tax rate must be a non-negative number'),
   paymentMethod: z.enum(['cash', 'card']).optional().nullable(),
   staffId: z.string().optional().nullable(),
   receiptEmail: z.string().email().optional().nullable(),

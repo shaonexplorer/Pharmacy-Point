@@ -73,8 +73,7 @@ export interface Order {
   status: OrderStatus;
   total: number;
   subtotal: number;
-  tax: number;
-  taxRate: number;
+  discount: number;
   paymentMethod?: PaymentMethod | null;
   paymentIntentId?: string | null;
   refundReason?: string | null;
@@ -118,8 +117,7 @@ export interface CreateOrderInput {
   customerId?: string | null;
   items: CreateOrderItemInput[];
   subtotal: number;
-  tax: number;
-  taxRate: number;
+  discount: number;
   total: number;
   paymentMethod: PaymentMethod;
   staffId?: string | null;
@@ -128,6 +126,34 @@ export interface CreateOrderInput {
   paymentIntentId?: string | null;
   isCreditSale?: boolean;
   redeemedPoints?: number;
+}
+
+export interface RefundInput {
+  amount: number;
+  reason: string;
+  refundMethod?: 'original' | 'store_credit';
+}
+
+export interface RefundResult {
+  order: OrderWithItems;
+  refundAmount: number;
+  reason: string;
+}
+
+export interface ReturnItemInput {
+  orderItemId: string;
+  quantity: number;
+}
+
+export interface ReturnInput {
+  items: ReturnItemInput[];
+  reason?: string;
+}
+
+export interface ReturnResult {
+  orderId: string;
+  returnedItems: ReturnItemInput[];
+  reason: string;
 }
 
 export type ApiResponse<T> = {
@@ -228,6 +254,8 @@ export interface Stats {
   stockInThisMonth?: number;
   stockOutThisMonth?: number;
   pendingOrders?: number;
+  totalExpenses?: number;
+  expensesThisMonth?: number;
 }
 
 export interface CreatePaymentInput {
@@ -244,6 +272,89 @@ export interface PaymentResponse {
 
 export interface PaymentIntentUpdate {
   paymentIntentId?: string | null;
+}
+
+// ─── Expense Types ────────────────────────────────────────────────
+
+/** Standard pharmacy expense categories */
+export type ExpenseCategory =
+  | 'INVENTORY_PURCHASE'
+  | 'UTILITIES'
+  | 'RENT'
+  | 'SALARIES'
+  | 'MARKETING'
+  | 'SUPPLIES'
+  | 'INSURANCE'
+  | 'MAINTENANCE'
+  | 'TAXES'
+  | 'OTHER';
+
+/** Payment method for expense recording */
+export type ExpensePaymentMethod = 'cash' | 'card' | 'bank_transfer';
+
+/** Human-readable labels for expense categories */
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  INVENTORY_PURCHASE: 'Inventory Purchase',
+  UTILITIES: 'Utilities',
+  RENT: 'Rent',
+  SALARIES: 'Salaries',
+  MARKETING: 'Marketing',
+  SUPPLIES: 'Office Supplies',
+  INSURANCE: 'Insurance',
+  MAINTENANCE: 'Maintenance',
+  TAXES: 'Taxes',
+  OTHER: 'Other',
+};
+
+/** A single expense record */
+export interface Expense {
+  id: string;
+  amount: number;
+  category: string;
+  description?: string | null;
+  expenseDate: string;
+  vendor?: string | null;
+  paymentMethod?: string | null;
+  receiptImage?: string | null;
+  userId?: string | null;
+  user?: { id: string; name?: string | null; email: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Input for creating a new expense */
+export type CreateExpenseInput = {
+  amount: number;
+  category: string;
+  description?: string;
+  expenseDate?: string;
+  vendor?: string;
+  paymentMethod?: string;
+  receiptImage?: string;
+  userId?: string;
+};
+
+/** Input for updating an existing expense */
+export type UpdateExpenseInput = Partial<CreateExpenseInput>;
+
+/** Query parameters for listing expenses */
+export interface ExpenseListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  paymentMethod?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+/** Expense statistics breakdown */
+export interface ExpenseStats {
+  totalExpenses: number;
+  totalThisMonth: number;
+  totalThisYear: number;
+  byCategory: Record<string, number>;
+  byPaymentMethod: Record<string, number>;
 }
 
 // ─── Reports Types ────────────────────────────────────────────────

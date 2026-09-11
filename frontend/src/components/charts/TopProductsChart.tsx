@@ -50,11 +50,15 @@ export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+      <BarChart
+        data={chartData}
+        layout="vertical"
+        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+      >
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
         <XAxis
           type="number"
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => formatCurrency(v)}
@@ -62,7 +66,7 @@ export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
         <YAxis
           type="category"
           dataKey="name"
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
           width={120}
@@ -75,9 +79,10 @@ export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
             fontSize: '14px',
           }}
           // @ts-ignore
-          formatter={(value: number, name: string) =>
-            [name === 'revenue' ? formatCurrency(value) : value, name === 'revenue' ? 'Revenue' : 'Units Sold']
-          }
+          formatter={(value: number, name: string) => [
+            name === 'revenue' ? formatCurrency(value) : value,
+            name === 'revenue' ? 'Revenue' : 'Units Sold',
+          ]}
           // @ts-ignore
           labelFormatter={(label: string) => {
             const item = chartData.find((d) => d.name === label);

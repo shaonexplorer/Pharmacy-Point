@@ -142,8 +142,7 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
         customerId: data.customerId ?? undefined,
         total: data.total,
         subtotal: data.subtotal,
-        tax: data.tax,
-        taxRate: data.taxRate,
+        discount: data.discount,
         paymentMethod: data.paymentMethod ?? 'cash',
         staffId: data.staffId ?? undefined,
         status: 'COMPLETED',
@@ -309,6 +308,14 @@ export async function processRefund(
     const isFull = data.amount >= Number(order.total);
     if (isFull) {
       await tx.orderItem.updateMany({ where: { orderId }, data: { refunded: true } });
+    }
+
+    // Persist the refund reason on the order for audit trail
+    if (data.reason) {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { refundReason: data.reason },
+      });
     }
 
     // Adjust customer due amount for credit sale refunds

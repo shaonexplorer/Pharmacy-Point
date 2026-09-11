@@ -64,6 +64,19 @@ export async function getStats(): Promise<StatsResult> {
     where: { status: 'PENDING' },
   });
 
+  // Get total expenses (all time)
+  const totalExpensesResult = await prisma.expense.aggregate({
+    _sum: { amount: true },
+  });
+  const totalExpenses = Number(totalExpensesResult._sum.amount ?? 0);
+
+  // Get expenses this month
+  const expensesThisMonthResult = await prisma.expense.aggregate({
+    where: { createdAt: { gte: startOfMonth } },
+    _sum: { amount: true },
+  });
+  const expensesThisMonth = Number(expensesThisMonthResult._sum.amount ?? 0);
+
   return {
     totalProducts,
     totalCompanies,
@@ -75,5 +88,7 @@ export async function getStats(): Promise<StatsResult> {
     stockOutThisMonth,
     salesThisMonth: stockOutThisMonth,
     pendingOrders,
+    totalExpenses: Math.round(totalExpenses * 100) / 100,
+    expensesThisMonth: Math.round(expensesThisMonth * 100) / 100,
   };
 }

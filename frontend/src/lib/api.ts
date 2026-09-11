@@ -7,7 +7,12 @@ import type {
   CustomerWithOrders,
   Order,
   OrderWithItems,
+  OrderItemWithProduct,
   CreateOrderInput,
+  RefundInput,
+  RefundResult,
+  ReturnInput,
+  ReturnResult,
   PaginatedResponse,
   ApiResponse,
   CreateProductInput,
@@ -21,6 +26,11 @@ import type {
   CreateDuePaymentInput,
   CustomerDashboard,
   Stats,
+  Expense,
+  CreateExpenseInput,
+  UpdateExpenseInput,
+  ExpenseListParams,
+  ExpenseStats,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -97,7 +107,7 @@ export const api = {
       status?: string;
       customerId?: string;
       staffId?: string;
-    }) => request<PaginatedResponse<Order>>('/api/orders', { params }),
+    }) => request<PaginatedResponse<OrderWithItems>>('/api/orders', { params }),
 
     get: (id: string) => request<ApiResponse<OrderWithItems>>(`/api/orders/${id}`),
 
@@ -112,6 +122,23 @@ export const api = {
         method: 'PATCH',
         data: { status },
       }),
+
+    refund: (id: string, data: RefundInput) =>
+      request<ApiResponse<RefundResult>>(`/api/orders/${id}/refund`, {
+        method: 'POST',
+        data,
+      }),
+
+    returnOrder: (id: string, data: ReturnInput) =>
+      request<ApiResponse<ReturnResult>>(`/api/orders/${id}/return`, {
+        method: 'POST',
+        data,
+      }),
+
+    getReturns: (id: string) =>
+      request<ApiResponse<{ orderId: string; returnedItems: OrderItemWithProduct[] }>>(
+        `/api/orders/${id}/returns`
+      ),
   },
 
   // Categories
@@ -313,5 +340,33 @@ export const api = {
           data,
         }
       ),
+  },
+
+  // Expenses
+  expenses: {
+    list: (params?: ExpenseListParams) =>
+      request<PaginatedResponse<Expense>>('/api/expenses', { params }),
+
+    get: (id: string) => request<ApiResponse<Expense>>(`/api/expenses/${id}`),
+
+    create: (data: CreateExpenseInput) =>
+      request<ApiResponse<Expense>>('/api/expenses', {
+        method: 'POST',
+        data,
+      }),
+
+    update: (id: string, data: UpdateExpenseInput) =>
+      request<ApiResponse<Expense>>(`/api/expenses/${id}`, {
+        method: 'PUT',
+        data,
+      }),
+
+    delete: (id: string) =>
+      request<ApiResponse<never>>(`/api/expenses/${id}`, {
+        method: 'DELETE',
+      }),
+
+    stats: () =>
+      request<ApiResponse<ExpenseStats>>('/api/expenses/stats'),
   },
 };

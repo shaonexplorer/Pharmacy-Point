@@ -77,15 +77,11 @@ export function InventoryReportChart({ data, isLoading }: InventoryReportChartPr
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
             <XAxis
               dataKey="category"
-              tick={{ fontSize: 11, fill: 'hsl(var(--on-surface-variant))' }}
+              tick={{ fontSize: 11, fill: '#2563EB' }}
               tickLine={false}
               axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
             />
-            <YAxis
-              tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
-              tickLine={false}
-              axisLine={false}
-            />
+            <YAxis tick={{ fontSize: 12, fill: '#2563EB' }} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--surface-container))',
@@ -94,8 +90,20 @@ export function InventoryReportChart({ data, isLoading }: InventoryReportChartPr
                 fontSize: '14px',
               }}
             />
-            <Bar dataKey="inStock" stackId="stock" fill="#00685f" name="In Stock" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="lowStock" stackId="stock" fill="#ba1a1a" name="Low/Out of Stock" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="inStock"
+              stackId="stock"
+              fill="#00685f"
+              name="In Stock"
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="lowStock"
+              stackId="stock"
+              fill="#ba1a1a"
+              name="Low/Out of Stock"
+              radius={[4, 4, 0, 0]}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

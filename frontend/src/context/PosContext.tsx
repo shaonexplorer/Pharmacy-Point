@@ -3,11 +3,6 @@
 import { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
 import type { Product, PaymentMethod } from '@pharmacy-point/types';
 
-/**
- * Default tax rate for pharmacy sales (8.5%).
- */
-export const DEFAULT_TAX_RATE = 0.085;
-
 export interface CartItem {
   productId: string;
   product: Product;
@@ -24,7 +19,7 @@ interface PosState {
   customerLoyaltyTier: string;
   paymentMethod: PaymentMethod;
   paymentIntentId: string | null;
-  taxRate: number;
+  discountPercent: number;
   redeemedPoints: number;
   isCreditSale: boolean;
 }
@@ -37,7 +32,7 @@ type PosAction =
   | { type: 'SET_CUSTOMER'; customerId: string | null; name?: string | null; dueAmount?: number; loyaltyPoints?: number; loyaltyTier?: string }
   | { type: 'SET_PAYMENT_METHOD'; paymentMethod: PaymentMethod }
   | { type: 'SET_PAYMENT_INTENT_ID'; paymentIntentId: string | null }
-  | { type: 'SET_TAX_RATE'; taxRate: number }
+  | { type: 'SET_DISCOUNT_PERCENT'; discountPercent: number }
   | { type: 'SET_REDEEMED_POINTS'; points: number }
   | { type: 'SET_CREDIT_SALE'; isCredit: boolean };
 
@@ -52,9 +47,9 @@ interface PosContextType {
   isCreditSale: boolean;
   paymentMethod: PaymentMethod;
   paymentIntentId: string | null;
-  taxRate: number;
+  discountPercent: number;
   subtotal: number;
-  taxAmount: number;
+  discountAmount: number;
   total: number;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
@@ -63,6 +58,7 @@ interface PosContextType {
   setCustomer: (customerId: string | null, meta?: { name?: string | null; dueAmount?: number; loyaltyPoints?: number; loyaltyTier?: string }) => void;
   setPaymentMethod: (method: PaymentMethod) => void;
   setPaymentIntentId: (id: string | null) => void;
+  setDiscountPercent: (percent: number) => void;
   setRedeemedPoints: (points: number) => void;
   setCreditSale: (isCredit: boolean) => void;
   getCartItem: (productId: string) => CartItem | undefined;
@@ -80,7 +76,7 @@ const initialState: PosState = {
   customerLoyaltyTier: 'Bronze',
   paymentMethod: 'cash',
   paymentIntentId: null,
-  taxRate: DEFAULT_TAX_RATE,
+  discountPercent: 0,
   redeemedPoints: 0,
   isCreditSale: false,
 };
@@ -171,7 +167,7 @@ function posReducer(state: PosState, action: PosAction): PosState {
         paymentMethod: 'cash',
         redeemedPoints: 0,
         isCreditSale: false,
-        taxRate: state.taxRate,
+        discountPercent: 0,
         paymentIntentId: null,
       };
 
@@ -197,10 +193,10 @@ function posReducer(state: PosState, action: PosAction): PosState {
         paymentIntentId: action.paymentIntentId,
       };
 
-    case 'SET_TAX_RATE':
+    case 'SET_DISCOUNT_PERCENT':
       return {
         ...state,
-        taxRate: action.taxRate,
+        discountPercent: action.discountPercent,
       };
 
     case 'SET_REDEEMED_POINTS':
@@ -220,8 +216,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   // Computed values
   const pointsDiscount = state.redeemedPoints / 100;
   const subtotal = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const taxAmount = (subtotal - pointsDiscount) * state.taxRate;
-  const total = Math.max(0, subtotal - pointsDiscount + taxAmount);
+  const discountAmount = subtotal * (state.discountPercent / 100);
+  const total = Math.max(0, subtotal - discountAmount - pointsDiscount);
 
   const addItem = useCallback((product: Product, quantity?: number) => {
     dispatch({ type: 'ADD_ITEM', product, quantity: quantity ?? 1 });
@@ -249,6 +245,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
   const setPaymentIntentId = useCallback((id: string | null) => {
     dispatch({ type: 'SET_PAYMENT_INTENT_ID', paymentIntentId: id });
+  }, []);
+
+  const setDiscountPercent = useCallback((percent: number) => {
+    dispatch({ type: 'SET_DISCOUNT_PERCENT', discountPercent: Math.min(Math.max(0, percent), 100) });
   }, []);
 
   const setRedeemedPoints = useCallback((points: number) => {
@@ -286,9 +286,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
         isCreditSale: state.isCreditSale,
         paymentMethod: state.paymentMethod,
         paymentIntentId: state.paymentIntentId,
-        taxRate: state.taxRate,
+        discountPercent: state.discountPercent,
         subtotal,
-        taxAmount,
+        discountAmount,
         total,
         addItem,
         removeItem,
@@ -297,6 +297,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         setCustomer,
         setPaymentMethod,
         setPaymentIntentId,
+        setDiscountPercent,
         setRedeemedPoints,
         setCreditSale,
         getCartItem,

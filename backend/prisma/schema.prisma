@@ -19,6 +19,7 @@ model User {
   role                  Role                   @default(CUSTOMER)
   accounts              Account[]
   duePayments           DuePayment[]
+  expenses              Expense[]
   inventoryTransactions InventoryTransaction[]
   orders                Order[]
   sessions              Session[]
@@ -173,8 +174,7 @@ model Order {
   paymentMethod    String?     @default("cash")
   staffId          String?
   subtotal         Decimal     @default(0) @db.Decimal(10, 2)
-  tax              Decimal     @default(0) @db.Decimal(10, 2)
-  taxRate          Float       @default(0.085)
+  discount         Decimal     @default(0) @db.Decimal(10, 2)
   paymentIntentId  String?
   isOffline        Boolean     @default(false)
   offlineSyncedAt  DateTime?
@@ -303,4 +303,37 @@ enum POStatus {
   APPROVED
   RECEIVED
   CANCELLED
+}
+
+enum ExpenseCategory {
+  INVENTORY_PURCHASE
+  UTILITIES
+  RENT
+  SALARIES
+  MARKETING
+  SUPPLIES
+  INSURANCE
+  MAINTENANCE
+  TAXES
+  OTHER
+}
+
+model Expense {
+  id            String       @id @default(cuid())
+  amount        Decimal      @db.Decimal(10, 2)
+  category      String
+  description   String?
+  expenseDate   DateTime     @default(now())
+  vendor        String?
+  paymentMethod String?      @default("cash")
+  receiptImage  String?
+  userId        String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@index([category])
+  @@index([expenseDate])
+  @@index([createdAt])
+  @@map("expenses")
 }

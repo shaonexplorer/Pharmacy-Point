@@ -66,7 +66,7 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
             <div class="divider"></div>
             <div class="section">
               <div class="item"><span>Subtotal</span><span></span><span class="item-price">${formatCurrency(order.subtotal ?? order.total)}</span></div>
-              <div class="item"><span>Tax</span><span></span><span class="item-price">${formatCurrency(order.tax ?? 0)}</span></div>
+              <div class="item"><span>Discount</span><span></span><span class="item-price text-danger">-${formatCurrency(order.discount ?? 0)}</span></div>
               <div class="total-row"><span>Total</span><span></span><span class="item-price">${formatCurrency(order.total)}</span></div>
             </div>
             <div class="divider"></div>
@@ -112,7 +112,9 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
           {new Date(order.createdAt).toLocaleString()}
         </p>
         <p className="text-xs text-muted-foreground">Order #{order.id.slice(0, 8)}</p>
-        <p className="text-[10px] text-data-mono text-muted-foreground tracking-widest">REF:{order.id}</p>
+        <p className="text-[10px] text-data-mono text-muted-foreground tracking-widest">
+          REF:{order.id}
+        </p>
       </div>
 
       {/* Customer & Payment Info */}
@@ -155,8 +157,8 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
           </span>
         </div>
         <div className="flex justify-between text-body-sm">
-          <span className="text-on-surface-variant">Tax</span>
-          <span className="text-data-mono text-foreground">{formatCurrency(order.tax ?? 0)}</span>
+          <span className="text-on-surface-variant">Discount</span>
+          <span className="text-data-mono text-destructive">-{formatCurrency(order.discount ?? 0)}</span>
         </div>
         <div className="flex justify-between text-lg font-bold border-t border-border pt-2">
           <span className="text-foreground">Total</span>
@@ -181,7 +183,8 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
       {/* Prescription Notes */}
       {prescriptionNotes && (
         <div className="border-t border-border pt-2 mb-2 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Prescription Notes:</span> {prescriptionNotes}
+          <span className="font-medium text-foreground">Prescription Notes:</span>{' '}
+          {prescriptionNotes}
         </div>
       )}
 

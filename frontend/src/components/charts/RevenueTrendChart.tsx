@@ -58,13 +58,13 @@ export function RevenueTrendChart({ data, isLoading }: RevenueTrendChartProps) {
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
         />
         <YAxis
           yAxisId="left"
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => formatCurrency(v)}
@@ -72,7 +72,7 @@ export function RevenueTrendChart({ data, isLoading }: RevenueTrendChartProps) {
         <YAxis
           yAxisId="right"
           orientation="right"
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={false}
         />

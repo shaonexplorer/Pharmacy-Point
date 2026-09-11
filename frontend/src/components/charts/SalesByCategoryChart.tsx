@@ -22,7 +22,16 @@ interface SalesByCategoryChartProps {
   isLoading?: boolean;
 }
 
-const COLORS = ['#00685f', '#006398', '#006b2c', '#89f5e7', '#cce5ff', '#7ffc97', '#93ccff', '#6bd8cb'];
+const COLORS = [
+  '#00685f',
+  '#006398',
+  '#006b2c',
+  '#89f5e7',
+  '#cce5ff',
+  '#7ffc97',
+  '#93ccff',
+  '#6bd8cb',
+];
 
 /**
  * Sales by category bar chart — shows revenue distribution across product categories.
@@ -53,7 +62,7 @@ export function SalesByCategoryChart({ data, isLoading }: SalesByCategoryChartPr
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
         <XAxis
           dataKey="category"
-          tick={{ fontSize: 11, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 11, fill: '#2563EB' }}
           tickLine={false}
           axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
           angle={-20}
@@ -61,7 +70,7 @@ export function SalesByCategoryChart({ data, isLoading }: SalesByCategoryChartPr
           height={60}
         />
         <YAxis
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => formatCurrency(v)}

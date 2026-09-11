@@ -11,9 +11,7 @@ import { ShoppingCart, Receipt as ReceiptIcon, Trash2, AlertTriangle } from 'luc
 interface CartProps {
   items: CartItemType[];
   subtotal: number;
-  taxAmount: number;
   total: number;
-  taxRate: number;
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemove: (productId: string) => void;
   onClearCart: () => void;
@@ -22,9 +20,7 @@ interface CartProps {
 export function Cart({
   items,
   subtotal,
-  taxAmount,
   total,
-  taxRate,
   onUpdateQuantity,
   onRemove,
   onClearCart,
@@ -82,12 +78,6 @@ export function Cart({
               <span className="text-on-surface-variant">Subtotal</span>
               <span className="text-data-mono font-medium text-foreground">
                 {formatCurrency(subtotal)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-on-surface-variant">Tax ({Math.round(taxRate * 100)}%)</span>
-              <span className="text-data-mono font-medium text-foreground">
-                {formatCurrency(taxAmount)}
               </span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
