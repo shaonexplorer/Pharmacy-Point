@@ -527,7 +527,9 @@ enum OrderStatus {
 - `PATCH /api/orders/:id/status` - Update order status
 
 ### Stats API (`/api/stats`) [NEW]
-- `GET /api/stats` - Get aggregated statistics for dashboard
+- `GET /api/stats` - Get aggregated statistics for dashboard (returns flat `Stats` object)
+- Frontend: `useStats` hook (`frontend/src/hooks/useStats.ts`) fetches via the `api` client (`api.stats.get()` → axios GET to `http://localhost:5000/api/stats`)
+- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, and pending orders
 
 ### Analytics API (`/api/analytics`) [Phase 3 - NEW]
 - `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
@@ -740,6 +742,29 @@ const response = data ?? placeholderData; // placeholderData is always undefined
 ```
 
 When using `keepPreviousData`, `isLoading` remains `false` during page transitions (because placeholder data fills `data`), but `isFetching` is `true`. Use `isFetching` to show a subtle "Updating…" indicator while the table stays visible.
+
+### Charts Not Rendering in Reports & Analytics Pages
+
+**Symptom**: The sales report chart (`SalesReportChart`) and analytics charts (`RevenueTrendChart`, `SalesByCategoryChart`) render empty or invisible — no bars, no lines, no data points.
+
+**Root causes** (multiple cascading backend issues):
+
+1. **Express 5 `req.query` is read-only** (`backend/src/middleware/validate.ts`): All GET endpoints with query parameters returned 500 errors because Express 5.x made `req.query` a getter-only property. The middleware tried `(req as any)[source] = result.data`, which threw `TypeError: Cannot set property query`. **Fix**: Replaced direct assignment with `Object.defineProperty(req, source, { value: result.data, writable: true, configurable: true })`.
+
+2. **Prisma 5 `$queryRaw` syntax incompatibility** (`reports.service.ts`, `analytics.service.ts`): Code used Prisma 4 syntax `prisma.$queryRaw(query, params)`, but Prisma 5.22 requires tag template syntax. **Fix**: Converted all raw SQL queries to use `Prisma.sql` tag templates with `${parameter}` interpolation.
+
+3. **MySQL `DATE_FORMAT` on PostgreSQL**: Queries used MySQL-specific `DATE_FORMAT(date, %Y-%m-%d)` but the database is PostgreSQL. **Fix**: Replaced with `TO_CHAR("createdAt", YYYY-MM-DD)` and converted format strings to PostgreSQL syntax.
+
+4. **Column name case mismatch**: PostgreSQL stores camelCase column names (`orderId`, `createdAt`, `dueAmount`) as quoted identifiers. Unquoted `orderId` was folded to lowercase `orderid` by PostgreSQL, causing "column does not exist" errors. **Fix**: Added double-quoted identifiers (`o."orderId"`, `c."dueAmount"`, `p."expiryDate"`) in all SQL queries.
+
+5. **Analytics route double-prefix**: Routes were defined as `/analytics/dashboard` but mounted under `/analytics`, producing `/api/analytics/analytics/dashboard`. **Fix**: Removed the redundant `/analytics/` prefix from route paths.
+
+6. **Array access on summary result**: `summaryResult.total_revenue` was accessed as a single object but `$queryRaw` returns an array. **Fix**: Changed to `(summaryResult as RawRow[])[0].total_revenue`.
+
+7. **Chart COLORS array** (`frontend/src/components/reports/SalesReportChart.tsx`): The color array had 5 very light pastel hex values (`#89f5e7`, `#cce5ff`, `#7ffc97`, `#93ccff`, `#6bd8cb`) that were nearly invisible against the white Clinical Precision background. **Fix**: Replaced with dark, visible Clinical Precision palette colors (`#00685f` Pharma Teal, `#006398` Medi-Blue, `#006b2c` Safety Green, `#ca8a04` Amber), and added `fill="#00685f"` fallback on the `Bar` component.
+
+**Verification**: API endpoints return real data (5 data points, $1054.68 total revenue), chart bars use visible dark colors.
+
 - **Phase 2: POS System — Step 6 COMPLETED ✅ (Offline Mode Support)**
   - `isOffline` / `offlineSyncedAt` fields present on Order model; `POST /api/orders/offline/sync` batch endpoint added (`offline.dto.ts`, controller, routes)
   - Frontend offline detection (`navigator.onLine`, `online`/`offline` events) in `pos/page.tsx`; `OfflineIndicator` banner (`frontend/src/components/pos/OfflineIndicator.tsx`)
@@ -935,3 +960,15 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Navigation structure updated:
   - `/reports/financial` — Financial Reports page with KPIs, charts, and detailed period breakdown
 - Plan spec `specs/phase-3/plan.md` step 5 marked implemented
+
+## Troubleshooting
+
+### Stats API returns all zeros on dashboard
+
+**Symptom**: The dashboard `InventorySnapshot` bar chart and KPI cards show all-zero values (0 products, 0 sales, 0 inventory value).
+
+**Root cause**: The `useStats` hook in `frontend/src/hooks/useStats.ts` used a raw `fetch('/api/stats')` call — a relative URL that targets the Next.js frontend server (port 3000). However, no Next.js API route handler exists for `/api/stats`; the actual Express backend API lives at `http://localhost:5000/api/stats` (via `NEXT_PUBLIC_API_URL`). The fetch resulted in a 404, and the dashboard page silently fell back to `fallbackStats` (all zeros).
+
+**Fix**:
+- Added `Stats` type import and `stats` section to the `api` axios client in `frontend/src/lib/api.ts`: `stats: { get: () => request<Stats>('/api/stats') }`
+- Rewrote `useStats.ts` to use `api.stats.get()` instead of raw `fetch('/api/stats')`, consistent with all other hooks (`useInventory`, `useOrders`, `useCustomers`).

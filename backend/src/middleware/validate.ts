@@ -25,9 +25,15 @@ export function validate<T extends ZodSchema<unknown>>(
       return;
     }
 
-    // Replace the parsed data (Zod may transform/coerce values)
+    // Replace the parsed data (Zod may transform/coerce values).
+    // Express 5.x defines req.query as a getter-only property, so we must
+    // use Object.defineProperty to overwrite it (direct assignment throws).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (req as any)[source] = result.data;
+    Object.defineProperty(req, source, {
+      value: result.data,
+      writable: true,
+      configurable: true,
+    });
     next();
   };
 }

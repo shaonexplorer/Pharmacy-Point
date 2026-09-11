@@ -177,10 +177,10 @@ export default function SalesReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="flex flex-wrap gap-4  ">
               {/* Date Range */}
-              <div className="space-y-1">
-                <label className="text-label-sm text-on-surface-variant flex items-center gap-1">
+              <div className="">
+                <label className="text-label-sm text-on-surface-variant flex items-center ">
                   <Calendar className="h-3 w-3" /> Date Range
                 </label>
                 <div className="flex gap-2">
@@ -258,13 +258,18 @@ export default function SalesReportsPage() {
                 >
                   <option value="">All Categories</option>
                   {/* Static categories from known product types */}
-                  {['Medications', 'Supplements', 'Personal Care', 'Diagnostics', 'First Aid', 'Herbal Remedies'].map(
-                    (cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    )
-                  )}
+                  {[
+                    'Medications',
+                    'Supplements',
+                    'Personal Care',
+                    'Diagnostics',
+                    'First Aid',
+                    'Herbal Remedies',
+                  ].map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -317,9 +322,7 @@ export default function SalesReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {formatCurrency(summary.averageBasketSize)}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                per transaction
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">per transaction</p>
             </CardContent>
           </Card>
 
@@ -353,9 +356,7 @@ export default function SalesReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {summary.uniqueCustomers}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                customers in period
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">customers in period</p>
             </CardContent>
           </Card>
         </div>
@@ -364,10 +365,20 @@ export default function SalesReportsPage() {
         <Card className="border-border bg-card card-elevated">
           <CardHeader>
             <CardTitle className="text-headline-md">
-              Sales by {groupBy === 'day' ? 'Day' : groupBy === 'week' ? 'Week' : groupBy === 'month' ? 'Month' : groupBy === 'category' ? 'Category' : 'Payment Method'}
+              Sales by{' '}
+              {groupBy === 'day'
+                ? 'Day'
+                : groupBy === 'week'
+                  ? 'Week'
+                  : groupBy === 'month'
+                    ? 'Month'
+                    : groupBy === 'category'
+                      ? 'Category'
+                      : 'Payment Method'}
             </CardTitle>
             <CardDescription>
-              Revenue and order count {startDate && endDate ? `from ${startDate} to ${endDate}` : 'for the selected period'}
+              Revenue and order count{' '}
+              {startDate && endDate ? `from ${startDate} to ${endDate}` : 'for the selected period'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -384,24 +395,28 @@ export default function SalesReportsPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
-                {paymentData.map((item: { paymentMethod: string; totalSales: number; orderCount: number }) => (
-                  <div
-                    key={item.paymentMethod}
-                    className="flex items-center justify-between p-4 rounded-lg bg-surface-container-low border border-border"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-foreground capitalize">
-                        {item.paymentMethod === 'cash' ? 'Cash' : 'Card'}
-                      </p>
-                      <p className="text-xs text-on-surface-variant">{item.orderCount} transactions</p>
+                {paymentData.map(
+                  (item: { paymentMethod: string; totalSales: number; orderCount: number }) => (
+                    <div
+                      key={item.paymentMethod}
+                      className="flex items-center justify-between p-4 rounded-lg bg-surface-container-low border border-border"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-foreground capitalize">
+                          {item.paymentMethod === 'cash' ? 'Cash' : 'Card'}
+                        </p>
+                        <p className="text-xs text-on-surface-variant">
+                          {item.orderCount} transactions
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xl font-bold text-data-mono text-foreground">
+                          {formatCurrency(item.totalSales)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold text-data-mono text-foreground">
-                        {formatCurrency(item.totalSales)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </CardContent>
           </Card>
@@ -413,22 +428,23 @@ export default function SalesReportsPage() {
             variant="outline"
             size="sm"
             onClick={() => {
-              const exportData = reportData?.data?.map((item: any) => ({
-                [groupBy === 'day'
-                  ? 'Date'
-                  : groupBy === 'week'
-                    ? 'Week'
-                    : groupBy === 'month'
-                      ? 'Month'
-                      : groupBy === 'category'
-                        ? 'Category'
-                        : groupBy === 'paymentMethod'
-                          ? 'Payment Method'
-                          : 'Date']: item.groupLabel,
-                ...(groupBy !== 'paymentMethod' && { 'Total Sales': item.totalSales }),
-                ...(groupBy !== 'paymentMethod' && { 'Order Count': item.orderCount }),
-                ...(groupBy !== 'paymentMethod' && { Units: item.totalUnits }),
-              })) ?? [];
+              const exportData =
+                reportData?.data?.map((item: any) => ({
+                  [groupBy === 'day'
+                    ? 'Date'
+                    : groupBy === 'week'
+                      ? 'Week'
+                      : groupBy === 'month'
+                        ? 'Month'
+                        : groupBy === 'category'
+                          ? 'Category'
+                          : groupBy === 'paymentMethod'
+                            ? 'Payment Method'
+                            : 'Date']: item.groupLabel,
+                  ...(groupBy !== 'paymentMethod' && { 'Total Sales': item.totalSales }),
+                  ...(groupBy !== 'paymentMethod' && { 'Order Count': item.orderCount }),
+                  ...(groupBy !== 'paymentMethod' && { Units: item.totalUnits }),
+                })) ?? [];
               downloadCsv(exportData, `sales-report-${new Date().toISOString().split('T')[0]}.csv`);
             }}
           >

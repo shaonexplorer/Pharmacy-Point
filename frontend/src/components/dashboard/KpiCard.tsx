@@ -55,7 +55,7 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        'border-border bg-card transition-all duration-200',
+        'h-full border-border bg-card transition-all duration-200',
         'group hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5',
         className
       )}

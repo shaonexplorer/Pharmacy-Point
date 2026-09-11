@@ -155,7 +155,7 @@ export default function CustomerReportsPage() {
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {/* Tier Filter */}
-              <div className="space-y-1">
+              <div className="">
                 <label className="text-label-sm text-on-surface-variant flex items-center gap-1">
                   <Award className="h-3 w-3" /> Loyalty Tier
                 </label>
@@ -174,7 +174,9 @@ export default function CustomerReportsPage() {
 
               {/* Active Days */}
               <div className="space-y-1">
-                <label className="text-label-sm text-on-surface-variant">Active Window (days)</label>
+                <label className="text-label-sm text-on-surface-variant">
+                  Active Window (days)
+                </label>
                 <input
                   type="number"
                   min={1}
@@ -186,7 +188,7 @@ export default function CustomerReportsPage() {
               </div>
 
               {/* Due Accounts Filter */}
-              <div className="space-y-1">
+              <div className="">
                 <label className="text-label-sm text-on-surface-variant flex items-center gap-1">
                   <Wallet className="h-3 w-3" /> Due Accounts
                 </label>
@@ -247,9 +249,7 @@ export default function CustomerReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-foreground">
                 {summary.activeCustomers} / {summary.inactiveCustomers}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                last 30 days activity
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">last 30 days activity</p>
             </CardContent>
           </Card>
 
@@ -341,9 +341,7 @@ export default function CustomerReportsPage() {
                       {t.count} ({t.percentage}%)
                     </span>
                   </div>
-                )) ?? (
-                  <p className="text-xs text-on-surface-variant">No data</p>
-                )}
+                )) ?? <p className="text-xs text-on-surface-variant">No data</p>}
               </div>
             </CardContent>
           </Card>
@@ -360,9 +358,7 @@ export default function CustomerReportsPage() {
               <div className="text-2xl font-bold text-data-mono text-destructive">
                 {summary.inactiveCustomers}
               </div>
-              <p className="text-xs text-on-surface-variant mt-1">
-                no purchases in 30 days
-              </p>
+              <p className="text-xs text-on-surface-variant mt-1">no purchases in 30 days</p>
             </CardContent>
           </Card>
         </div>
@@ -371,9 +367,7 @@ export default function CustomerReportsPage() {
         <Card className="border-border bg-card card-elevated">
           <CardHeader>
             <CardTitle className="text-headline-md">Customer Analytics</CardTitle>
-            <CardDescription>
-              Tier distribution and spending breakdown
-            </CardDescription>
+            <CardDescription>Tier distribution and spending breakdown</CardDescription>
           </CardHeader>
           <CardContent>
             <CustomerReportChart
@@ -392,9 +386,7 @@ export default function CustomerReportsPage() {
                   <Users className="h-4 w-4 text-primary" />
                   Customer Segmentation
                 </CardTitle>
-                <CardDescription>
-                  Customers ordered by lifetime spend
-                </CardDescription>
+                <CardDescription>Customers ordered by lifetime spend</CardDescription>
               </div>
               <Badge variant="secondary" className="font-mono">
                 {report?.customers?.length ?? 0} customers
@@ -425,17 +417,19 @@ export default function CustomerReportsPage() {
                     {report.customers.map((item: any) => (
                       <tr key={item.id} className="hover:bg-surface-container/40 transition-colors">
                         <td className="px-4 py-3 font-medium text-on-surface">{item.name}</td>
-                        <td className="px-4 py-3 text-xs text-on-surface-variant">{item.email || '—'}</td>
+                        <td className="px-4 py-3 text-xs text-on-surface-variant">
+                          {item.email || '—'}
+                        </td>
                         <td className="px-4 py-3 text-center">
                           <Badge
                             variant={
                               item.loyaltyTier === 'Platinum'
                                 ? 'default'
                                 : item.loyaltyTier === 'Gold'
-                                ? 'secondary'
-                                : item.loyaltyTier === 'Silver'
-                                ? 'outline'
-                                : 'secondary'
+                                  ? 'secondary'
+                                  : item.loyaltyTier === 'Silver'
+                                    ? 'outline'
+                                    : 'secondary'
                             }
                             className="font-mono text-xs"
                           >
@@ -473,7 +467,9 @@ export default function CustomerReportsPage() {
             ) : (
               <CardContent className="p-8 text-center">
                 <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-on-surface-variant">No customers found matching the selected criteria.</p>
+                <p className="text-on-surface-variant">
+                  No customers found matching the selected criteria.
+                </p>
               </CardContent>
             )}
           </CardContent>
@@ -483,8 +479,16 @@ export default function CustomerReportsPage() {
       {/* Print styles */}
       <style jsx global>{`
         @media print {
-          header, button, .no-print { display: none !important; }
-          main { margin: 0; padding: 0; max-width: 100%; }
+          header,
+          button,
+          .no-print {
+            display: none !important;
+          }
+          main {
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+          }
         }
       `}</style>
     </div>
