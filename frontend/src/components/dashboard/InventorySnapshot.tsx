@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Warehouse, Package, ShoppingCart } from 'lucide-react';
+import { Loader2, Warehouse, Package, ShoppingCart, Package2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import type { Stats } from '@pharmacy-point/types';
 
@@ -36,8 +36,8 @@ export function InventorySnapshot({ stats, isLoading }: InventorySnapshotProps) 
     {
       label: 'Products',
       value: stats.totalProducts,
-      color: 'hsl(var(--primary-hsl))',
-      icon: Package,
+      color: 'hsl(var(--primary-hsl))', // Clinical Precision: Pharma Teal
+      icon: Package2,
     },
     {
       label: 'Suppliers',
@@ -86,9 +86,9 @@ export function InventorySnapshot({ stats, isLoading }: InventorySnapshotProps) 
               const widthPct = (bar.value / maxValue) * 100;
               const Icon = bar.icon;
               return (
-                <div key={bar.label} className="flex items-center gap-3">
-                  <div className="w-16 text-label-md text-on-surface-variant flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" style={{ color: bar.color }} />
+                <div key={bar.label} className="flex items-center gap-7">
+                  <div className="w-25 text-label-md text-on-surface-variant flex items-center gap-1.5">
+                    <Icon className="h-5 w-5" style={{ color: bar.color }} />
                     {bar.label}
                   </div>
                   <div className="relative flex-1">

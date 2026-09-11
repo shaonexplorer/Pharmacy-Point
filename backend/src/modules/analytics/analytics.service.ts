@@ -3,9 +3,7 @@
  * Provides aggregated data for the analytics overview page.
  */
 import { prisma } from '../../config/database';
-import { Prisma } from '@prisma/client';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnalyticsResult = Record<string, any>;
 
 interface RawRow {
@@ -24,34 +22,36 @@ export async function getRevenueTrends(
   const cutoff = new Date(now);
   cutoff.setDate(cutoff.getDate() - days);
 
-  let dateFormat: string;
+  let results: RawRow[];
 
-  switch (period) {
-    case 'day':
-      dateFormat = 'YYYY-MM-DD';
-      break;
-    case 'week':
-      dateFormat = 'YYYY-WW';
-      break;
-    case 'quarter':
-      dateFormat = 'YYYY-MM';
-      break;
-    default: // month
-      dateFormat = 'YYYY-MM';
-      break;
+  if (period === "week") {
+    results = await prisma.$queryRaw<RawRow[]>`
+      SELECT TO_CHAR("createdAt", 'YYYY-WW') as period_label, SUM(total) as total_revenue, COUNT(*) as order_count
+      FROM orders
+      WHERE status = 'COMPLETED'
+        AND "createdAt" >= ${cutoff}
+      GROUP BY TO_CHAR("createdAt", 'YYYY-WW')
+      ORDER BY period_label ASC
+    `;
+  } else if (period === "quarter" || period === "month") {
+    results = await prisma.$queryRaw<RawRow[]>`
+      SELECT TO_CHAR("createdAt", 'YYYY-MM') as period_label, SUM(total) as total_revenue, COUNT(*) as order_count
+      FROM orders
+      WHERE status = 'COMPLETED'
+        AND "createdAt" >= ${cutoff}
+      GROUP BY TO_CHAR("createdAt", 'YYYY-MM')
+      ORDER BY period_label ASC
+    `;
+  } else {
+    results = await prisma.$queryRaw<RawRow[]>`
+      SELECT TO_CHAR("createdAt", 'YYYY-MM-DD') as period_label, SUM(total) as total_revenue, COUNT(*) as order_count
+      FROM orders
+      WHERE status = 'COMPLETED'
+        AND "createdAt" >= ${cutoff}
+      GROUP BY TO_CHAR("createdAt", 'YYYY-MM-DD')
+      ORDER BY period_label ASC
+    `;
   }
-
-  const results = await prisma.$queryRaw<RawRow[]>`
-    SELECT
-      TO_CHAR("createdAt", ${dateFormat}) as period_label,
-      SUM(total) as total_revenue,
-      COUNT(*) as order_count
-    FROM orders
-    WHERE status = 'COMPLETED'
-      AND "createdAt" >= ${cutoff}
-    GROUP BY TO_CHAR("createdAt", ${dateFormat})
-    ORDER BY "createdAt" ASC
-  `;
 
   const labels: string[] = [];
   const revenue: number[] = [];
@@ -61,7 +61,7 @@ export async function getRevenueTrends(
     const dateStr = row.period_label as string;
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+      labels.push(date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }));
     } else {
       labels.push(dateStr);
     }
@@ -198,7 +198,6 @@ export async function getAnalyticsDashboard(
   const cutoff = new Date(now);
   cutoff.setDate(cutoff.getDate() - days);
 
-  // Get base stats
   const statsResult = await prisma.order.aggregate({
     where: { status: 'COMPLETED' },
     _sum: { total: true },
@@ -208,27 +207,17 @@ export async function getAnalyticsDashboard(
   const totalRevenue = Number(statsResult._sum.total ?? 0);
   const totalOrders = Number(statsResult._count.id ?? 0);
 
-  // Get revenue trends
   const revenueTrends = await getRevenueTrends(period, days);
-
-  // Get sales by category
   const salesByCategory = await getSalesByCategory(days);
-
-  // Get inventory status
   const inventoryStatus = await getInventoryStatus();
-
-  // Get top products
   const topProducts = await getTopProducts(days);
 
-  // Get average order value
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-  // Stock-out transactions for the period
   const stockOutThisPeriod = await prisma.inventoryTransaction.count({
     where: { type: 'STOCK_OUT', createdAt: { gte: cutoff } },
   });
 
-  // Customer count (last 30 days)
   const newCustomers = await prisma.customer.count({
     where: { createdAt: { gte: cutoff } },
   });
