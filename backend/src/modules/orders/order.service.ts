@@ -310,6 +310,14 @@ export async function processRefund(
       await tx.orderItem.updateMany({ where: { orderId }, data: { refunded: true } });
     }
 
+    // Persist the refund reason on the order for audit trail
+    if (data.reason) {
+      await tx.order.update({
+        where: { id: orderId },
+        data: { refundReason: data.reason },
+      });
+    }
+
     // Adjust customer due amount for credit sale refunds
     if (order.isCreditSale && order.customerId) {
       await tx.customer.update({

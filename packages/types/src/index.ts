@@ -128,6 +128,34 @@ export interface CreateOrderInput {
   redeemedPoints?: number;
 }
 
+export interface RefundInput {
+  amount: number;
+  reason: string;
+  refundMethod?: 'original' | 'store_credit';
+}
+
+export interface RefundResult {
+  order: OrderWithItems;
+  refundAmount: number;
+  reason: string;
+}
+
+export interface ReturnItemInput {
+  orderItemId: string;
+  quantity: number;
+}
+
+export interface ReturnInput {
+  items: ReturnItemInput[];
+  reason?: string;
+}
+
+export interface ReturnResult {
+  orderId: string;
+  returnedItems: ReturnItemInput[];
+  reason: string;
+}
+
 export type ApiResponse<T> = {
   data?: T;
   error?: string;

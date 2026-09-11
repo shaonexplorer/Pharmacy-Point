@@ -94,6 +94,11 @@ export function serializeOrder(order: Record<string, unknown>): Record<string, u
     isCreditSale: (order.isCreditSale as boolean) ?? false,
     redeemedPoints: (order.redeemedPoints as number) ?? 0,
     receiptEmail: order.receiptEmail as string | null,
+    paymentIntentId: order.paymentIntentId as string | null | undefined,
+    refundReason: order.refundReason as string | null | undefined,
+    returnWindowDays: order.returnWindowDays as number | null | undefined,
+    isOffline: (order.isOffline as boolean) ?? false,
+    offlineSyncedAt: order.offlineSyncedAt as Date | null | undefined,
     status: order.status as
       'PENDING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED' | 'PARTIALLY_REFUNDED' | 'RETURNED',
     createdAt: order.createdAt as Date,
@@ -112,6 +117,8 @@ export function serializeOrderItem(item: Record<string, unknown>): Record<string
     productId: item.productId as string,
     quantity: item.quantity as number,
     price: Number(item.price),
+    returnedQuantity: (item.returnedQuantity as number) ?? 0,
+    refunded: (item.refunded as boolean) ?? false,
     product: product ? serializeProductLite(product) : undefined,
   };
 }

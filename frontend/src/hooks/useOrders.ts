@@ -4,9 +4,13 @@ import { productKeys } from '@/hooks/useProducts';
 import { inventoryKeys } from '@/hooks/useInventory';
 import { customerKeys } from '@/hooks/useCustomers';
 import type {
-  Order,
   OrderWithItems,
+  OrderItemWithProduct,
   CreateOrderInput,
+  RefundInput,
+  RefundResult,
+  ReturnInput,
+  ReturnResult,
   PaginatedResponse,
   ApiResponse,
 } from '@pharmacy-point/types';
@@ -32,7 +36,7 @@ export const orderKeys = {
  * Fetch a paginated list of orders.
  */
 export function useOrders(params?: OrderListParams) {
-  return useQuery<PaginatedResponse<Order>>({
+  return useQuery<PaginatedResponse<OrderWithItems>>({
     queryKey: orderKeys.list(params),
     queryFn: () => api.orders.list(params),
     staleTime: 30 * 1000, // 30 seconds
@@ -78,3 +82,59 @@ export function useCreateOrder() {
     },
   });
 }
+
+/**
+ * Refund an order (full or partial).
+ * Invalidates order detail, order lists, customer due accounts, and stats
+ * so the UI reflects the refunded amount and updated customer balances.
+ */
+export function useRefund() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { orderId: string; data: RefundInput }) =>
+      api.orders.refund(params.orderId, params.data),
+    onSuccess: (_data, variables) => {
+      // Invalidate the affected order detail and list queries
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      // Credit-sale refunds decrement customer dueAmount
+      queryClient.invalidateQueries({ queryKey: customerKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: customerKeys.dueAccounts() });
+    },
+  });
+}
+
+/**
+ * Process a return for an order (restocks inventory).
+ * Invalidates order detail, order lists, and inventory queries
+ * so stock levels reflect the returned items.
+ */
+export function useReturnOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (params: { orderId: string; data: ReturnInput }) =>
+      api.orders.returnOrder(params.orderId, params.data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(variables.orderId) });
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
+    },
+  });
+}
+
+/**
+ * Fetch return history for an order.
+ */
+export function useReturns(orderId: string) {
+  return useQuery<ApiResponse<{ orderId: string; returnedItems: OrderItemWithProduct[] }>>({
+    queryKey: [...orderKeys.detail(orderId), 'returns'],
+    queryFn: () => api.orders.getReturns(orderId),
+    enabled: !!orderId,
+    staleTime: 30 * 1000,
+  });
+}
+
+export type { RefundInput, RefundResult, ReturnInput, ReturnResult };

@@ -7,7 +7,12 @@ import type {
   CustomerWithOrders,
   Order,
   OrderWithItems,
+  OrderItemWithProduct,
   CreateOrderInput,
+  RefundInput,
+  RefundResult,
+  ReturnInput,
+  ReturnResult,
   PaginatedResponse,
   ApiResponse,
   CreateProductInput,
@@ -97,7 +102,7 @@ export const api = {
       status?: string;
       customerId?: string;
       staffId?: string;
-    }) => request<PaginatedResponse<Order>>('/api/orders', { params }),
+    }) => request<PaginatedResponse<OrderWithItems>>('/api/orders', { params }),
 
     get: (id: string) => request<ApiResponse<OrderWithItems>>(`/api/orders/${id}`),
 
@@ -112,6 +117,23 @@ export const api = {
         method: 'PATCH',
         data: { status },
       }),
+
+    refund: (id: string, data: RefundInput) =>
+      request<ApiResponse<RefundResult>>(`/api/orders/${id}/refund`, {
+        method: 'POST',
+        data,
+      }),
+
+    returnOrder: (id: string, data: ReturnInput) =>
+      request<ApiResponse<ReturnResult>>(`/api/orders/${id}/return`, {
+        method: 'POST',
+        data,
+      }),
+
+    getReturns: (id: string) =>
+      request<ApiResponse<{ orderId: string; returnedItems: OrderItemWithProduct[] }>>(
+        `/api/orders/${id}/returns`
+      ),
   },
 
   // Categories

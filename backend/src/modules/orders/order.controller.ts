@@ -11,6 +11,8 @@ import {
   serializeUser,
 } from '../../utils/serializers';
 import * as orderService from './order.service';
+import { processRefund, processReturn, getReturns } from './order.service';
+import prisma from '../../config/database';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OrderRecord = Record<string, any>;
@@ -99,31 +101,28 @@ export const updateStatus = asyncHandler(async (req: Request, res: Response) => 
   });
 });
 
-import { processRefund, processReturn, getReturns } from './order.service';
+export const refund = asyncHandler(async (req: Request, res: Response) => {
+  const result = await processRefund(req.params.id, req.body);
+  res.json({ success: true, data: result });
+});
 
-export async function refund(req: any, res: any, next: any) {
-  try {
-    const result = await processRefund(req.params.id, req.body);
-    res.json({ success: true, data: result });
-  } catch (e) { next(e); }
-}
+export const returnOrder = asyncHandler(async (req: Request, res: Response) => {
+  const result = await processReturn(req.params.id, req.body);
+  res.json({ success: true, data: result });
+});
 
-export async function returnOrder(req: any, res: any, next: any) {
-  try {
-    const result = await processReturn(req.params.id, req.body);
-    res.json({ success: true, data: result });
-  } catch (e) { next(e); }
-}
-
-export async function getReturnsCtrl(req: any, res: any, next: any) {
-  try {
-    const result = await getReturns(req.params.id);
-    res.json({ success: true, data: result });
-  } catch (e) { next(e); }
-}
+export const getReturnsCtrl = asyncHandler(async (req: Request, res: Response) => {
+  const result = await getReturns(req.params.id);
+  res.json({ success: true, data: result });
+});
 
 import nodemailer from 'nodemailer';
-import prisma from '../../config/database';
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+});
 
 export const sendReceiptEmail = asyncHandler(async (req: Request, res: Response) => {
   const order = await prisma.order.findUnique({
@@ -133,13 +132,6 @@ export const sendReceiptEmail = asyncHandler(async (req: Request, res: Response)
   if (!order) { res.status(404).json({ message: 'Order not found' }); return; }
   const { email } = req.body;
   if (!email || typeof email !== 'string') { res.status(400).json({ message: 'Email required' }); return; }
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
 
   const html = `
 <html><body style="font-family:sans-serif;padding:20px;color:#0b1c30">

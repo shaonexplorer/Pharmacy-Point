@@ -638,6 +638,8 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── customers/new/ - Add customer form
 ├── customers/[id]/ - View customer details with order history
 ├── customers/[id]/edit/ - Edit customer form
+├── orders/ - Order list with status filters and TanStack Table
+├── orders/[id]/ - View order details with refund/return actions
 └── (auth)/login - Authentication page
 ```
 
