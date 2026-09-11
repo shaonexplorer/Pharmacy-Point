@@ -61,7 +61,7 @@ export function SalesReportChart({ data, isLoading }: SalesReportData) {
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 11, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 11, fill: '#2563EB' }}
           tickLine={false}
           axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
           angle={-20}
@@ -69,7 +69,7 @@ export function SalesReportChart({ data, isLoading }: SalesReportData) {
           height={60}
         />
         <YAxis
-          tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
+          tick={{ fontSize: 12, fill: '#2563EB' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v) => formatCurrency(v)}
@@ -87,12 +87,7 @@ export function SalesReportChart({ data, isLoading }: SalesReportData) {
             name === 'sales' ? 'Revenue' : name === 'orders' ? 'Orders' : 'Units',
           ]}
         />
-        <Bar
-          dataKey="sales"
-          fill="#00685f"
-          radius={[4, 4, 0, 0]}
-          name="Revenue"
-        >
+        <Bar dataKey="sales" fill="#00685f" radius={[4, 4, 0, 0]} name="Revenue">
           {chartData.map((_entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}

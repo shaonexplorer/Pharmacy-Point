@@ -62,10 +62,15 @@ export function CustomerReportChart({ data, isLoading }: CustomerReportChartProp
     color: TIER_COLORS[item.tier] ?? '#8884d8',
   }));
 
-  const spendData = [
-    { name: 'Average Spend', value: summary.averageSpend },
-    { name: 'Total Lifetime', value: summary.totalLifetimeSpend },
-  ];
+  // Use Active vs Inactive customer split for a meaningful part-of-whole donut.
+  // (Average Spend vs Total Lifetime Spend is not a valid pie composition and
+  // renders nothing when both values are 0.)
+  const donutData = [
+    { name: 'Active', value: summary.activeCustomers, color: COLORS[0] },
+    { name: 'Inactive', value: summary.inactiveCustomers, color: COLORS[1] },
+  ].filter((d) => d.value > 0);
+
+  const donutTotal = donutData.reduce((sum, d) => sum + d.value, 0);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('en-US', {
@@ -79,23 +84,17 @@ export function CustomerReportChart({ data, isLoading }: CustomerReportChartProp
     <div className="grid gap-4 sm:grid-cols-2">
       {/* Tier Distribution Bar Chart */}
       <div className="col-span-1">
-        <h3 className="text-headline-sm font-semibold text-foreground mb-2">
-          Tier Distribution
-        </h3>
+        <h3 className="text-headline-sm font-semibold text-foreground mb-2">Tier Distribution</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={tierChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--outline-variant))" />
             <XAxis
               dataKey="name"
-              tick={{ fontSize: 11, fill: 'hsl(var(--on-surface-variant))' }}
+              tick={{ fontSize: 11, fill: '#2563EB' }}
               tickLine={false}
               axisLine={{ stroke: 'hsl(var(--outline-variant))' }}
             />
-            <YAxis
-              tick={{ fontSize: 12, fill: 'hsl(var(--on-surface-variant))' }}
-              tickLine={false}
-              axisLine={false}
-            />
+            <YAxis tick={{ fontSize: 12, fill: '#2563EB' }} tickLine={false} axisLine={false} />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--surface-container))',
@@ -113,47 +112,60 @@ export function CustomerReportChart({ data, isLoading }: CustomerReportChartProp
         </ResponsiveContainer>
       </div>
 
-      {/* Spending Overview Donut */}
+      {/* Customer Status Donut */}
       <div className="col-span-1">
-        <h3 className="text-headline-sm font-semibold text-foreground mb-2">
-          Spending Overview
-        </h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={spendData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={2}
-              dataKey="value"
-              label={({ name, percent }) =>
-                `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
-              }
-              labelLine={true}
-            >
-              {spendData.map((_entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--surface-container))',
-                border: '1px solid hsl(var(--outline-variant))',
-                borderRadius: '8px',
-                fontSize: '14px',
-              }}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Amount']}
-            />
-            <Legend
-              formatter={(value: string) =>
-                <span style={{ color: 'hsl(var(--on-surface-variant))', fontSize: 12 }}>{value}</span>
-              }
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <h3 className="text-headline-sm font-semibold text-foreground mb-2">Customer Status</h3>
+        {donutTotal === 0 ? (
+          <div className="h-[250px] w-full flex flex-col items-center justify-center text-on-surface-variant">
+            <p className="text-sm">No customer data available</p>
+          </div>
+        ) : (
+          <>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={donutData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  labelLine={true}
+                >
+                  {donutData.map((_entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--surface-container))',
+                    border: '1px solid hsl(var(--outline-variant))',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                  }}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(value: any) => [`${Number(value) || 0} customers`, 'Count']}
+                />
+                <Legend
+                  formatter={(value: string) => (
+                    <span style={{ color: 'hsl(var(--on-surface-variant))', fontSize: 12 }}>
+                      {value}
+                    </span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center lifetime spend label */}
+            <div className="text-center mt-2">
+              <p className="text-xs text-on-surface-variant">Total Lifetime Spend</p>
+              <p className="text-xl font-bold text-data-mono text-foreground">
+                {formatCurrency(summary.totalLifetimeSpend)}
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

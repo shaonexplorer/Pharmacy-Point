@@ -303,7 +303,7 @@ export default function DashboardPage() {
           <TearLine />
 
           {/* ── KPI Cards ── */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {KPI_CARDS.map((card, i) => {
               const { icon: Icon, label } = card;
               const sparkValue = card.getSparkValue(stats);
@@ -337,7 +337,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ── Quick Action Cards ── */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {QUICK_ACTIONS.map((action, i) => (
               <div
                 key={action.label}
