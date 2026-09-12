@@ -194,6 +194,73 @@ export function serializeUser(user: Record<string, unknown>): Record<string, unk
 }
 
 /**
+ * Serialize a Prisma SupplierRepresentative row for API responses.
+ */
+export function serializeSupplierRepresentative(
+  rep: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    id: rep.id as string,
+    supplierId: rep.supplierId as string,
+    name: rep.name as string,
+    email: (rep.email as string | null | undefined) ?? null,
+    phone: (rep.phone as string | null | undefined) ?? null,
+    whatsappNumber: (rep.whatsappNumber as string | null | undefined) ?? null,
+    designation: (rep.designation as string | null | undefined) ?? null,
+    address: (rep.address as string | null | undefined) ?? null,
+    notes: (rep.notes as string | null | undefined) ?? null,
+    createdAt: rep.createdAt as Date,
+    updatedAt: rep.updatedAt as Date,
+  };
+}
+
+/**
+ * Serialize a Prisma Supplier row for API responses.
+ * Includes nested representatives.
+ */
+export function serializeSupplier(supplier: Record<string, unknown>): Record<string, unknown> {
+  const representatives =
+    (supplier.representatives as Record<string, unknown>[] | undefined) ?? [];
+  return {
+    id: supplier.id as string,
+    name: supplier.name as string,
+    contactName: (supplier.contactName as string | null | undefined) ?? null,
+    email: (supplier.email as string | null | undefined) ?? null,
+    phone: (supplier.phone as string | null | undefined) ?? null,
+    address: (supplier.address as string | null | undefined) ?? null,
+    leadTimeDays: (supplier.leadTimeDays as number) ?? 7,
+    paymentTerms: (supplier.paymentTerms as string | null | undefined) ?? null,
+    performanceRating:
+      (supplier.performanceRating as number | null | undefined) ?? null,
+    representatives: representatives.map((r) =>
+      serializeSupplierRepresentative(r)
+    ),
+    createdAt: supplier.createdAt as Date,
+    updatedAt: supplier.updatedAt as Date,
+  };
+}
+
+/**
+ * Serialize a Prisma PurchaseOrder row for API responses.
+ */
+export function serializePurchaseOrder(
+  po: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    id: po.id as string,
+    supplierId: po.supplierId as string,
+    poNumber: po.poNumber as string,
+    status: po.status as string,
+    totalAmount: Number(po.totalAmount ?? 0),
+    notes: (po.notes as string | null | undefined) ?? null,
+    approvedBy: (po.approvedBy as string | null | undefined) ?? null,
+    approvedAt: (po.approvedAt as Date | null | undefined) ?? null,
+    createdAt: po.createdAt as Date,
+    updatedAt: po.updatedAt as Date,
+  };
+}
+
+/**
  * Serialize a Prisma Expense row for API responses.
  * Converts Decimal to Number and Date to ISO string for JSON-safe output.
  */

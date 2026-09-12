@@ -31,6 +31,7 @@ import {
   Calculator,
   Receipt,
   PiggyBank,
+  Truck,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -369,6 +370,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       dotColor: 'bg-destructive',
     },
     { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
+    { name: 'Suppliers', href: '/suppliers', icon: Truck, dotColor: 'bg-secondary' },
     { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
     { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
     { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },

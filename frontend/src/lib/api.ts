@@ -27,6 +27,10 @@ import type {
   CreateDuePaymentInput,
   CustomerDashboard,
   Stats,
+  Supplier,
+  SupplierRepresentative,
+  CreateSupplierInput,
+  CreateSupplierRepresentativeInput,
   Expense,
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -335,6 +339,49 @@ export const api = {
   // Stats
   stats: {
     get: () => request<Stats>('/api/stats'),
+  },
+
+  // Suppliers
+  suppliers: {
+    list: (params?: { page?: number; limit?: number; search?: string }) =>
+      request<PaginatedResponse<Supplier>>('/api/suppliers', { params }),
+    get: (id: string) => request<ApiResponse<Supplier>>(`/api/suppliers/${id}`),
+    create: (data: CreateSupplierInput) =>
+      request<ApiResponse<Supplier>>('/api/suppliers', {
+        method: 'POST',
+        data,
+      }),
+    update: (id: string, data: CreateSupplierInput) =>
+      request<ApiResponse<Supplier>>(`/api/suppliers/${id}`, {
+        method: 'PUT',
+        data,
+      }),
+    delete: (id: string) =>
+      request<ApiResponse<never>>(`/api/suppliers/${id}`, {
+        method: 'DELETE',
+      }),
+    // Representative sub-routes
+    representatives: {
+      list: (supplierId: string) =>
+        request<ApiResponse<SupplierRepresentative[]>>(`/api/suppliers/${supplierId}/representatives`),
+      create: (supplierId: string, data: CreateSupplierRepresentativeInput) =>
+        request<ApiResponse<SupplierRepresentative>>(`/api/suppliers/${supplierId}/representatives`, {
+          method: 'POST',
+          data,
+        }),
+      update: (supplierId: string, repId: string, data: CreateSupplierRepresentativeInput) =>
+        request<ApiResponse<SupplierRepresentative>>(
+          `/api/suppliers/${supplierId}/representatives/${repId}`,
+          {
+            method: 'PUT',
+            data,
+          }
+        ),
+      delete: (supplierId: string, repId: string) =>
+        request<ApiResponse<never>>(`/api/suppliers/${supplierId}/representatives/${repId}`, {
+          method: 'DELETE',
+        }),
+    },
   },
 
   // Notifications

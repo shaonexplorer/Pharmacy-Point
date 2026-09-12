@@ -264,20 +264,39 @@ model InventoryTransaction {
 }
 
 model Supplier {
-  id                String          @id @default(cuid())
+  id                String                  @id @default(cuid())
   name              String
   contactName       String?
   email             String?
   phone             String?
   address           String?
-  leadTimeDays      Int             @default(7)
-  paymentTerms      String?         @default("Net 30")
-  performanceRating Float?          @default(5.0)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  leadTimeDays      Int                     @default(7)
+  paymentTerms      String?                 @default("Net 30")
+  performanceRating Float?                  @default(5.0)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
   purchaseOrders    PurchaseOrder[]
+  representatives   SupplierRepresentative[]
 
   @@map("suppliers")
+}
+
+model SupplierRepresentative {
+  id          String   @id @default(cuid())
+  supplierId  String
+  name        String
+  email       String?  @unique
+  phone       String?
+  whatsappNumber String?
+  designation String?
+  address     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  supplier    Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+  @@map("supplier_representatives")
 }
 
 model PurchaseOrder {

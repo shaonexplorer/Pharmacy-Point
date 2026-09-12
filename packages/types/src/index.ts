@@ -397,6 +397,84 @@ export interface ExpenseStats {
   byPaymentMethod: Record<string, number>;
 }
 
+// ─── Supplier Types ────────────────────────────────────────────────
+
+/** A single representative / medical promotion officer for a supplier */
+export interface SupplierRepresentative {
+  id: string;
+  supplierId: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  whatsappNumber?: string | null;
+  designation?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A purchase order associated with a supplier */
+export interface PurchaseOrder {
+  id: string;
+  supplierId: string;
+  poNumber: string;
+  status: string;
+  totalAmount: number;
+  notes?: string | null;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A supplier in the pharmacy management system */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  leadTimeDays: number;
+  paymentTerms?: string | null;
+  performanceRating?: number | null;
+  representatives?: SupplierRepresentative[];
+  purchaseOrders?: PurchaseOrder[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Input for creating a supplier */
+export type CreateSupplierInput = {
+  name: string;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  leadTimeDays?: number;
+  paymentTerms?: string;
+  performanceRating?: number;
+  representatives?: CreateSupplierRepresentativeInput[];
+};
+
+/** Input for updating a supplier */
+export type UpdateSupplierInput = Partial<CreateSupplierInput>;
+
+/** Input for creating a supplier representative */
+export type CreateSupplierRepresentativeInput = {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  whatsappNumber?: string | null;
+  designation?: string | null;
+  address?: string | null;
+  notes?: string | null;
+};
+
+/** Input for updating a supplier representative */
+export type UpdateSupplierRepresentativeInput = Partial<CreateSupplierRepresentativeInput>;
+
 // ─── Reports Types ────────────────────────────────────────────────
 
 /** Sales report data item — one row per group */

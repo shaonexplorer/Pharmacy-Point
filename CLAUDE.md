@@ -641,6 +641,17 @@ enum OrderStatus {
 - `PUT /api/expenses/:id` — Update expense
 - `DELETE /api/expenses/:id` — Delete expense (hard delete; no child records)
 
+### Suppliers API (`/api/suppliers`) [NEW]
+- `GET /api/suppliers` — List with pagination, search (name/contactName/email/phone), includes representatives; `GET /api/suppliers/:supplierId/representatives` listed before `/:id` to prevent route shadowing
+- `GET /api/suppliers/:id` — Get supplier with representatives + recent purchase orders
+- `POST /api/suppliers` — Create supplier (supports nested `representatives` array in payload)
+- `PUT /api/suppliers/:id` — Update supplier (handles representative upsert/delete)
+- `DELETE /api/suppliers/:id` — Delete supplier (guarded against suppliers with purchase orders)
+- `GET /api/suppliers/:supplierId/representatives` — List representatives for a supplier
+- `POST /api/suppliers/:supplierId/representatives` — Create a representative (whatsappNumber, email, phone, designation)
+- `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
+- `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
+
 ## Development Workflow
 
 ### Initial Setup
@@ -730,6 +741,10 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── companies/new/ - Add company form
 ├── companies/[id]/ - View company details
 ├── companies/[id]/edit/ - Edit company form
+├── suppliers/ - Supplier list with representatives and purchase orders
+├── suppliers/new/ - Add supplier form with representative management
+├── suppliers/[id]/ - View supplier details with representative directory
+├── suppliers/[id]/edit/ - Edit supplier form with representative management
 ├── customers/ - Customer list with search and TanStack Table
 ├── customers/new/ - Add customer form
 ├── customers/[id]/ - View customer details with order history
@@ -1090,6 +1105,40 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Stats integration: `GET /api/stats` now includes `totalExpenses` and `expensesThisMonth`
 - Dashboard updated with "Total Expenses" KPI card and "Record Expense" quick action
 - Sidebar: "Expenses" nav item added with `PiggyBank` icon, `bg-warning` dot
+
+### Supplier Management — COMPLETED ✅
+
+- `Supplier` model extended with `representatives` relation (one-to-many)
+- New `SupplierRepresentative` model tracks medical promotion officers / sales representatives with:
+  - `name`, `email` (unique), `phone`, `whatsappNumber`, `designation`, `address`, `notes`
+  - `supplierId` FK with `onDelete: Cascade`
+- Backend `suppliers` module (`backend/src/modules/suppliers/`):
+  - `supplier.dto.ts` — Zod schemas: `supplierSchema` (with nested `representatives` array) and `supplierRepresentativeSchema`
+  - `supplier.service.ts` — Full CRUD with pagination + search (across name/contactName/email/phone), nested representative upsert/delete within supplier transactions, dedicated representative CRUD functions
+  - `supplier.controller.ts` — `asyncHandler` pattern with `{ data, pagination }` / `{ data, message }` response shapes; representative controller methods
+  - `supplier.routes.ts` — Route ordering: `/representatives` sub-routes registered before `/:id` to prevent shadowing
+  - `serializers.ts` — `serializeSupplier`, `serializeSupplierRepresentative`, `serializePurchaseOrder`
+- API endpoints:
+  - `GET /api/suppliers` — List with pagination, search (name/contact/email/phone), includes representatives
+  - `GET /api/suppliers/:id` — Get supplier with representatives + recent purchase orders
+  - `POST /api/suppliers` — Create supplier (supports nested `representatives` array in payload)
+  - `PUT /api/suppliers/:id` — Update supplier (handles rep upsert/delete)
+  - `DELETE /api/suppliers/:id` — Delete supplier (guarded against suppliers with purchase orders)
+  - `GET /api/suppliers/:supplierId/representatives` — List representatives
+  - `POST /api/suppliers/:supplierId/representatives` — Create a representative
+  - `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
+  - `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
+- Shared types (`packages/types/src/index.ts`): `Supplier`, `SupplierRepresentative`, `PurchaseOrder`, `CreateSupplierInput`, `UpdateSupplierInput`, `CreateSupplierRepresentativeInput`, `UpdateSupplierRepresentativeInput`
+- Frontend:
+  - `frontend/src/hooks/useSuppliers.ts` — 7 React Query hooks (list, detail, representatives, create/update/delete supplier, create/update/delete representative) with proper invalidation
+  - `frontend/src/components/suppliers/SupplierTable.tsx` — TanStack Table with sorting, pagination, representative count column, email/phone quick-links
+  - `frontend/src/components/suppliers/SupplierForm.tsx` — Form with supplier fields + inline representative sub-table (add/edit/remove rows with name, email, phone, **WhatsApp**, designation, address, notes)
+  - `frontend/src/app/suppliers/page.tsx` — List page with search and delete confirmation
+  - `frontend/src/app/suppliers/new/page.tsx` — Create page
+  - `frontend/src/app/suppliers/[id]/page.tsx` — Detail page with representative directory (WhatsApp links), purchase order summary, performance rating badge
+  - `frontend/src/app/suppliers/[id]/edit/page.tsx` — Edit page with pre-filled form
+  - Sidebar: "Suppliers" nav item added with `Truck` icon, `bg-secondary` dot
+- Database: `prisma db push` applied; Prisma client regenerated
 
 ## Troubleshooting
 
