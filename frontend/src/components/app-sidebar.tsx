@@ -8,9 +8,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -33,7 +31,13 @@ import {
   PiggyBank,
   Truck,
   ClipboardList,
+  ChevronDown,
 } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@radix-ui/react-collapsible';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -52,6 +56,11 @@ import { useInventory } from '@/hooks/useInventory';
  *   - Medi-Blue (secondary)   → Products / Companies / Analytics (standard)
  *   - Safety Green (tertiary) → POS (active dispensing)
  *   - Amber (warning)         → Inventory (caution — stock levels)
+ *
+ *  Groups are collapsible via Radix UI Collapsible — each section header is a
+ *  toggle that expands/collapses its items. In collapsed (icon-only) mode the
+ *  group headers are hidden (sr-only) and all items remain visible as icons,
+ *  consistent with the shadcn sidebar's collapsed behaviour.
  *
  *  Signature element: the "liquid fill" active indicator — a vertical bar on
  *  the left edge of the active nav item that animates like liquid being poured
@@ -315,6 +324,12 @@ function UserCard() {
 
 /* ── App Sidebar ────────────────────────────────────────────────────────── */
 
+interface NavGroup {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: stats } = useStats();
   const { data: pendingOrders, isLoading: ordersLoading } = useOrders({
@@ -331,71 +346,109 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Low stock count for Inventory badge
   const lowStockCount = !lowStockLoading && lowStockData?.pagination?.total;
 
-  // Base navigation items — computed directly so no setState in effects
-  const navItems: NavItem[] = [
+  // Navigation items grouped by functional area — each group renders as a
+  // labelled section so the sidebar reads like a clinical chart with clear
+  // domains (overview, catalogue, dispensing, stockroom, procurement, finance).
+  const navGroups: NavGroup[] = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
+      label: 'Overview',
       icon: Home,
-      dotColor: 'bg-primary',
-      badge:
-        stats?.lowStockItems && stats.lowStockItems > 0
-          ? { label: `${stats.lowStockItems}`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'Dashboard',
+          href: '/dashboard',
+          icon: Home,
+          dotColor: 'bg-primary',
+          badge:
+            stats?.lowStockItems && stats.lowStockItems > 0
+              ? { label: `${stats.lowStockItems}`, color: 'warning' }
+              : undefined,
+        },
+        { name: 'Analytics', href: '/analytics', icon: BarChart3, dotColor: 'bg-secondary' },
+      ],
     },
-    { name: 'Products', href: '/products', icon: Package, dotColor: 'bg-secondary' },
     {
-      name: 'POS',
-      href: '/pos',
+      label: 'Catalogue',
+      icon: Package,
+      items: [
+        { name: 'Products', href: '/products', icon: Package, dotColor: 'bg-secondary' },
+        { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
+        { name: 'Suppliers', href: '/suppliers', icon: Truck, dotColor: 'bg-secondary' },
+      ],
+    },
+    {
+      label: 'Sales & Customers',
       icon: ShoppingCart,
-      dotColor: 'bg-tertiary',
-      badge:
-        pendingCount && pendingCount > 0
-          ? { label: `${pendingCount} pending`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'POS',
+          href: '/pos',
+          icon: ShoppingCart,
+          dotColor: 'bg-tertiary',
+          badge:
+            pendingCount && pendingCount > 0
+              ? { label: `${pendingCount} pending`, color: 'warning' }
+              : undefined,
+        },
+        { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
+        { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
+      ],
     },
     {
-      name: 'Inventory',
-      href: '/inventory',
+      label: 'Inventory',
       icon: Warehouse,
-      dotColor: 'bg-warning',
-      badge:
-        lowStockCount && lowStockCount > 0
-          ? { label: `${lowStockCount} low`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'Stock',
+          href: '/inventory',
+          icon: Warehouse,
+          dotColor: 'bg-warning',
+          badge:
+            lowStockCount && lowStockCount > 0
+              ? { label: `${lowStockCount} low`, color: 'warning' }
+              : undefined,
+        },
+        {
+          name: 'Expiration Report',
+          href: '/inventory/expiring',
+          icon: Clock,
+          dotColor: 'bg-destructive',
+        },
+      ],
     },
     {
-      name: 'Expiration Report',
-      href: '/inventory/expiring',
-      icon: Clock,
-      dotColor: 'bg-destructive',
-    },
-    { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
-    { name: 'Suppliers', href: '/suppliers', icon: Truck, dotColor: 'bg-secondary' },
-    { name: 'Procurement', href: '/procurement', icon: ShoppingCart, dotColor: 'bg-tertiary' },
-    { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList, dotColor: 'bg-secondary' },
-    { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
-    { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
-    { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, dotColor: 'bg-secondary' },
-    { name: 'Reports', href: '/reports/sales', icon: FileText, dotColor: 'bg-secondary' },
-    {
-      name: 'Inventory Reports',
-      href: '/reports/inventory',
-      icon: AlertTriangle,
-      dotColor: 'bg-warning',
+      label: 'Procurement',
+      icon: ClipboardList,
+      items: [
+        { name: 'Procurement', href: '/procurement', icon: ShoppingCart, dotColor: 'bg-tertiary' },
+        { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList, dotColor: 'bg-secondary' },
+      ],
     },
     {
-      name: 'Customer Reports',
-      href: '/reports/customers',
-      icon: Users,
-      dotColor: 'bg-primary',
-    },
-    {
-      name: 'Financial Reports',
-      href: '/reports/financial',
-      icon: Calculator,
-      dotColor: 'bg-secondary',
+      label: 'Finance & Reports',
+      icon: PiggyBank,
+      items: [
+        { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },
+        { name: 'Sales Report', href: '/reports/sales', icon: FileText, dotColor: 'bg-secondary' },
+        {
+          name: 'Inventory Reports',
+          href: '/reports/inventory',
+          icon: AlertTriangle,
+          dotColor: 'bg-warning',
+        },
+        {
+          name: 'Customer Reports',
+          href: '/reports/customers',
+          icon: Users,
+          dotColor: 'bg-primary',
+        },
+        {
+          name: 'Financial Reports',
+          href: '/reports/financial',
+          icon: Calculator,
+          dotColor: 'bg-secondary',
+        },
+      ],
     },
   ];
 
@@ -412,16 +465,46 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarBrand />
         </SidebarHeader>
 
-        <SidebarContent className="pr-4 sm:pr-6 pl-[10px] ">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
-                {navItems.map((item) => (
-                  <NavItem key={item.name} item={item} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <SidebarContent className="pr-4 sm:pr-6 pl-[10px]">
+          {navGroups.map((group, idx) => {
+            const GroupIcon = group.icon;
+            return (
+              <SidebarGroup key={group.label}>
+                {idx > 0 && (
+                  <div className="my-2 border-t border-sidebar-border/40 group-data-[collapsible=icon]:sr-only" />
+                )}
+                <Collapsible key={group.label} defaultOpen>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        'group mb-1 flex w-full cursor-pointer items-center gap-2',
+                        'rounded-lg px-3 py-1.5 text-xs font-semibold text-sidebar-foreground/35',
+                        'hover:text-sidebar-foreground/50 hover:bg-sidebar-accent/40',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        'data-[state=open]:bg-sidebar-accent/20',
+                        'group-data-[collapsible=icon]:sr-only'
+                      )}
+                    >
+                      {GroupIcon && <GroupIcon className="h-3.5 w-3.5 shrink-0" />}
+                      <span className="truncate">{group.label}</span>
+                      <ChevronDown
+                        className={cn(
+                          'ml-auto h-3.5 w-3.5 shrink-0 text-sidebar-foreground/40 transition-transform duration-200',
+                          'group-data-[state=open]:rotate-180'
+                        )}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="flex flex-col gap-y-1.5">
+                    {group.items.map((item) => (
+                      <NavItem key={item.name} item={item} />
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarGroup>
+            );
+          })}
         </SidebarContent>
 
         <SidebarFooter>
