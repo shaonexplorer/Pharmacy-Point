@@ -153,7 +153,7 @@ export function CustomerSearchSelect({
       <Popover.Content
         sideOffset={8}
         className={cn(
-          'z-50 w-[320px] max-w-[90vw] border bg-popover p-0 shadow-lg',
+          ' z-50 w-[320px] max-w-[90vw] border bg-popover p-2 shadow-lg',
           'data-[state=open]:animate-in data-[state=closed]:fade-out-0',
           'rounded-lg border-border'
         )}

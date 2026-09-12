@@ -540,7 +540,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       type="button"
                       className={cn(
                         'group mb-1 flex w-full cursor-pointer items-center gap-2',
-                        'rounded-lg px-3 py-1.5 text-xs font-semibold text-sidebar-foreground/35',
+                        'rounded-lg px-3 py-1.5 text-xs font-semibold text-sidebar-foreground',
                         'hover:text-sidebar-foreground/50 hover:bg-sidebar-accent/40',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                         'data-[state=open]:bg-sidebar-accent/20',
