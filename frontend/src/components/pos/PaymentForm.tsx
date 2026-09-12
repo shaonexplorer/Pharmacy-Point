@@ -18,10 +18,29 @@ export default function PaymentForm({
       <CardContent className="p-4 space-y-3">
         <h3 className="font-semibold">Payment Method</h3>
         <div className="flex gap-2">
-          <Button variant={method === 'cash' ? 'default' : 'outline'} onClick={() => setMethod('cash')} type="button">Cash</Button>
-          <Button variant={method === 'card' ? 'default' : 'outline'} onClick={() => setMethod('card')} type="button">Card</Button>
+          <Button
+            className="flex-1"
+            variant={method === 'cash' ? 'default' : 'outline'}
+            onClick={() => setMethod('cash')}
+            type="button"
+          >
+            Cash
+          </Button>
+          <Button
+            className="flex-1"
+            variant={method === 'card' ? 'default' : 'outline'}
+            onClick={() => setMethod('card')}
+            type="button"
+          >
+            Card
+          </Button>
         </div>
-        <Button onClick={() => onSubmit(method)} type="button" className="w-full" disabled={disabled}>
+        <Button
+          onClick={() => onSubmit(method)}
+          type="button"
+          className="w-full"
+          disabled={disabled}
+        >
           {method === 'card' ? 'Card Payment' : 'Cash Payment'} — ${total.toFixed(2)}
         </Button>
       </CardContent>

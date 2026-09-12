@@ -193,15 +193,11 @@ export function ProductGrid({
                 </p>
 
                 {/* SKU — data-mono prevents 0/O confusion per DESIGN.md */}
-                <p className="text-data-mono text-on-surface-variant">
-                  SKU: {product.sku}
-                </p>
+                <p className="text-data-mono text-on-surface-variant">SKU: {product.sku}</p>
 
                 {/* Batch info — shown when available so staff can identify at-a-glance */}
                 {product.batchNo && (
-                  <p className="text-xs text-on-surface-variant">
-                    Batch: {product.batchNo}
-                  </p>
+                  <p className="text-xs text-on-surface-variant">Batch: {product.batchNo}</p>
                 )}
 
                 {/* Expiry date — shown when available so staff can identify at-a-glance */}
@@ -216,11 +212,11 @@ export function ProductGrid({
             {/* Quick Add — DESIGN.md: 48px minimum touch target on tablet/POS */}
             <div className="mt-auto">
               <Button
-                size="tablet"
+                size="default"
                 variant={isOutOfStock ? 'ghost' : isExpired ? 'destructive' : 'secondary'}
                 onClick={() => !isExpired && onAddItem(product, 1)}
                 disabled={!canAddToCart(product, 1) || isOutOfStock || isExpired}
-                className="h-12 w-full text-xs"
+                className=" w-full"
               >
                 {isOutOfStock ? 'Out of Stock' : isExpired ? 'Expired' : 'Add to Cart'}
               </Button>

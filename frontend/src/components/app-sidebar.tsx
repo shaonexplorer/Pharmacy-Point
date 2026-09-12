@@ -1,8 +1,16 @@
 'use client';
 
 import { useSession, signOut } from '@/lib/auth-client';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -32,16 +40,15 @@ import {
   Truck,
   ClipboardList,
   ChevronDown,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@radix-ui/react-collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@radix-ui/react-collapsible';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { ModeToggle } from '@/components/mode-toggle';
+import { useTheme } from '@/components/theme-provider';
 import { useStats } from '@/hooks/useStats';
 import { useOrders } from '@/hooks/useOrders';
 import { useInventory } from '@/hooks/useInventory';
@@ -279,6 +286,7 @@ function NavItem({ item }: { item: NavItem }) {
 
 function UserCard() {
   const { data: session, isPending } = useSession();
+  const { setTheme, theme } = useTheme();
 
   if (isPending || !session) return null;
 
@@ -293,35 +301,79 @@ function UserCard() {
 
   return (
     <div className="border-t border-sidebar-border p-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <span className="text-sm font-bold">{initials}</span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-sidebar-foreground">
-            {user?.name ?? 'Pharmacy Staff'}
-          </p>
-          <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
-          {role && roleLabel && (
-            <Badge variant="outline" size="sm" className={cn('mt-0.5', roleClass)}>
-              {roleLabel}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center justify-end">
-        <ModeToggle />
-      </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => signOut()}
-        className="mt-3 w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground"
-      >
-        <LogOut className="h-4 w-4" />
-        Sign Out
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              'flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-all duration-200',
+              'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+            )}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="text-sm font-bold">{initials}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-medium group-data-[collapsible=icon]:sr-only">
+                {user?.name ?? 'Pharmacy Staff'}
+              </p>
+              <p className="line-clamp-1 text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:sr-only">
+                {user?.email}
+              </p>
+              {role && roleLabel && (
+                <Badge
+                  variant="outline"
+                  size="sm"
+                  className={cn('mt-0.5', roleClass, 'group-data-[collapsible=icon]:sr-only')}
+                >
+                  {roleLabel}
+                </Badge>
+              )}
+            </div>
+            <ChevronDown
+              className="ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/40 transition-transform duration-200 data-[state=open]:rotate-180"
+              aria-hidden="true"
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 bg-popover text-popover-foreground">
+          <DropdownMenuLabel>Preferences</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => setTheme('light')}
+            className={theme === 'light' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Sun className="mr-2 h-4 w-4" />
+            <span>Light</span>
+            <DropdownMenuShortcut>⌘⇧L</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setTheme('dark')}
+            className={theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Moon className="mr-2 h-4 w-4" />
+            <span>Dark</span>
+            <DropdownMenuShortcut>⌘⇧D</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setTheme('system')}
+            className={theme === 'system' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Monitor className="mr-2 h-4 w-4" />
+            <span>System</span>
+            <DropdownMenuShortcut>⌘⇧S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOut()}
+            className="w-full justify-start gap-3"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -425,7 +477,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: ClipboardList,
       items: [
         { name: 'Procurement', href: '/procurement', icon: ShoppingCart, dotColor: 'bg-tertiary' },
-        { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList, dotColor: 'bg-secondary' },
+        {
+          name: 'Purchase Orders',
+          href: '/purchase-orders',
+          icon: ClipboardList,
+          dotColor: 'bg-secondary',
+        },
       ],
     },
     {
@@ -477,7 +534,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {idx > 0 && (
                   <div className="my-2 border-t border-sidebar-border/40 group-data-[collapsible=icon]:sr-only" />
                 )}
-                <Collapsible key={group.label} defaultOpen>
+                <Collapsible key={group.label} defaultOpen={false}>
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
