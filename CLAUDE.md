@@ -1225,6 +1225,18 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `frontend/src/lib/api.ts` — added `api.purchaseOrders` section (list, get, create, approve, receive, cancel)
   - `frontend/src/app-sidebar.tsx` — added "Procurement" and "Purchase Orders" nav entries
 
+**Phase 2: Procurement WhatsApp Messaging - COMPLETED ✅**
+- New utility file `frontend/src/lib/whatsapp.ts`:
+  - `sanitizeWhatsAppNumber(raw)` — strips non-digit characters from phone numbers for `wa.me` URL compatibility
+  - `buildWhatsAppLink(phoneNumber, message)` — constructs `https://wa.me/<number>?text=<encoded_message>` links
+  - `formatPOWhatsAppMessage(params)` — formats PO line items into a human-readable WhatsApp message with product names, SKUs, quantities, prices, subtotal, PO number, delivery date, and notes
+- `ProcurementPage` (`frontend/src/app/procurement/page.tsx`) and `ProcurementCartSheet` (`frontend/src/components/procurement/ProcurementCartSheet.tsx`):
+  - After successful PO creation, instead of immediately navigating/closing, a **success view** is shown
+  - The success card displays the PO number and total amount
+  - If the selected supplier representative has a `whatsappNumber`, a **"Send via WhatsApp"** button appears — clicking opens the WhatsApp message in a new tab with the full product list pre-filled
+  - If no WhatsApp number is on file, a helpful message prompts updating the rep's profile
+  - A "Done" / "View Purchase Orders" button navigates to the PO list
+
 ## Troubleshooting
 
 ### Stats API returns all zeros on dashboard
