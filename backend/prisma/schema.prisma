@@ -286,7 +286,7 @@ model SupplierRepresentative {
   id               String            @id @default(cuid())
   supplierId       String
   name             String
-  email            String?           @unique
+  email            String?
   phone            String?
   whatsappNumber   String?
   designation      String?

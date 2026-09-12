@@ -3,11 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-import {
-  Supplier,
-  CreateSupplierInput,
-  SupplierRepresentative,
-} from '@pharmacy-point/types';
+import { Supplier, CreateSupplierInput, SupplierRepresentative } from '@pharmacy-point/types';
 import { useCreateSupplier, useUpdateSupplier } from '@/hooks/useSuppliers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,23 +31,25 @@ import { cn } from '@/lib/utils';
  * ───────────────────────────────────────────────────────────────────────── */
 
 // Zod schema mirrors the backend DTO
+// Uses .nullish() to accept null | undefined | string,
+// handling API responses that return null for optional fields
 const representativeSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  phone: z.string().optional().or(z.literal('')),
-  whatsappNumber: z.string().optional().or(z.literal('')),
-  designation: z.string().optional().or(z.literal('')),
-  address: z.string().optional().or(z.literal('')),
-  notes: z.string().optional().or(z.literal('')),
+  email: z.string().email('Invalid email').nullish().or(z.literal('')),
+  phone: z.string().nullish(),
+  whatsappNumber: z.string().nullish(),
+  designation: z.string().nullish(),
+  address: z.string().nullish(),
+  notes: z.string().nullish(),
 });
 
 const supplierSchema = z.object({
   name: z.string().min(1, 'Supplier name is required'),
-  contactName: z.string().optional().or(z.literal('')),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  phone: z.string().optional().or(z.literal('')),
-  address: z.string().optional().or(z.literal('')),
+  contactName: z.string().nullish(),
+  email: z.string().email('Invalid email').nullish().or(z.literal('')),
+  phone: z.string().nullish(),
+  address: z.string().nullish(),
   leadTimeDays: z.number().int().positive().default(7),
   paymentTerms: z.string().optional().default('Net 30'),
   performanceRating: z.number().min(0).max(5).optional().default(5),
@@ -81,6 +79,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
     representatives: (supplier?.representatives ?? []) as RepFormData[],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [repErrors, setRepErrors] = useState<Record<number, Record<string, string>>>({});
 
   const createMutation = useCreateSupplier();
   const updateMutation = useUpdateSupplier();
@@ -108,29 +107,56 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
   // ─── Representative management ── */
 
   const handleRepChange = (index: number, field: keyof RepFormData, value: string) => {
-    const reps = [...(formData.representatives ?? [])];
-    reps[index] = { ...reps[index], [field]: value };
-    setFormData((prev) => ({ ...prev, representatives: reps }));
+    setFormData((prev) => {
+      const reps = [...(prev.representatives ?? [])];
+      reps[index] = { ...reps[index], [field]: value };
+      return { ...prev, representatives: reps };
+    });
+    // Clear error for this field
+    if (repErrors[index]?.[field as string]) {
+      setRepErrors((prev) => {
+        const updated = { ...prev[index] };
+        delete updated[field as string];
+        return { ...prev, [index]: updated };
+      });
+    }
   };
 
   const addRepresentative = () => {
-    const reps = [...(formData.representatives ?? [])];
-    reps.push({
-      name: '',
-      email: '',
-      phone: '',
-      whatsappNumber: '',
-      designation: '',
-      address: '',
-      notes: '',
-    });
-    setFormData((prev) => ({ ...prev, representatives: reps }));
+    setFormData((prev) => ({
+      ...prev,
+      representatives: [
+        ...(prev.representatives ?? []),
+        {
+          name: '',
+          email: '',
+          phone: '',
+          whatsappNumber: '',
+          designation: '',
+          address: '',
+          notes: '',
+        },
+      ],
+    }));
   };
 
   const removeRepresentative = (index: number) => {
-    const reps = [...(formData.representatives ?? [])];
-    reps.splice(index, 1);
-    setFormData((prev) => ({ ...prev, representatives: reps }));
+    setFormData((prev) => {
+      const reps = [...(prev.representatives ?? [])];
+      reps.splice(index, 1);
+      // Shift rep error indices to match new array order
+      const newRepErrors: Record<number, Record<string, string>> = {};
+      Object.keys(repErrors).forEach((k) => {
+        const idx = Number(k);
+        if (idx > index) {
+          newRepErrors[idx - 1] = repErrors[idx];
+        } else if (idx < index) {
+          newRepErrors[idx] = repErrors[idx];
+        }
+      });
+      setRepErrors(newRepErrors);
+      return { ...prev, representatives: reps };
+    });
   };
 
   // ─── Form submission ── */
@@ -139,15 +165,29 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
     try {
       supplierSchema.parse(formData);
       setErrors({});
+      setRepErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
+        const newRepErrors: Record<number, Record<string, string>> = {};
         error.issues.forEach((issue) => {
-          const field = issue.path[0] as string;
-          fieldErrors[field] = issue.message;
+          const path = issue.path as (string | number)[];
+          if (path.length === 0) {
+            // Schema-level error
+            fieldErrors['__form__'] = issue.message;
+          } else if (path[0] === 'representatives' && path.length >= 3) {
+            const idx = Number(path[1]);
+            const field = String(path[2]);
+            if (!newRepErrors[idx]) newRepErrors[idx] = {};
+            newRepErrors[idx][field] = issue.message;
+          } else {
+            const field = String(path[0]);
+            fieldErrors[field] = issue.message;
+          }
         });
         setErrors(fieldErrors);
+        setRepErrors(newRepErrors);
       }
       return false;
     }
@@ -181,6 +221,18 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
         </div>
       )}
 
+      {errors.__form__ && (
+        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
+          {errors.__form__}
+        </div>
+      )}
+
+      {Object.keys(repErrors).length > 0 && (
+        <div className="rounded-lg bg-error/10 border border-error/30 p-3 text-body-sm text-error">
+          Please fix the highlighted fields in the Representatives section.
+        </div>
+      )}
+
       {/* ── Supplier Details ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-2">
@@ -206,10 +258,8 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
             id="contactName"
             type="text"
             placeholder="e.g., John Smith"
-            value={formData.contactName}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, contactName: e.target.value }))
-            }
+            value={formData.contactName ?? ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, contactName: e.target.value }))}
           />
         </div>
 
@@ -221,7 +271,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
             id="email"
             type="email"
             placeholder="supplier@example.com"
-            value={formData.email}
+            value={formData.email ?? ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
           />
         </div>
@@ -234,7 +284,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
             id="phone"
             type="tel"
             placeholder="+1 (555) 123-4567"
-            value={formData.phone}
+            value={formData.phone ?? ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
           />
         </div>
@@ -246,7 +296,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
           <Textarea
             id="address"
             placeholder="Supplier address..."
-            value={formData.address}
+            value={formData.address ?? ''}
             onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
             className="min-h-[80px]"
           />
@@ -279,9 +329,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
             type="text"
             placeholder="e.g., Net 30, COD"
             value={formData.paymentTerms ?? 'Net 30'}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, paymentTerms: e.target.value }))
-            }
+            onChange={(e) => setFormData((prev) => ({ ...prev, paymentTerms: e.target.value }))}
           />
         </div>
       </div>
@@ -347,15 +395,21 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
                 </TableHeader>
                 <TableBody>
                   {(formData.representatives ?? []).map((rep, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={rep.id ?? `rep-${index}`}>
                       <TableCell>
                         <Input
                           type="text"
                           placeholder="Full name"
                           value={rep.name ?? ''}
                           onChange={(e) => handleRepChange(index, 'name', e.target.value)}
-                          className="h-8 text-sm"
+                          className={cn(
+                            'h-8 text-sm',
+                            repErrors[index]?.name ? 'border-destructive' : ''
+                          )}
                         />
+                        {repErrors[index]?.name && (
+                          <p className="mt-1 text-xs text-destructive">{repErrors[index].name}</p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -363,8 +417,14 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
                           placeholder="email@example.com"
                           value={rep.email ?? ''}
                           onChange={(e) => handleRepChange(index, 'email', e.target.value)}
-                          className="h-8 text-sm"
+                          className={cn(
+                            'h-8 text-sm',
+                            repErrors[index]?.email ? 'border-destructive' : ''
+                          )}
                         />
+                        {repErrors[index]?.email && (
+                          <p className="mt-1 text-xs text-destructive">{repErrors[index].email}</p>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -380,9 +440,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
                           type="tel"
                           placeholder="+1 (555) ..."
                           value={rep.whatsappNumber ?? ''}
-                          onChange={(e) =>
-                            handleRepChange(index, 'whatsappNumber', e.target.value)
-                          }
+                          onChange={(e) => handleRepChange(index, 'whatsappNumber', e.target.value)}
                           className="h-8 text-sm"
                         />
                       </TableCell>
@@ -391,9 +449,7 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
                           type="text"
                           placeholder="e.g., MPO, Sales Rep"
                           value={rep.designation ?? ''}
-                          onChange={(e) =>
-                            handleRepChange(index, 'designation', e.target.value)
-                          }
+                          onChange={(e) => handleRepChange(index, 'designation', e.target.value)}
                           className="h-8 text-sm"
                         />
                       </TableCell>
@@ -416,41 +472,36 @@ export function SupplierForm({ supplier, mode }: SupplierFormProps) {
           )}
 
           {/* Extended details for each representative (address, notes) */}
-          {(formData.representatives ?? []).map(
-            (rep, index) =>
-              rep.address || rep.notes ? (
-                <div
-                  key={`details-${index}`}
-                  className="mt-3 rounded-lg border border-border bg-muted/20 p-3 space-y-2"
-                >
-                  {rep.address && (
-                    <div className="space-y-1">
-                      <Label className="text-label-sm text-on-surface-variant">
-                        Address
-                      </Label>
-                      <Textarea
-                        value={rep.address}
-                        onChange={(e) => handleRepChange(index, 'address', e.target.value)}
-                        className="min-h-[60px] text-sm"
-                        placeholder="Representative address..."
-                      />
-                    </div>
-                  )}
-                  {rep.notes && (
-                    <div className="space-y-1">
-                      <Label className="text-label-sm text-on-surface-variant">
-                        Notes
-                      </Label>
-                      <Textarea
-                        value={rep.notes}
-                        onChange={(e) => handleRepChange(index, 'notes', e.target.value)}
-                        className="min-h-[60px] text-sm"
-                        placeholder="Notes..."
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : null
+          {(formData.representatives ?? []).map((rep, index) =>
+            rep.address || rep.notes ? (
+              <div
+                key={`details-${index}`}
+                className="mt-3 rounded-lg border border-border bg-muted/20 p-3 space-y-2"
+              >
+                {rep.address && (
+                  <div className="space-y-1">
+                    <Label className="text-label-sm text-on-surface-variant">Address</Label>
+                    <Textarea
+                      value={rep.address}
+                      onChange={(e) => handleRepChange(index, 'address', e.target.value)}
+                      className="min-h-[60px] text-sm"
+                      placeholder="Representative address..."
+                    />
+                  </div>
+                )}
+                {rep.notes && (
+                  <div className="space-y-1">
+                    <Label className="text-label-sm text-on-surface-variant">Notes</Label>
+                    <Textarea
+                      value={rep.notes}
+                      onChange={(e) => handleRepChange(index, 'notes', e.target.value)}
+                      className="min-h-[60px] text-sm"
+                      placeholder="Notes..."
+                    />
+                  </div>
+                )}
+              </div>
+            ) : null
           )}
         </div>
       </Card>
