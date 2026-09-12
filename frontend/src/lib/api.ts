@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import type {
   Product,
+  ProductBatch,
   Category,
   Company,
   Customer,
@@ -26,11 +27,19 @@ import type {
   CreateDuePaymentInput,
   CustomerDashboard,
   Stats,
+  Supplier,
+  SupplierRepresentative,
+  CreateSupplierInput,
+  CreateSupplierRepresentativeInput,
   Expense,
   CreateExpenseInput,
   UpdateExpenseInput,
   ExpenseListParams,
   ExpenseStats,
+  PurchaseOrder,
+  PurchaseOrderItem,
+  PurchaseOrderWithItems,
+  CreatePurchaseOrderInput,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -236,6 +245,9 @@ export const api = {
       search?: string;
       lowStock?: boolean;
       companyId?: string;
+      barcode?: string;
+      batchNo?: string;
+      expiryDate?: string;
     }) => request<PaginatedResponse<InventoryItem>>('/api/inventory', { params }),
 
     transactions: (params?: { page?: number; limit?: number; productId?: string; type?: string }) =>
@@ -258,6 +270,9 @@ export const api = {
         method: 'PATCH',
         data,
       }),
+
+    batches: (productId: string) =>
+      request<ApiResponse<ProductBatch[]>>(`/api/inventory/${productId}/batches`),
 
     expiring: (params?: { days?: number; limit?: number }) =>
       request<PaginatedResponse<InventoryItem>>('/api/inventory/expiring', { params }),
@@ -330,6 +345,49 @@ export const api = {
     get: () => request<Stats>('/api/stats'),
   },
 
+  // Suppliers
+  suppliers: {
+    list: (params?: { page?: number; limit?: number; search?: string }) =>
+      request<PaginatedResponse<Supplier>>('/api/suppliers', { params }),
+    get: (id: string) => request<ApiResponse<Supplier>>(`/api/suppliers/${id}`),
+    create: (data: CreateSupplierInput) =>
+      request<ApiResponse<Supplier>>('/api/suppliers', {
+        method: 'POST',
+        data,
+      }),
+    update: (id: string, data: CreateSupplierInput) =>
+      request<ApiResponse<Supplier>>(`/api/suppliers/${id}`, {
+        method: 'PUT',
+        data,
+      }),
+    delete: (id: string) =>
+      request<ApiResponse<never>>(`/api/suppliers/${id}`, {
+        method: 'DELETE',
+      }),
+    // Representative sub-routes
+    representatives: {
+      list: (supplierId: string) =>
+        request<ApiResponse<SupplierRepresentative[]>>(`/api/suppliers/${supplierId}/representatives`),
+      create: (supplierId: string, data: CreateSupplierRepresentativeInput) =>
+        request<ApiResponse<SupplierRepresentative>>(`/api/suppliers/${supplierId}/representatives`, {
+          method: 'POST',
+          data,
+        }),
+      update: (supplierId: string, repId: string, data: CreateSupplierRepresentativeInput) =>
+        request<ApiResponse<SupplierRepresentative>>(
+          `/api/suppliers/${supplierId}/representatives/${repId}`,
+          {
+            method: 'PUT',
+            data,
+          }
+        ),
+      delete: (supplierId: string, repId: string) =>
+        request<ApiResponse<never>>(`/api/suppliers/${supplierId}/representatives/${repId}`, {
+          method: 'DELETE',
+        }),
+    },
+  },
+
   // Notifications
   notifications: {
     sendDueAccountAlert: (data: { threshold?: number; recipients?: string[] }) =>
@@ -340,6 +398,64 @@ export const api = {
           data,
         }
       ),
+    // WhatsApp Business Cloud API
+    whatsAppStatus: () =>
+      request<ApiResponse<{ configured: boolean; phoneNumberId: string | null }>>(
+        '/api/notifications/whatsapp/status'
+      ),
+    sendWhatsApp: (data: { to: string; message: string; purchaseOrderId?: string }) =>
+      request<ApiResponse<{ success: boolean; message: string; messageId?: string; waId?: string }>>(
+        '/api/notifications/whatsapp',
+        {
+          method: 'POST',
+          data,
+        }
+      ),
+    sendWhatsAppPO: (data: { purchaseOrderId: string; phoneOverride?: string }) =>
+      request<
+        ApiResponse<{
+          success: boolean;
+          message: string;
+          messageId?: string;
+          waId?: string;
+          fallbackLink?: string;
+        }>
+      >('/api/notifications/whatsapp/purchase-order', {
+        method: 'POST',
+        data,
+      }),
+  },
+
+  // Purchase Orders
+  purchaseOrders: {
+    list: (params?: { page?: number; limit?: number; status?: string; supplierId?: string }) =>
+      request<PaginatedResponse<PurchaseOrder>>('/api/purchase-orders', { params }),
+
+    get: (id: string) =>
+      request<ApiResponse<PurchaseOrderWithItems>>(`/api/purchase-orders/${id}`),
+
+    create: (data: CreatePurchaseOrderInput) =>
+      request<ApiResponse<PurchaseOrderWithItems>>('/api/purchase-orders', {
+        method: 'POST',
+        data,
+      }),
+
+    approve: (id: string, approvedBy?: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/approve`, {
+        method: 'PATCH',
+        data: { approvedBy },
+      }),
+
+    receive: (id: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/receive`, {
+        method: 'POST',
+      }),
+
+    cancel: (id: string, notes?: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/cancel`, {
+        method: 'PATCH',
+        data: { notes },
+      }),
   },
 
   // Expenses

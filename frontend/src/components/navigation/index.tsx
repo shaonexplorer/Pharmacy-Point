@@ -4,7 +4,10 @@ import { useSession } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
+import { ProcurementCartProvider } from '@/context/ProcurementCartContext';
+import { ProcurementCartButton } from '@/components/procurement/ProcurementCartButton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ModeToggle } from '@/components/mode-toggle';
 
 /* ============================================================================
  *  Pharmacy Point — Navigation Shell
@@ -29,15 +32,18 @@ function MobileHeader() {
         <TooltipContent>Toggle navigation</TooltipContent>
       </Tooltip>
       <span className="text-sm font-medium text-foreground">Pharmacy Point</span>
-      {/* Spacer to balance the header */}
-      <div className="w-10" />
+      {/* Theme toggle — visible on mobile header */}
+      <ModeToggle />
     </header>
   );
 }
 
 function NavigationLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="relative flex min-h-screen items-center justify-center bg-background">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
     </div>
   );
@@ -45,16 +51,20 @@ function NavigationLoading() {
 
 function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          {/* Mobile-only header with nav toggle */}
-          <MobileHeader />
-          <div className="flex-1 overflow-auto">{children}</div>
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <ProcurementCartProvider>
+      <TooltipProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            {/* Mobile-only header with nav toggle */}
+            <MobileHeader />
+            <div className="flex-1 overflow-auto">{children}</div>
+          </SidebarInset>
+        </SidebarProvider>
+        {/* Floating procurement cart — visible on all authenticated pages */}
+        <ProcurementCartButton />
+      </TooltipProvider>
+    </ProcurementCartProvider>
   );
 }
 

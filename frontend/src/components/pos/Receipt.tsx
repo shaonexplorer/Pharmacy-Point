@@ -139,6 +139,14 @@ export function Receipt({ order, staffName, onEmail, onNewSale, prescriptionNote
           <div key={item.id} className="flex justify-between text-body-sm py-1">
             <span className="flex-1 text-foreground">
               {item.product?.name ?? 'Unknown Product'}
+              {item.batch?.batchNo && (
+                <span className="block text-xs text-on-surface-variant">Batch: {item.batch.batchNo}</span>
+              )}
+              {item.product?.expiryDate && (
+                <span className="block text-xs text-on-surface-variant">
+                  Exp: {new Date(item.product.expiryDate).toLocaleDateString()}
+                </span>
+              )}
             </span>
             <span className="w-12 text-center text-on-surface-variant">{item.quantity}</span>
             <span className="w-20 text-right text-data-mono text-foreground">

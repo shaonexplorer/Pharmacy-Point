@@ -6,15 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DueAccountAlert } from './DueAccountAlert';
+import { CustomerSearchSelect } from './CustomerSearchSelect';
 import { ExpiryChip, getExpiryStatus } from '@/components/inventory/StockChip';
 import { AlertTriangle } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/formatters';
 import { CreditCard, Banknote, ShoppingCart } from 'lucide-react';
@@ -32,7 +26,7 @@ interface CheckoutProps {
   isLoadingCustomers: boolean;
   isProcessing: boolean;
   onPaymentMethodChange: (method: PaymentMethod) => void;
-  onCustomerChange: (customerId: string) => void;
+  onCustomerChange: (customerId: string | null, customer?: Customer | null) => void;
   onDiscountChange: (percent: number) => void;
   onProcessSale: () => void;
   dueAmount?: number;
@@ -208,26 +202,15 @@ export function Checkout({
           />
         </div>
 
-        {/* Customer Selection */}
+        {/* Customer Selection — searchable with create-on-the-fly */}
         <div className="flex flex-col gap-2">
           <Label className="text-label-md text-foreground">Customer (optional)</Label>
-          <Select
-            value={customerId ?? undefined}
-            onValueChange={onCustomerChange}
-            disabled={isLoadingCustomers || isProcessing}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Walk-in Customer" />
-            </SelectTrigger>
-            <SelectContent>
-              {customers.map((customer) => (
-                <SelectItem key={customer.id} value={customer.id}>
-                  {customer.name}
-                  {customer.phone ? ` (${customer.phone})` : ''}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CustomerSearchSelect
+            customers={customers}
+            isLoadingCustomers={isLoadingCustomers}
+            customerId={customerId}
+            onCustomerChange={onCustomerChange}
+          />
         </div>
 
         {dueAmount > 0 && (

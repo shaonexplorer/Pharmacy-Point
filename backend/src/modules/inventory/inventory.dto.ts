@@ -21,10 +21,16 @@ export const stockInSchema = z.object({
   barcode: optionalStringSchema,
   quantity: positiveQuantitySchema,
   batchNo: optionalStringSchema,
+  lotNumber: optionalStringSchema,
   expiryDate: z.string().optional().refine((val) => {
     if (!val) return true;
     return !isNaN(Date.parse(val));
   }, { message: 'Invalid expiry date format' }),
+  manufactureDate: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, { message: 'Invalid manufacture date format' }),
+  costPrice: z.number().nonnegative().optional(),
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
   userId: optionalStringSchema,
@@ -36,8 +42,8 @@ export const stockInSchema = z.object({
 export const stockOutSchema = z.object({
   productId: productIdSchema.optional(),
   barcode: optionalStringSchema,
+  batchId: optionalStringSchema,
   quantity: positiveQuantitySchema,
-  batchNo: optionalStringSchema,
   notes: optionalStringSchema,
   referenceId: optionalStringSchema,
   userId: optionalStringSchema,

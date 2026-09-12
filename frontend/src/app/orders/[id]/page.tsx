@@ -179,6 +179,7 @@ export default function OrderDetailPage() {
                   <p className="text-sm text-on-surface-variant">
                     SKU: {item.product?.sku ?? '—'} | ${item.product?.price?.toFixed(2) ?? '0.00'} ×{' '}
                     {item.quantity}
+                    {item.batch?.batchNo && <span className="ml-2">Batch: {item.batch.batchNo}</span>}
                   </p>
                   {item.refunded && <span className="text-xs text-secondary">Refunded</span>}
                   {item.returnedQuantity && item.returnedQuantity > 0 && (

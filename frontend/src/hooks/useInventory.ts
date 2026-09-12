@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import type { StockInInput, StockOutInput, StockAdjustInput } from '@pharmacy-point/types';
+import type { StockInInput, StockOutInput, StockAdjustInput, ProductBatch } from '@pharmacy-point/types';
 
 export interface InventoryListParams {
   page?: number;
@@ -8,6 +8,9 @@ export interface InventoryListParams {
   search?: string;
   lowStock?: boolean;
   companyId?: string;
+  barcode?: string;
+  batchNo?: string;
+  expiryDate?: string;
 }
 
 // Query keys
@@ -22,6 +25,7 @@ export const inventoryKeys = {
     productId?: string;
     type?: string;
   }) => [...inventoryKeys.transactions(), params] as const,
+  batches: (productId?: string) => [...inventoryKeys.all, 'batches', productId] as const,
   expiring: (params?: { days?: number; limit?: number }) =>
     [...inventoryKeys.all, 'expiring', params] as const,
   expired: (params?: { limit?: number }) =>
@@ -68,6 +72,18 @@ export function useExpiringProducts(params?: { days?: number; limit?: number }) 
 }
 
 /**
+ * Fetch all batches for a product.
+ */
+export function useProductBatches(productId?: string) {
+  return useQuery({
+    queryKey: inventoryKeys.batches(productId),
+    queryFn: () => api.inventory.batches(productId!),
+    enabled: !!productId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
  * Fetch expired products still in stock.
  */
 export function useExpiredProducts(params?: { limit?: number }) {
@@ -89,6 +105,7 @@ export function useStockIn() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.transactions() });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.all });
     },
   });
 }

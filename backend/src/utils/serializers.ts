@@ -10,6 +10,11 @@
  * Serialize a Prisma Product row for API responses.
  */
 export function serializeProduct(product: Record<string, unknown>): Record<string, unknown> {
+  const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
+  // Filter out exhausted batches (quantity === 0) — these are no longer
+  // active and should not clutter the product's batch list. The dedicated
+  // /api/inventory/:productId/batches endpoint still shows all batches for audit.
+  const activeBatches = batches.filter((b) => (b.quantity as number) > 0);
   return {
     id: product.id as string,
     name: product.name as string,
@@ -26,6 +31,9 @@ export function serializeProduct(product: Record<string, unknown>): Record<strin
     batchNo: (product.batchNo as string | null | undefined) ?? null,
     lowStockThreshold: (product.lowStockThreshold as number | null | undefined) ?? null,
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
+    lotNumber: (product.lotNumber as string | null | undefined) ?? null,
+    manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
+    batches: activeBatches.map((b: Record<string, unknown>) => serializeProductBatch(b)),
     deletedAt: product.deletedAt as Date | null,
     createdAt: product.createdAt as Date,
     updatedAt: product.updatedAt as Date,
@@ -38,6 +46,11 @@ export function serializeProduct(product: Record<string, unknown>): Record<strin
 export function serializeInventoryItem(product: Record<string, unknown>): Record<string, unknown> {
   const qty = product.quantity as number;
   const lowStock = product.lowStock as number;
+  const batches = (product.batches as Record<string, unknown>[] | undefined) ?? [];
+  // Filter out exhausted batches (quantity === 0) — these are no longer
+  // active and should not appear in inventory views. The dedicated
+  // /api/inventory/:productId/batches endpoint still shows all batches for audit.
+  const activeBatches = batches.filter((b) => (b.quantity as number) > 0);
   return {
     id: product.id,
     name: product.name,
@@ -53,10 +66,40 @@ export function serializeInventoryItem(product: Record<string, unknown>): Record
     image: product.image,
     barcode: (product.barcode as string | null | undefined) ?? null,
     batchNo: (product.batchNo as string | null | undefined) ?? null,
+    lowStockThreshold: (product.lowStockThreshold as number | null | undefined) ?? null,
     expiryDate: (product.expiryDate as Date | null | undefined) ?? null,
+    lotNumber: (product.lotNumber as string | null | undefined) ?? null,
+    manufactureDate: (product.manufactureDate as Date | null | undefined) ?? null,
+    batches: activeBatches.map((b: Record<string, unknown>) => serializeProductBatch(b)),
+    primaryBatch: activeBatches.length > 0
+      ? serializeProductBatch(activeBatches[0])
+      : null,
     deletedAt: product.deletedAt,
     createdAt: product.createdAt,
     updatedAt: product.updatedAt,
+  };
+}
+
+/**
+ * Serialize a Prisma ProductBatch row for API responses.
+ */
+export function serializeProductBatch(batch: Record<string, unknown>): Record<string, unknown> {
+  return {
+    id: batch.id as string,
+    productId: batch.productId as string,
+    batchNo: (batch.batchNo as string | null | undefined) ?? null,
+    lotNumber: (batch.lotNumber as string | null | undefined) ?? null,
+    expiryDate: (batch.expiryDate as Date | null | undefined) ?? null,
+    manufactureDate: (batch.manufactureDate as Date | null | undefined) ?? null,
+    quantity: (batch.quantity as number) ?? 0,
+    initialQuantity: (batch.initialQuantity as number) ?? 0,
+    costPrice: batch.costPrice !== undefined && batch.costPrice !== null
+      ? Number(batch.costPrice)
+      : null,
+    referenceId: (batch.referenceId as string | null | undefined) ?? null,
+    userId: (batch.userId as string | null | undefined) ?? null,
+    createdAt: batch.createdAt as Date,
+    updatedAt: batch.updatedAt as Date,
   };
 }
 
@@ -111,12 +154,15 @@ export function serializeOrder(order: Record<string, unknown>): Record<string, u
  */
 export function serializeOrderItem(item: Record<string, unknown>): Record<string, unknown> {
   const product = item.product as Record<string, unknown> | null | undefined;
+  const batch = item.batch as Record<string, unknown> | null | undefined;
   return {
     id: item.id as string,
     orderId: item.orderId as string,
     productId: item.productId as string,
     quantity: item.quantity as number,
     price: Number(item.price),
+    batchId: (item.batchId as string | null | undefined) ?? null,
+    batch: batch ? serializeProductBatch(batch) : null,
     returnedQuantity: (item.returnedQuantity as number) ?? 0,
     refunded: (item.refunded as boolean) ?? false,
     product: product ? serializeProductLite(product) : undefined,
@@ -144,6 +190,105 @@ export function serializeUser(user: Record<string, unknown>): Record<string, unk
     id: user.id as string,
     name: user.name as string | null,
     email: user.email as string,
+  };
+}
+
+/**
+ * Serialize a Prisma SupplierRepresentative row for API responses.
+ */
+export function serializeSupplierRepresentative(
+  rep: Record<string, unknown>
+): Record<string, unknown> {
+  return {
+    id: rep.id as string,
+    supplierId: rep.supplierId as string,
+    name: rep.name as string,
+    email: (rep.email as string | null | undefined) ?? null,
+    phone: (rep.phone as string | null | undefined) ?? null,
+    whatsappNumber: (rep.whatsappNumber as string | null | undefined) ?? null,
+    designation: (rep.designation as string | null | undefined) ?? null,
+    address: (rep.address as string | null | undefined) ?? null,
+    notes: (rep.notes as string | null | undefined) ?? null,
+    createdAt: rep.createdAt as Date,
+    updatedAt: rep.updatedAt as Date,
+  };
+}
+
+/**
+ * Serialize a Prisma Supplier row for API responses.
+ * Includes nested representatives.
+ */
+export function serializeSupplier(supplier: Record<string, unknown>): Record<string, unknown> {
+  const representatives =
+    (supplier.representatives as Record<string, unknown>[] | undefined) ?? [];
+  return {
+    id: supplier.id as string,
+    name: supplier.name as string,
+    contactName: (supplier.contactName as string | null | undefined) ?? null,
+    email: (supplier.email as string | null | undefined) ?? null,
+    phone: (supplier.phone as string | null | undefined) ?? null,
+    address: (supplier.address as string | null | undefined) ?? null,
+    leadTimeDays: (supplier.leadTimeDays as number) ?? 7,
+    paymentTerms: (supplier.paymentTerms as string | null | undefined) ?? null,
+    performanceRating:
+      (supplier.performanceRating as number | null | undefined) ?? null,
+    representatives: representatives.map((r) =>
+      serializeSupplierRepresentative(r)
+    ),
+    createdAt: supplier.createdAt as Date,
+    updatedAt: supplier.updatedAt as Date,
+  };
+}
+
+/**
+ * Serialize a single PurchaseOrderItem row for API responses.
+ */
+export function serializePurchaseOrderItem(
+  item: Record<string, unknown>
+): Record<string, unknown> {
+  const product = item.product as Record<string, unknown> | null | undefined;
+  return {
+    id: item.id as string,
+    poId: item.poId as string,
+    productId: (item.productId as string | null | undefined) ?? null,
+    product: product ? serializeProductLite(product) : undefined,
+    quantity: item.quantity as number,
+    unitPrice: Number(item.unitPrice ?? 0),
+    receivedQty: (item.receivedQty as number) ?? 0,
+    notes: (item.notes as string | null | undefined) ?? null,
+  };
+}
+
+/**
+ * Serialize a Prisma PurchaseOrder row for API responses.
+ * Includes nested items (with product lite) and supplier representative.
+ */
+export function serializePurchaseOrder(
+  po: Record<string, unknown>
+): Record<string, unknown> {
+  const supplier = po.supplier as Record<string, unknown> | null | undefined;
+  const rep = po.supplierRepresentative as Record<string, unknown> | null | undefined;
+  const items = (po.items as Record<string, unknown>[] | undefined) ?? [];
+
+  return {
+    id: po.id as string,
+    supplierId: po.supplierId as string,
+    supplier: supplier ? serializeSupplier(supplier) : null,
+    supplierRepresentativeId:
+      (po.supplierRepresentativeId as string | null | undefined) ?? null,
+    supplierRepresentative: rep ? serializeSupplierRepresentative(rep) : null,
+    poNumber: po.poNumber as string,
+    status: po.status as string,
+    totalAmount: Number(po.totalAmount ?? 0),
+    notes: (po.notes as string | null | undefined) ?? null,
+    approvedBy: (po.approvedBy as string | null | undefined) ?? null,
+    approvedAt: (po.approvedAt as Date | null | undefined) ?? null,
+    expectedDeliveryDate:
+      (po.expectedDeliveryDate as Date | null | undefined) ?? null,
+    createdById: (po.createdById as string | null | undefined) ?? null,
+    items: items.map((i) => serializePurchaseOrderItem(i)),
+    createdAt: po.createdAt as Date,
+    updatedAt: po.updatedAt as Date,
   };
 }
 

@@ -1,16 +1,22 @@
 'use client';
 
 import { useSession, signOut } from '@/lib/auth-client';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -31,10 +37,18 @@ import {
   Calculator,
   Receipt,
   PiggyBank,
+  Truck,
+  ClipboardList,
+  ChevronDown,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@radix-ui/react-collapsible';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/components/theme-provider';
 import { useStats } from '@/hooks/useStats';
 import { useOrders } from '@/hooks/useOrders';
 import { useInventory } from '@/hooks/useInventory';
@@ -50,6 +64,11 @@ import { useInventory } from '@/hooks/useInventory';
  *   - Medi-Blue (secondary)   → Products / Companies / Analytics (standard)
  *   - Safety Green (tertiary) → POS (active dispensing)
  *   - Amber (warning)         → Inventory (caution — stock levels)
+ *
+ *  Groups are collapsible via Radix UI Collapsible — each section header is a
+ *  toggle that expands/collapses its items. In collapsed (icon-only) mode the
+ *  group headers are hidden (sr-only) and all items remain visible as icons,
+ *  consistent with the shadcn sidebar's collapsed behaviour.
  *
  *  Signature element: the "liquid fill" active indicator — a vertical bar on
  *  the left edge of the active nav item that animates like liquid being poured
@@ -267,6 +286,7 @@ function NavItem({ item }: { item: NavItem }) {
 
 function UserCard() {
   const { data: session, isPending } = useSession();
+  const { setTheme, theme } = useTheme();
 
   if (isPending || !session) return null;
 
@@ -281,37 +301,90 @@ function UserCard() {
 
   return (
     <div className="border-t border-sidebar-border p-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <span className="text-sm font-bold">{initials}</span>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-sidebar-foreground">
-            {user?.name ?? 'Pharmacy Staff'}
-          </p>
-          <p className="truncate text-xs text-sidebar-foreground/60">{user?.email}</p>
-          {role && roleLabel && (
-            <Badge variant="outline" size="sm" className={cn('mt-0.5', roleClass)}>
-              {roleLabel}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => signOut()}
-        className="mt-4 w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground"
-      >
-        <LogOut className="h-4 w-4" />
-        Sign Out
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              'flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium transition-all duration-200',
+              'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+            )}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <span className="text-sm font-bold">{initials}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 text-sm font-medium group-data-[collapsible=icon]:sr-only">
+                {user?.name ?? 'Pharmacy Staff'}
+              </p>
+              <p className="line-clamp-1 text-xs text-sidebar-foreground/60 group-data-[collapsible=icon]:sr-only">
+                {user?.email}
+              </p>
+              {role && roleLabel && (
+                <Badge
+                  variant="outline"
+                  size="sm"
+                  className={cn('mt-0.5', roleClass, 'group-data-[collapsible=icon]:sr-only')}
+                >
+                  {roleLabel}
+                </Badge>
+              )}
+            </div>
+            <ChevronDown
+              className="ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/40 transition-transform duration-200 data-[state=open]:rotate-180"
+              aria-hidden="true"
+            />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 bg-popover text-popover-foreground">
+          <DropdownMenuLabel>Preferences</DropdownMenuLabel>
+          <DropdownMenuItem
+            onClick={() => setTheme('light')}
+            className={theme === 'light' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Sun className="mr-2 h-4 w-4" />
+            <span>Light</span>
+            <DropdownMenuShortcut>⌘⇧L</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setTheme('dark')}
+            className={theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Moon className="mr-2 h-4 w-4" />
+            <span>Dark</span>
+            <DropdownMenuShortcut>⌘⇧D</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setTheme('system')}
+            className={theme === 'system' ? 'bg-accent text-accent-foreground' : ''}
+          >
+            <Monitor className="mr-2 h-4 w-4" />
+            <span>System</span>
+            <DropdownMenuShortcut>⌘⇧S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOut()}
+            className="w-full justify-start gap-3"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
 
 /* ── App Sidebar ────────────────────────────────────────────────────────── */
+
+interface NavGroup {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: stats } = useStats();
@@ -329,68 +402,114 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Low stock count for Inventory badge
   const lowStockCount = !lowStockLoading && lowStockData?.pagination?.total;
 
-  // Base navigation items — computed directly so no setState in effects
-  const navItems: NavItem[] = [
+  // Navigation items grouped by functional area — each group renders as a
+  // labelled section so the sidebar reads like a clinical chart with clear
+  // domains (overview, catalogue, dispensing, stockroom, procurement, finance).
+  const navGroups: NavGroup[] = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
+      label: 'Overview',
       icon: Home,
-      dotColor: 'bg-primary',
-      badge:
-        stats?.lowStockItems && stats.lowStockItems > 0
-          ? { label: `${stats.lowStockItems}`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'Dashboard',
+          href: '/dashboard',
+          icon: Home,
+          dotColor: 'bg-primary',
+          badge:
+            stats?.lowStockItems && stats.lowStockItems > 0
+              ? { label: `${stats.lowStockItems}`, color: 'warning' }
+              : undefined,
+        },
+        { name: 'Analytics', href: '/analytics', icon: BarChart3, dotColor: 'bg-secondary' },
+      ],
     },
-    { name: 'Products', href: '/products', icon: Package, dotColor: 'bg-secondary' },
     {
-      name: 'POS',
-      href: '/pos',
+      label: 'Catalogue',
+      icon: Package,
+      items: [
+        { name: 'Products', href: '/products', icon: Package, dotColor: 'bg-secondary' },
+        { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
+        { name: 'Suppliers', href: '/suppliers', icon: Truck, dotColor: 'bg-secondary' },
+      ],
+    },
+    {
+      label: 'Sales & Customers',
       icon: ShoppingCart,
-      dotColor: 'bg-tertiary',
-      badge:
-        pendingCount && pendingCount > 0
-          ? { label: `${pendingCount} pending`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'POS',
+          href: '/pos',
+          icon: ShoppingCart,
+          dotColor: 'bg-tertiary',
+          badge:
+            pendingCount && pendingCount > 0
+              ? { label: `${pendingCount} pending`, color: 'warning' }
+              : undefined,
+        },
+        { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
+        { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
+      ],
     },
     {
-      name: 'Inventory',
-      href: '/inventory',
+      label: 'Inventory',
       icon: Warehouse,
-      dotColor: 'bg-warning',
-      badge:
-        lowStockCount && lowStockCount > 0
-          ? { label: `${lowStockCount} low`, color: 'warning' }
-          : undefined,
+      items: [
+        {
+          name: 'Stock',
+          href: '/inventory',
+          icon: Warehouse,
+          dotColor: 'bg-warning',
+          badge:
+            lowStockCount && lowStockCount > 0
+              ? { label: `${lowStockCount} low`, color: 'warning' }
+              : undefined,
+        },
+        {
+          name: 'Expiration Report',
+          href: '/inventory/expiring',
+          icon: Clock,
+          dotColor: 'bg-destructive',
+        },
+      ],
     },
     {
-      name: 'Expiration Report',
-      href: '/inventory/expiring',
-      icon: Clock,
-      dotColor: 'bg-destructive',
-    },
-    { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
-    { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
-    { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
-    { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, dotColor: 'bg-secondary' },
-    { name: 'Reports', href: '/reports/sales', icon: FileText, dotColor: 'bg-secondary' },
-    {
-      name: 'Inventory Reports',
-      href: '/reports/inventory',
-      icon: AlertTriangle,
-      dotColor: 'bg-warning',
+      label: 'Procurement',
+      icon: ClipboardList,
+      items: [
+        { name: 'Procurement', href: '/procurement', icon: ShoppingCart, dotColor: 'bg-tertiary' },
+        {
+          name: 'Purchase Orders',
+          href: '/purchase-orders',
+          icon: ClipboardList,
+          dotColor: 'bg-secondary',
+        },
+      ],
     },
     {
-      name: 'Customer Reports',
-      href: '/reports/customers',
-      icon: Users,
-      dotColor: 'bg-primary',
-    },
-    {
-      name: 'Financial Reports',
-      href: '/reports/financial',
-      icon: Calculator,
-      dotColor: 'bg-secondary',
+      label: 'Finance & Reports',
+      icon: PiggyBank,
+      items: [
+        { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },
+        { name: 'Sales Report', href: '/reports/sales', icon: FileText, dotColor: 'bg-secondary' },
+        {
+          name: 'Inventory Reports',
+          href: '/reports/inventory',
+          icon: AlertTriangle,
+          dotColor: 'bg-warning',
+        },
+        {
+          name: 'Customer Reports',
+          href: '/reports/customers',
+          icon: Users,
+          dotColor: 'bg-primary',
+        },
+        {
+          name: 'Financial Reports',
+          href: '/reports/financial',
+          icon: Calculator,
+          dotColor: 'bg-secondary',
+        },
+      ],
     },
   ];
 
@@ -407,16 +526,46 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarBrand />
         </SidebarHeader>
 
-        <SidebarContent className="pr-4 sm:pr-6 pl-[10px] ">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
-                {navItems.map((item) => (
-                  <NavItem key={item.name} item={item} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <SidebarContent className="pr-4 sm:pr-6 pl-[10px]">
+          {navGroups.map((group, idx) => {
+            const GroupIcon = group.icon;
+            return (
+              <SidebarGroup key={group.label}>
+                {idx > 0 && (
+                  <div className="my-2 border-t border-sidebar-border/40 group-data-[collapsible=icon]:sr-only" />
+                )}
+                <Collapsible key={group.label} defaultOpen={false}>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        'group mb-1 flex w-full cursor-pointer items-center gap-2',
+                        'rounded-lg px-3 py-1.5 text-xs font-semibold text-sidebar-foreground',
+                        'hover:text-sidebar-foreground/50 hover:bg-sidebar-accent/40',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        'data-[state=open]:bg-sidebar-accent/20',
+                        'group-data-[collapsible=icon]:sr-only'
+                      )}
+                    >
+                      {GroupIcon && <GroupIcon className="h-3.5 w-3.5 shrink-0" />}
+                      <span className="truncate">{group.label}</span>
+                      <ChevronDown
+                        className={cn(
+                          'ml-auto h-3.5 w-3.5 shrink-0 text-sidebar-foreground/40 transition-transform duration-200',
+                          'group-data-[state=open]:rotate-180'
+                        )}
+                      />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="flex flex-col gap-y-1.5">
+                    {group.items.map((item) => (
+                      <NavItem key={item.name} item={item} />
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </SidebarGroup>
+            );
+          })}
         </SidebarContent>
 
         <SidebarFooter>

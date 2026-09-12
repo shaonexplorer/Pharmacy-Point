@@ -1,8 +1,14 @@
 /**
  * Order service — business logic for order processing.
  * Extracted from inline route handlers in orders.ts.
+ *
+ * Batch-aware stock deduction:
+ * When creating orders, stock is deducted from ProductBatch rows using
+ * FIFO (oldest expiring batch first). Each OrderItem is linked to the
+ * batch(es) its quantity was drawn from.
  */
 import { prisma } from '../../config/database';
+import { Prisma } from '@prisma/client';
 import { AppError } from '../../middleware/errorHandler';
 import { parsePagination, buildPagination } from '../../utils/pagination';
 import type { CreateOrderInput } from './order.dto';
@@ -20,7 +26,7 @@ export interface OrderListParams {
 
 /**
  * List orders with pagination and optional filters.
- * Includes customer and items with product details.
+ * Includes customer and items with product details and batch info.
  */
 export async function listOrders(params: OrderListParams): Promise<{
   data: PrismaResult[];
@@ -42,7 +48,7 @@ export async function listOrders(params: OrderListParams): Promise<{
       orderBy: { createdAt: 'desc' },
       include: {
         customer: true,
-        items: { include: { product: true } },
+        items: { include: { product: true, batch: true } },
       },
     }),
     prisma.order.count({ where }),
@@ -59,7 +65,7 @@ export async function listOrders(params: OrderListParams): Promise<{
 
 /**
  * Get a single order by ID with full relations:
- * customer, items (with products), and staff user.
+ * customer, items (with products and batches), and staff user.
  * Throws 404 if not found.
  */
 export async function getOrder(id: string): Promise<PrismaResult> {
@@ -67,7 +73,7 @@ export async function getOrder(id: string): Promise<PrismaResult> {
     where: { id },
     include: {
       customer: true,
-      items: { include: { product: true } },
+      items: { include: { product: true, batch: true } },
       user: true,
     },
   });
@@ -80,17 +86,127 @@ export async function getOrder(id: string): Promise<PrismaResult> {
 }
 
 /**
+ * Allocate stock from batches using FIFO (oldest expiring batch first).
+ * Returns an array of { batchId, quantity, batchNo } allocations.
+ *
+ * If the product has quantity > 0 but no batch records exist (legacy data
+ * or direct quantity assignment), a default batch is created from the
+ * product's current quantity to backfill the batch tracking system.
+ *
+ * Throws 400 if insufficient stock.
+ */
+async function allocateStockFromBatches(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  quantity: number
+): Promise<Array<{ batchId: string; quantity: number; batchNo: string | null }>> {
+  let batches = await tx.productBatch.findMany({
+    where: { productId, quantity: { gt: 0 } },
+    orderBy: [{ expiryDate: 'asc' }, { createdAt: 'asc' }],
+  });
+
+  // Backfill: if product has quantity but no batches, create a default batch
+  if (batches.length === 0) {
+    const product = await tx.product.findUnique({
+      where: { id: productId },
+      select: { quantity: true, batchNo: true, expiryDate: true, lotNumber: true, manufactureDate: true },
+    });
+    if (!product || product.quantity <= 0) {
+      throw new AppError(400, 'Product is out of stock');
+    }
+    // Create a default batch from the product's existing quantity
+    const defaultBatch = await tx.productBatch.create({
+      data: {
+        productId,
+        batchNo: product.batchNo ?? undefined,
+        lotNumber: product.lotNumber ?? undefined,
+        expiryDate: product.expiryDate ?? undefined,
+        manufactureDate: product.manufactureDate ?? undefined,
+        quantity: product.quantity,
+        initialQuantity: product.quantity,
+      },
+    });
+    batches = [defaultBatch];
+  }
+
+  let remaining = quantity;
+  const allocations: Array<{ batchId: string; quantity: number; batchNo: string | null }> = [];
+
+  for (const batch of batches) {
+    if (remaining <= 0) break;
+    const allocate = Math.min(batch.quantity, remaining);
+    allocations.push({ batchId: batch.id, quantity: allocate, batchNo: batch.batchNo });
+    remaining -= allocate;
+  }
+
+  if (remaining > 0) {
+    throw new AppError(400, `Insufficient stock for ${productId}: need ${quantity}, available ${quantity - remaining}`);
+  }
+
+  return allocations;
+}
+
+/**
+ * Deduct stock from batches within a transaction.
+ * Uses FIFO allocation across multiple batches if needed.
+ */
+async function deductFromBatches(
+  tx: Prisma.TransactionClient,
+  productId: string,
+  quantity: number,
+  orderId: string,
+  staffId: string | null | undefined,
+  notes?: string
+): Promise<Array<{ batchId: string; batchNo: string | null; quantity: number }>> {
+  const allocations = await allocateStockFromBatches(tx, productId, quantity);
+
+  const batchAllocations: Array<{ batchId: string; batchNo: string | null; quantity: number }> = [];
+
+  for (const alloc of allocations) {
+    const batchBefore = await tx.productBatch.findUnique({
+      where: { id: alloc.batchId },
+      select: { quantity: true },
+    });
+
+    const updatedBatch = await tx.productBatch.update({
+      where: { id: alloc.batchId },
+      data: { quantity: { decrement: alloc.quantity } },
+    });
+
+    await tx.inventoryTransaction.create({
+      data: {
+        productId,
+        batchId: alloc.batchId,
+        batchNo: alloc.batchNo,
+        type: 'STOCK_OUT',
+        quantity: alloc.quantity,
+        notes: notes ?? `Sale — Order #${orderId.slice(0, 8)}`,
+        referenceId: orderId,
+        userId: staffId ?? undefined,
+        previousQuantity: batchBefore?.quantity ?? 0,
+        newQuantity: updatedBatch.quantity,
+      },
+    });
+
+    batchAllocations.push({
+      batchId: alloc.batchId,
+      batchNo: alloc.batchNo,
+      quantity: alloc.quantity,
+    });
+  }
+
+  return batchAllocations;
+}
+
+/**
  * Create a new order.
  *
  * Uses a Prisma transaction to:
  *   1. Validate all products exist and have sufficient stock
  *   2. Create the order record
- *   3. Create order items (via createMany)
- *   4. Decrement product stock for each item
- *   5. Record STOCK_OUT inventory transactions
- *   6. Fetch and return the complete order with relations
- *
- * Throws 404 if any product is not found; 400 if insufficient stock.
+ *   3. Deduct stock from batches (FIFO) and create STOCK_OUT transactions
+ *   4. Create order items linked to their source batches
+ *   5. Fetch and return the complete order with relations
  */
 export async function createOrder(data: CreateOrderInput): Promise<PrismaResult> {
   // 1. Check all products exist, are not soft-deleted, and have sufficient stock
@@ -110,28 +226,17 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
 
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  // Validate all products were found and have sufficient stock
+  // Validate all products were found
   const missingProducts: string[] = [];
-  const insufficientStock: string[] = [];
-
   for (const item of data.items) {
     const product = productMap.get(item.productId);
-
     if (!product) {
       missingProducts.push(item.productId);
-    } else if (product.quantity < item.quantity) {
-      insufficientStock.push(
-        `${product.name} (SKU: ${product.sku}) — available: ${product.quantity}, requested: ${item.quantity}`
-      );
     }
   }
 
   if (missingProducts.length > 0) {
     throw new AppError(404, `Product IDs not found: ${missingProducts.join(', ')}`);
-  }
-
-  if (insufficientStock.length > 0) {
-    throw new AppError(400, insufficientStock.join('; '));
   }
 
   // 2-6. Create order in a transaction
@@ -166,38 +271,49 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
       });
     }
 
-    // 3. Create order items
-    const orderItemsData = data.items.map((item) => ({
-      orderId: order.id,
-      productId: item.productId,
-      quantity: item.quantity,
-      price: item.price,
-    }));
+    // 3. Deduct stock from batches and create order items
+    const staffId = data.staffId ?? undefined;
+    const orderItemBatchMap: Array<{ orderItem: PrismaResult; batchAllocations: Array<{ batchId: string; batchNo: string | null; quantity: number }> }> = [];
 
-    await tx.orderItem.createMany({ data: orderItemsData });
-
-    // 4. Decrement product stock and record STOCK_OUT transactions
     for (const item of data.items) {
-      const productBefore = productMap.get(item.productId)!;
-      const previousQuantity = productBefore.quantity;
-      const updatedProduct = await tx.product.update({
+      const product = productMap.get(item.productId)!;
+
+      // First check aggregate stock
+      if (product.quantity < item.quantity) {
+        throw new AppError(
+          400,
+          `${product.name} (SKU: ${product.sku}) — available: ${product.quantity}, requested: ${item.quantity}`
+        );
+      }
+
+      // Deduct from batches using FIFO
+      const batchAllocations = await deductFromBatches(
+        tx,
+        item.productId,
+        item.quantity,
+        order.id,
+        staffId,
+        `Sale — Order #${order.id.slice(0, 8)}`
+      );
+
+      // Update product aggregate quantity
+      await tx.product.update({
         where: { id: item.productId },
         data: { quantity: { decrement: item.quantity } },
-        select: { id: true, quantity: true },
       });
 
-      await tx.inventoryTransaction.create({
+      // Create order item — link to first batch allocation (primary batch)
+      const orderItem = await tx.orderItem.create({
         data: {
+          orderId: order.id,
           productId: item.productId,
-          type: 'STOCK_OUT',
           quantity: item.quantity,
-          referenceId: order.id,
-          notes: `Sale — Order #${order.id.slice(0, 8)}`,
-          userId: data.staffId ?? undefined,
-          previousQuantity,
-          newQuantity: updatedProduct.quantity,
+          price: item.price,
+          batchId: batchAllocations[0]?.batchId ?? undefined,
         },
       });
+
+      orderItemBatchMap.push({ orderItem, batchAllocations });
     }
 
     // 5. Fetch the complete order with all relations
@@ -207,7 +323,8 @@ export async function createOrder(data: CreateOrderInput): Promise<PrismaResult>
         customer: true,
         items: {
           include: {
-            product: { select: { id: true, name: true, sku: true, price: true, image: true } },
+            product: { select: { id: true, name: true, sku: true, price: true, image: true, batchNo: true, expiryDate: true, batches: true } },
+            batch: true,
           },
         },
         user: { select: { id: true, name: true, email: true } },
@@ -261,6 +378,7 @@ export async function updateOrderStatus(id: string, status: string): Promise<Pri
       items: {
         include: {
           product: { select: { id: true, name: true, sku: true, price: true } },
+          batch: true,
         },
       },
     },
@@ -329,20 +447,27 @@ export async function processRefund(
     return tx.order.update({
       where: { id: orderId },
       data: { status: isFull ? 'REFUNDED' : 'PARTIALLY_REFUNDED' },
-      include: { customer: true, items: { include: { product: true } } },
+      include: { customer: true, items: { include: { product: true, batch: true } } },
     });
   });
 
   return { order: updated, refundAmount: data.amount, reason: data.reason };
 }
 
+/**
+ * Process a return for an order.
+ *
+ * Restores inventory to the original batch if the batch still exists,
+ * otherwise creates/restocks a batch with the original batchNo.
+ * Also records STOCK_IN transactions and adjusts customer dueAmount for credit sales.
+ */
 export async function processReturn(
   orderId: string,
   data: { items: { orderItemId: string; quantity: number }[]; reason?: string }
 ) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { product: true, batch: true } } },
   });
   if (!order) throw new AppError(404, 'Order not found');
   if (order.status === 'RETURNED' || order.status === 'CANCELLED')
@@ -353,36 +478,76 @@ export async function processReturn(
     for (const ret of data.items) {
       const item = await tx.orderItem.findUnique({
         where: { id: ret.orderItemId },
-        include: { product: true },
+        include: { product: true, batch: true },
       });
       if (!item) throw new AppError(404, 'Order item not found');
       if (ret.quantity > item.quantity - (item.returnedQuantity || 0))
         throw new AppError(400, 'Return quantity exceeds available');
+
+      // Update returned quantity on the order item
       await tx.orderItem.update({
         where: { id: ret.orderItemId },
         data: { returnedQuantity: (item.returnedQuantity || 0) + ret.quantity },
       });
+
       // Accumulate value of returned items for credit-sale dueAmount adjustment
       returnedValue += Number(item.price) * ret.quantity;
-      // Restock inventory and create RETURN transaction
+
+      // Restore stock — to the original batch if it exists, otherwise to a batch with the same batchNo
+      let targetBatchId = item.batchId;
+
+      if (!targetBatchId) {
+        // No batch was linked — try to find a batch with the same batchNo on the product
+        const batchNo = item.product?.batchNo;
+        if (batchNo) {
+          const matchingBatch = await tx.productBatch.findFirst({
+            where: { productId: item.productId, batchNo },
+          });
+          if (matchingBatch) {
+            targetBatchId = matchingBatch.id;
+          }
+        }
+      }
+
+      const productBefore = await tx.product.findUnique({
+        where: { id: item.productId },
+        select: { quantity: true },
+      });
+
+      // Restore product aggregate quantity
       await tx.product.update({
         where: { id: item.productId },
         data: { quantity: { increment: ret.quantity } },
       });
+
+      // Create STOCK_IN transaction linked to the batch (if found)
       await tx.inventoryTransaction.create({
         data: {
           productId: item.productId,
+          batchId: targetBatchId ?? undefined,
+          batchNo: item.batch?.batchNo ?? item.product?.batchNo ?? undefined,
           type: 'STOCK_IN',
           quantity: ret.quantity,
-          batchNo: item.product?.batchNo,
-          userId: undefined,
-          previousQuantity: item.product?.quantity ?? 0,
-          newQuantity: (item.product?.quantity ?? 0) + ret.quantity,
           notes: `Return for order ${orderId}`,
           referenceId: orderId,
+          previousQuantity: productBefore?.quantity ?? 0,
+          newQuantity: (productBefore?.quantity ?? 0) + ret.quantity,
         },
       });
+
+      // If restoring to an existing batch, update its quantity
+      if (targetBatchId) {
+        const batchBefore = await tx.productBatch.findUnique({
+          where: { id: targetBatchId },
+          select: { quantity: true },
+        });
+        await tx.productBatch.update({
+          where: { id: targetBatchId },
+          data: { quantity: { increment: ret.quantity } },
+        });
+      }
     }
+
     // Adjust customer due amount for credit sale returns
     if (order.isCreditSale && order.customerId && returnedValue > 0) {
       await tx.customer.update({
@@ -390,6 +555,7 @@ export async function processReturn(
         data: { dueAmount: { decrement: returnedValue } },
       });
     }
+
     await tx.order.update({ where: { id: orderId }, data: { status: 'RETURNED' } });
   });
 
@@ -399,7 +565,7 @@ export async function processReturn(
 export async function getReturns(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { items: { include: { product: true } } },
+    include: { items: { include: { product: true, batch: true } } },
   });
   if (!order) throw new AppError(404, 'Order not found');
   const returned = order.items.filter((i) => (i.returnedQuantity || 0) > 0);

@@ -33,9 +33,28 @@ export interface Product {
   batchNo?: string | null;
   lowStockThreshold?: number | null;
   expiryDate?: string | null;
+  lotNumber?: string | null;
+  manufactureDate?: string | null;
   category: string;
   image?: string | null;
   deletedAt?: string | null;
+  batches?: ProductBatch[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductBatch {
+  id: string;
+  productId: string;
+  batchNo?: string | null;
+  lotNumber?: string | null;
+  expiryDate?: string | null;
+  manufactureDate?: string | null;
+  quantity: number;
+  initialQuantity: number;
+  costPrice?: number | null;
+  referenceId?: string | null;
+  userId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +114,8 @@ export interface OrderItem {
   returnedQuantity?: number;
   refunded?: boolean;
   price: number;
+  batchId?: string | null;
+  batch?: ProductBatch | null;
 }
 
 export interface OrderItemWithProduct extends OrderItem {
@@ -111,6 +132,7 @@ export interface CreateOrderItemInput {
   productId: string;
   quantity: number;
   price: number;
+  batchId?: string | null;
 }
 
 export interface CreateOrderInput {
@@ -209,12 +231,21 @@ export interface InventoryTransaction {
   quantity: number;
   notes?: string | null;
   referenceId?: string | null;
+  batchNo?: string | null;
+  batchId?: string | null;
+  batch?: ProductBatch | null;
+  userId?: string | null;
+  user?: { id: string; name?: string | null; email: string } | null;
+  previousQuantity?: number | null;
+  newQuantity?: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface InventoryItem extends Product {
   isLowStock: boolean;
+  batches?: ProductBatch[];
+  primaryBatch?: ProductBatch | null;
 }
 
 export interface StockInInput {
@@ -222,21 +253,29 @@ export interface StockInInput {
   barcode?: string;
   quantity: number;
   batchNo?: string;
+  lotNumber?: string;
   expiryDate?: string;
+  manufactureDate?: string;
+  costPrice?: number;
   notes?: string;
   referenceId?: string;
+  userId?: string;
 }
 
 export interface StockOutInput {
   productId: string;
+  batchId?: string;
   quantity: number;
   notes?: string;
   referenceId?: string;
+  userId?: string;
 }
 
 export interface StockAdjustInput {
   quantity: number;
+  batchNo?: string;
   notes?: string;
+  userId?: string;
 }
 
 /**
@@ -251,6 +290,7 @@ export interface Stats {
   salesThisMonth: number;
   totalInventoryValue?: number;
   totalTransactions?: number;
+  totalBatches?: number;
   stockInThisMonth?: number;
   stockOutThisMonth?: number;
   pendingOrders?: number;
@@ -356,6 +396,127 @@ export interface ExpenseStats {
   byCategory: Record<string, number>;
   byPaymentMethod: Record<string, number>;
 }
+
+// ─── Supplier Types ────────────────────────────────────────────────
+
+/** A single representative / medical promotion officer for a supplier */
+export interface SupplierRepresentative {
+  id: string;
+  supplierId: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  whatsappNumber?: string | null;
+  designation?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Purchase order statuses */
+export type PurchaseOrderStatus = 'PENDING' | 'APPROVED' | 'RECEIVED' | 'CANCELLED';
+
+/** A single line item on a purchase order */
+export interface PurchaseOrderItem {
+  id: string;
+  poId: string;
+  productId?: string | null;
+  product?: Product | null;
+  quantity: number;
+  unitPrice: number;
+  receivedQty?: number;
+  notes?: string | null;
+}
+
+/** A purchase order associated with a supplier */
+export interface PurchaseOrder {
+  id: string;
+  supplierId: string;
+  supplier?: Supplier | null;
+  supplierRepresentativeId?: string | null;
+  supplierRepresentative?: SupplierRepresentative | null;
+  poNumber: string;
+  status: PurchaseOrderStatus;
+  totalAmount: number;
+  notes?: string | null;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  expectedDeliveryDate?: string | null;
+  createdById?: string | null;
+  items?: PurchaseOrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Input for creating a purchase order (from procurement cart) */
+export interface CreatePurchaseOrderItemInput {
+  productId: string;
+  quantity: number;
+  unitPrice?: number;
+  notes?: string;
+}
+
+export type CreatePurchaseOrderInput = {
+  supplierId: string;
+  supplierRepresentativeId?: string | null;
+  expectedDeliveryDate?: string | null;
+  notes?: string | null;
+  createdById?: string | null;
+  items: CreatePurchaseOrderItemInput[];
+};
+
+/** A purchase order with full relations (for detail views) */
+export type PurchaseOrderWithItems = PurchaseOrder & {
+  items: PurchaseOrderItem[];
+};
+
+/** A supplier in the pharmacy management system */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  leadTimeDays: number;
+  paymentTerms?: string | null;
+  performanceRating?: number | null;
+  representatives?: SupplierRepresentative[];
+  purchaseOrders?: PurchaseOrder[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Input for creating a supplier */
+export type CreateSupplierInput = {
+  name: string;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  leadTimeDays?: number;
+  paymentTerms?: string;
+  performanceRating?: number;
+  representatives?: CreateSupplierRepresentativeInput[];
+};
+
+/** Input for updating a supplier */
+export type UpdateSupplierInput = Partial<CreateSupplierInput>;
+
+/** Input for creating a supplier representative */
+export type CreateSupplierRepresentativeInput = {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  whatsappNumber?: string | null;
+  designation?: string | null;
+  address?: string | null;
+  notes?: string | null;
+};
+
+/** Input for updating a supplier representative */
+export type UpdateSupplierRepresentativeInput = Partial<CreateSupplierRepresentativeInput>;
 
 // ─── Reports Types ────────────────────────────────────────────────
 
@@ -538,4 +699,25 @@ export interface FinancialReportResponse {
     hasNext: boolean;
     hasPrev: boolean;
   };
+}
+
+// ─── WhatsApp Message Types ─────────────────────────────────
+
+/** Response from the WhatsApp Business Cloud API */
+export interface WhatsAppMessageResponse {
+  /** Meta message ID, or undefined if sending failed */
+  id?: string;
+  /** The wa_id of the contact that received the message */
+  waId?: string;
+  /** Error message if the message could not be sent */
+  error?: string;
+}
+
+/** Response for a PO WhatsApp sending request */
+export interface WhatsAppPOResponse {
+  success: boolean;
+  message: string;
+  messageId?: string;
+  waId?: string;
+  fallbackLink?: string;
 }

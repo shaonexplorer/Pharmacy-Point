@@ -326,13 +326,12 @@ function PosContent() {
               redeemedPoints={redeemedPoints}
               isCreditSale={isCreditSale}
               onPaymentMethodChange={setPaymentMethod}
-              onCustomerChange={(value) => {
-                const c = customers.find((cust) => cust.id === value);
+              onCustomerChange={(value, customer) => {
                 setCustomer(value || null, {
-                  name: c?.name ?? null,
-                  dueAmount: (c as any)?.dueAmount ?? 0,
-                  loyaltyPoints: (c as any)?.loyaltyPoints ?? 0,
-                  loyaltyTier: (c as any)?.loyaltyTier ?? 'Bronze',
+                  name: customer?.name ?? null,
+                  dueAmount: customer?.dueAmount ?? 0,
+                  loyaltyPoints: customer?.loyaltyPoints ?? 0,
+                  loyaltyTier: customer?.loyaltyTier ?? 'Bronze',
                 });
               }}
               onDiscountChange={setDiscountPercent}
@@ -348,20 +347,30 @@ function PosContent() {
 }
 
 export default function PosPage() {
-  const [isOnline, setIsOnline] = React.useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = React.useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
   React.useEffect(() => {
     const on = () => setIsOnline(true);
     const off = () => setIsOnline(false);
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
     setIsOnline(navigator.onLine);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
   }, []);
   React.useEffect(() => {
     if (isOnline) {
       try {
         const q = JSON.parse(localStorage.getItem('pharmacy-offline-queue') || '[]');
-        if (q.length) fetch('/api/orders/offline/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orders: q }) }).then(() => localStorage.removeItem('pharmacy-offline-queue'));
+        if (q.length)
+          fetch('/api/orders/offline/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orders: q }),
+          }).then(() => localStorage.removeItem('pharmacy-offline-queue'));
       } catch {}
     }
   }, [isOnline]);

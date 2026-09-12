@@ -41,7 +41,7 @@ export function buildActivityItems(
       iconColor: isStockIn ? 'text-tertiary' : isStockOut ? 'text-secondary' : 'text-warning',
       iconBg: isStockIn ? 'bg-tertiary/10' : isStockOut ? 'bg-secondary/10' : 'bg-warning/10',
       title: isStockIn ? 'Stock received' : isStockOut ? 'Sale dispensed' : 'Stock adjusted',
-      description: `${tx.product?.name ?? tx.product?.sku ?? 'Unknown product'} · ${((tx as unknown as { previousQuantity?: number }).previousQuantity ?? -1) !== -1 ? `qty ${(tx as unknown as { previousQuantity?: number }).previousQuantity ?? 0}→${(tx as unknown as { newQuantity?: number }).newQuantity ?? 0}` : ''} ${((tx as unknown as { user?: { name?: string } }).user?.name) ? `· by ${(tx as unknown as { user?: { name?: string } }).user!.name}` : ''} ${((tx as unknown as { referenceId?: string }).referenceId) ? `· ref ${(tx as unknown as { referenceId?: string }).referenceId!.slice(0, 6)}` : ''}`,
+      description: `${tx.product?.name ?? tx.product?.sku ?? 'Unknown product'} · ${tx.batchNo ? `Batch: ${tx.batchNo}` : ''} ${((tx as unknown as { previousQuantity?: number }).previousQuantity ?? -1) !== -1 ? `qty ${(tx as unknown as { previousQuantity?: number }).previousQuantity ?? 0}→${(tx as unknown as { newQuantity?: number }).newQuantity ?? 0}` : ''} ${((tx as unknown as { user?: { name?: string } }).user?.name) ? `· by ${(tx as unknown as { user?: { name?: string } }).user!.name}` : ''} ${((tx as unknown as { referenceId?: string }).referenceId) ? `· ref ${(tx as unknown as { referenceId?: string }).referenceId!.slice(0, 6)}` : ''}`,
       badgeLabel: isStockIn ? 'Received' : isStockOut ? 'Dispensed' : 'Adjusted',
       badgeVariant: isStockIn ? 'success' : isStockOut ? 'destructive' : 'secondary',
     };

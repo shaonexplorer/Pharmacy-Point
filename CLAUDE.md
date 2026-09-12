@@ -128,7 +128,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working on code
 The credit sale flow had several bugs where `Customer.dueAmount` was never updated on credit sale orders, causing due accounts to be invisible in the POS and due-account listings. The following fixes were applied:
 
 - **Order creation updates `dueAmount`** (`backend/src/modules/orders/order.service.ts`): Inside the `createOrder` Prisma transaction, when `isCreditSale` is `true` and `customerId` is set, the customer's `dueAmount` is incremented by the order `total`. Previously this step was missing entirely.
-- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Previously only orders/inventory/products/stats and customer lists were invalidated.
+- **Frontend query invalidation** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates customer list, due-account, and the individual customer detail (`customerKeys.detail(customerId)`) and dashboard queries so the UI reflects updated balances after a credit sale. Additionally, `productKeys.detail(item.productId)` is now invalidated for each order item so product detail pages reflect stock decrements immediately. `useReturnOrder` now invalidates `productKeys.lists()` since returns restock product aggregate quantities. Previously only orders/inventory/products/stats and customer lists were invalidated.
 - **Refund adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processRefund`): Within the refund transaction, if the order is a credit sale with a linked customer, the customer's `dueAmount` is decremented by the refunded amount.
 - **Return adjusts `dueAmount`** (`backend/src/modules/orders/order.service.ts` `processReturn`): The returned item value (`Σ item.price × returnedQty`) is accumulated during the return transaction; if the order is a credit sale with a linked customer, `dueAmount` is decremented by that value.
 - **Refund/returned orders excluded from balance recalculation** (`backend/src/modules/customers/customer.service.ts` `recordDuePayment`): The recalculation query now excludes `CANCELLED`, `REFUNDED`, and `RETURNED` orders (previously only `CANCELLED` was excluded).
@@ -212,7 +212,7 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 **Phase 2: Inventory Management - Step 7 COMPLETED ✅ (Enhanced Search and Filtering)**
 - `barcode`, `batchNo`, `expiryDate` query filters added to `GET /api/inventory` (`inventory.service.ts`, `inventory.controller.ts`): case-insensitive `contains` for barcode/batchNo; date-range filter for expiryDate
 - `InventoryListParams` interface extended with optional `barcode`, `batchNo`, `expiryDate`
-- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param)
+- Frontend `inventory-columns.tsx` updated with `batchNo` column; TanStack Table `globalFilter` (via `getFilteredRowModel`) covers all columns client-side, preserving Phase 1 pattern (no server-side `search` param); Expiry column now filters out batches with 0 quantity to determine the earliest-expiring active batch for the expiry status chip; batch count badge only counts active (quantity > 0) batches; same filtering applied to ProductTable batch count and expiry columns
 - Plan spec `specs/phase-2/phase-2-inventory-management/plan.md` step 7 marked implemented
 
 **Phase 4: Advanced Inventory — Week 15-16 COMPLETED ✅**
@@ -253,6 +253,20 @@ The credit sale flow had several bugs where `Customer.dueAmount` was never updat
 - `GET /api/inventory/expiring/export` endpoint with `days` query param
 - Frontend inventory page export button wired to `/api/inventory/export`
 - Expiration report retains local CSV/PDF export
+
+**Phase 2: Inventory Management - Step 9 COMPLETED ✅ (Batch / Lot Tracking)**
+- New `ProductBatch` model tracks individual batches per product (batchNo, lotNumber, expiryDate, manufactureDate, quantity, initialQuantity, costPrice, referenceId)
+- `Product.quantity` remains a denormalised aggregate of all batch quantities (kept in sync via `updateProductPrimaryBatch` inside every transaction)
+- `Product.batchNo` / `Product.expiryDate` reflect the primary (earliest-expiring) batch for backward compatibility
+- Added `batchId` FK to `InventoryTransaction` and `OrderItem` for batch-level traceability
+- **Stock-in** (`POST /api/inventory/stock-in`): Creates a `ProductBatch` record, links the transaction to it, syncs product primary batch fields
+- **Stock-out** (`POST /api/inventory/stock-out`): FIFO allocation (oldest expiring batch first); if quantity spans multiple batches, multiple `STOCK_OUT` transactions are created; optional `batchId` for batch-specific deduction; backfills a default batch if product has quantity but no batch records (migration safety)
+- **Adjustment** (`PATCH /api/inventory/:productId/adjust`): When `batchNo` is provided, sets that batch's quantity and recalculates the product aggregate; when no `batchNo` is provided but the product has active batches, the adjustment is **distributed proportionally** across all active batches (quantity > 0) to keep batch quantities in sync with the product aggregate. Falls back to legacy product-level adjustment when no active batches exist.
+- **Order creation** (`POST /api/orders`): FIFO batch deduction linked to `OrderItem.batchId`; backfills default batch for legacy products
+- **Returns** (`POST /api/orders/:id/return`): Restores to the original batch (by `batchId` or `batchNo`)
+- **New endpoint**: `GET /api/inventory/:productId/batches` — list all batches for a product ordered by expiry
+- **Frontend**: `StockAdjustmentModal` with batch fields (batchNo, lotNumber, expiryDate, manufactureDate, costPrice for STOCK_IN; batch dropdown with FIFO fallback for STOCK_OUT); product detail page shows a "Batch / Lot Tracking" table with an "Add Stock" button that opens `ReceiveStockForm` — a simplified stock-in dialog with prefilled product context (name, SKU, current stock) and only three editable fields (Quantity, Batch No, Expiry Date); POS receipt shows batch number and expiry per line item; inventory table shows batch count badges; `useProductBatches` hook added
+- Shared types extended: `ProductBatch` interface, `Product.batches`, `InventoryItem.batches`/`primaryBatch`, `InventoryTransaction.batchId`/`batch`/`batchNo`, `OrderItem.batchId`/`batch`, `StockInInput.lotNumber`/`manufactureDate`/`costPrice`, `StockOutInput.batchId`, `Stats.totalBatches`
 
 ## Project Structure
 
@@ -357,7 +371,7 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
     DTO + Service + Controller + Routes (under `src/modules/`). Cross-cutting
     concerns (validation, error handling, serialization) are shared middleware/utils.
 - **Database**: PostgreSQL 15+ with Prisma migrations
-- **State Management**: React Query (TanStack Query) for server state
+- **State Management**: React Query (TanStack Query) for server state; React Context (`PosContext`, `ProcurementCartContext`) for client-side cart state
 - **Validation**: Zod for both frontend forms and backend API input validation
 
 ## Data Models
@@ -379,6 +393,7 @@ model User {
   orders        Order[]
   sessions      Session[]
   inventoryTransactions InventoryTransaction[]
+  productBatches        ProductBatch[]
 
   @@map("users")
 }
@@ -415,6 +430,7 @@ model Product {
   deletedAt             DateTime?
   inventoryTransactions InventoryTransaction[]
   orderItems            OrderItem[]
+  batches               ProductBatch[]
   company               Company?               @relation(fields: [companyId], references: [id])
 
   @@index([category])
@@ -424,25 +440,54 @@ model Product {
   @@map("products")
 }
 
+model ProductBatch {
+  id                String                 @id @default(cuid())
+  productId         String
+  batchNo           String?                @unique
+  lotNumber         String?
+  expiryDate        DateTime?
+  manufactureDate   DateTime?
+  quantity          Int                    @default(0)
+  initialQuantity   Int                    @default(0)
+  costPrice         Decimal?               @db.Decimal(10, 2)
+  referenceId       String?
+  userId            String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  product           Product                @relation(fields: [productId], references: [id])
+  user              User?                  @relation(fields: [userId], references: [id])
+  inventoryTransactions InventoryTransaction[]
+  orderItems        OrderItem[]
+
+  @@index([productId])
+  @@index([batchNo])
+  @@index([expiryDate])
+  @@index([productId, batchNo])
+  @@map("product_batches")
+}
+
 model InventoryTransaction {
-  id             String          @id @default(cuid())
-  productId      String
-  type           TransactionType
-  quantity       Int
-  batchNo        String?
-  userId         String?
+  id               String          @id @default(cuid())
+  productId        String
+  type             TransactionType
+  quantity         Int
+  batchNo          String?
+  batchId          String?
+  userId           String?
   previousQuantity Int?
-  newQuantity    Int?
-  notes          String?
-  referenceId    String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  product        Product         @relation(fields: [productId], references: [id])
-  user           User?           @relation(fields: [userId], references: [id])
+  newQuantity      Int?
+  notes            String?
+  referenceId      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  product          Product         @relation(fields: [productId], references: [id])
+  batch            ProductBatch?   @relation(fields: [batchId], references: [id])
+  user             User?           @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([type])
   @@index([createdAt])
+  @@index([batchId])
   @@map("inventory_transactions")
 }
 
@@ -507,19 +552,66 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  productId String
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  id               String        @id @default(cuid())
+  orderId          String
+  productId        String
+  quantity         Int
+  price            Decimal       @db.Decimal(10, 2)
+  batchId          String?
+  order            Order         @relation(fields: [orderId], references: [id])
+  product          Product       @relation(fields: [productId], references: [id])
+  batch            ProductBatch? @relation(fields: [batchId], references: [id])
+
+  @@index([batchId])
 }
 
 enum OrderStatus {
   PENDING
   COMPLETED
   CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  RETURNED
+}
+```
+
+```prisma
+model PurchaseOrder {
+  id                       String                  @id @default(cuid())
+  supplierId               String
+  supplierRepresentativeId String?
+  poNumber                 String                  @unique
+  status                   POStatus                @default(PENDING)
+  totalAmount              Decimal                 @default(0) @db.Decimal(10, 2)
+  notes                    String?
+  approvedBy               String?
+  approvedAt               DateTime?
+  expectedDeliveryDate     DateTime?
+  createdById              String?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  items                    PurchaseOrderItem[]
+  supplier                 Supplier                @relation(fields: [supplierId], references: [id])
+  supplierRepresentative   SupplierRepresentative? @relation(fields: [supplierRepresentativeId], references: [id])
+  createdBy                User?                   @relation(fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+```
+
+```prisma
+model PurchaseOrderItem {
+  id          String        @id @default(cuid())
+  poId        String
+  productId   String?
+  quantity    Int
+  unitPrice   Decimal       @db.Decimal(10, 2)
+  receivedQty Int           @default(0)
+  notes       String?
+  po          PurchaseOrder @relation(fields: [poId], references: [id])
+  product     Product?      @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
 }
 ```
 
@@ -540,12 +632,13 @@ enum OrderStatus {
 - `DELETE /api/products/:id` - Soft delete product
 
 ### Inventory API (`/api/inventory`) [NEW]
-- `GET /api/inventory` - List inventory with pagination, low stock filter (search handled client-side via TanStack Table globalFilter)
+- `GET /api/inventory` - List inventory with pagination, low stock filter, barcode/batchNo/expiryDate filters
 - Note: the `search` query param is no longer passed to the API — client-side search is handled by TanStack Table's `globalFilter` in the `InventoryTable` component
-- `GET /api/inventory/transactions` - List transaction history
-- `POST /api/inventory/stock-in` - Record stock in (purchase receipt)
-- `POST /api/inventory/stock-out` - Record stock out (sale)
-- `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment
+- `GET /api/inventory/transactions` - List transaction history (includes batch and user attribution)
+- `POST /api/inventory/stock-in` - Record stock in (creates a ProductBatch, links transaction to batch; accepts batchNo, lotNumber, expiryDate, manufactureDate, costPrice)
+- `POST /api/inventory/stock-out` - Record stock out (FIFO batch allocation or specific batchId; creates STOCK_OUT transactions per batch)
+- `GET /api/inventory/:productId/batches` - List all batches for a product (ordered by expiry)
+- `PATCH /api/inventory/:productId/adjust` - Manual stock adjustment (batch-specific via batchNo, or product-level)
 
 ### Customers API (`/api/customers`) [NEW]
 - `GET /api/customers` - List with pagination and search (page, limit, search)
@@ -567,13 +660,13 @@ enum OrderStatus {
 ### Stats API (`/api/stats`) [NEW]
 - `GET /api/stats` - Get aggregated statistics for dashboard (returns flat `Stats` object)
 - Frontend: `useStats` hook (`frontend/src/hooks/useStats.ts`) fetches via the `api` client (`api.stats.get()` → axios GET to `http://localhost:5000/api/stats`)
-- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, pending orders, total expenses, and expenses this month
+- Service (`backend/src/modules/stats/stats.service.ts`): queries Prisma for total products, companies, low-stock items, inventory value, monthly stock-in/out counts, total sales, pending orders, total expenses, and expenses this month. Includes `totalBatches` count (batches with quantity > 0)
 
 ### Analytics API (`/api/analytics`) [Phase 3 - NEW]
 - `GET /api/analytics/dashboard?period=month&days=30` — Comprehensive analytics dashboard (overview + revenue trends + sales by category + inventory status + top products)
 - `GET /api/analytics/revenue-trends?period=month&days=30` — Revenue trend data for charting (labels, revenue, orders arrays)
 - `GET /api/analytics/sales-by-category?days=30` — Sales breakdown by product category
-- `GET /api/analytics/inventory-status` — Inventory status summary (inStock, lowStock, outOfStock, totalInventoryValue)
+- `GET /api/analytics/inventory-status` — Inventory status summary (totalProducts, totalBatches, inStock, lowStock, outOfStock, totalInventoryValue)
 - `GET /api/analytics/top-products?days=30&limit=5` — Top products by revenue
 
 ### Reports API (`/api/reports`) [Phase 3 - NEW]
@@ -590,6 +683,33 @@ enum OrderStatus {
 - `POST /api/expenses` — Create expense (category validates against 10-standard enum, receiptImage accepts empty string)
 - `PUT /api/expenses/:id` — Update expense
 - `DELETE /api/expenses/:id` — Delete expense (hard delete; no child records)
+
+### Suppliers API (`/api/suppliers`) [NEW]
+- `GET /api/suppliers` — List with pagination, search (name/contactName/email/phone), includes representatives; `GET /api/suppliers/:supplierId/representatives` listed before `/:id` to prevent route shadowing
+- `GET /api/suppliers/:id` — Get supplier with representatives + recent purchase orders
+- `POST /api/suppliers` — Create supplier (supports nested `representatives` array in payload)
+- `PUT /api/suppliers/:id` — Update supplier (handles representative upsert/delete)
+- `DELETE /api/suppliers/:id` — Delete supplier (guarded against suppliers with purchase orders)
+- `GET /api/suppliers/:supplierId/representatives` — List representatives for a supplier
+- `POST /api/suppliers/:supplierId/representatives` — Create a representative (whatsappNumber, email, phone, designation)
+- `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
+- `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
+
+### Purchase Orders API (`/api/purchase-orders`) [NEW]
+- `GET /api/purchase-orders` — List with pagination, filter by `status` or `supplierId`
+- `GET /api/purchase-orders/:id` — Get PO with items (including product lite) and supplier/representative relations
+- `POST /api/purchase-orders` — Create PO (auto-generates poNumber, validates supplier + representative, validates products, calculates totalAmount, links rep + creator)
+- `PATCH /api/purchase-orders/:id/approve` — Approve a PO (updates status to APPROVED, sets approvedBy + approvedAt)
+- `POST /api/purchase-orders/:id/receive` — Receive PO (increments product stock by ordered quantity, updates receivedQty, sets status to RECEIVED)
+- `PATCH /api/purchase-orders/:id/cancel` — Cancel a PO (only allowed in PENDING status)
+
+### Notifications API (`/api/notifications`) [NEW]
+- `POST /api/notifications/send` — Send batch alerts (low_stock, expiry, due_account) via email
+- `POST /api/notifications/send/due-accounts` — Send due account alert emails to configured recipients
+- `POST /api/notifications/reminders` — Send payment reminder emails to customers with due amounts
+- `GET /api/notifications/whatsapp/status` — Check if WhatsApp Business Cloud API is configured
+- `POST /api/notifications/whatsapp` — Send a text message via WhatsApp Business Cloud API (body: `{ to, message }`)
+- `POST /api/notifications/whatsapp/purchase-order` — Send PO details to a supplier representative's WhatsApp number (body: `{ purchaseOrderId, phoneOverride? }`); returns a `wa.me` fallback link if the API is not configured
 
 ## Development Workflow
 
@@ -614,6 +734,17 @@ enum OrderStatus {
    npm run dev --workspace=frontend  # http://localhost:3000
    npm run dev --workspace=backend   # http://localhost:5000
    ```
+
+   To enable the WhatsApp Business Cloud API for supplier messaging, add these
+   variables to `backend/.env` (see Meta for Developers for token management):
+   ```env
+   WHATSAPP_TOKEN=your-meta-cloud-api-access-token
+   WHATSAPP_PHONE_NUMBER_ID=your-whatsapp-business-phone-number-id
+   WHATSAPP_BUSINESS_ACCOUNT_ID=your-meta-business-account-id
+   WHATSAPP_API_VERSION=v21.0
+   ```
+   Without these, the procurement WhatsApp button falls back to opening `wa.me`
+   links in a new browser tab.
 
 ## Available Scripts (Root)
 - `npm run dev` - Start both frontend and backend development servers
@@ -641,6 +772,11 @@ enum OrderStatus {
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
+- `frontend/src/context/ProcurementCartContext.tsx` - Procurement cart state (mirrors PosContext pattern)
+- `frontend/src/components/procurement/` - Procurement cart components (Sheet, Button, CartItem)
+- `frontend/src/hooks/usePurchaseOrders.ts` - React Query hooks for purchase orders
+- `frontend/src/components/theme-provider.tsx` - Custom dark mode ThemeProvider (React Context, not next-themes)
+- `frontend/src/components/mode-toggle.tsx` - Dark mode toggle dropdown (Light/Dark/System)
 
 ## Path Aliases
 The following path aliases are configured for monorepo imports:
@@ -663,6 +799,20 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 - **Grid**: 12-column desktop, 4-column mobile
 - **Container Max**: 1440px
 
+### Dark Mode System
+
+The application uses a **class-based dark mode** system with CSS custom properties.
+
+**Architecture:**
+- `frontend/src/components/theme-provider.tsx` — Custom React Context provider (does NOT use `next-themes`; the npm package failed to install via npm workspaces). Manages theme state (`'light' | 'dark' | 'system'`), reads/writes `localStorage.theme`, and toggles the `.dark` class on `document.documentElement`.
+- `frontend/src/components/mode-toggle.tsx` — Shadcn/ui `DropdownMenu` button with animated sun↔moon icon. Located in: login page (top-right), signup page (top-right), sidebar footer (above Sign Out), mobile header, and `NavigationLoading` (during session check).
+- `frontend/src/app/layout.tsx` — Anti-flicker `<ThemeScript>` inline script reads `localStorage.theme` before hydration and applies `.dark` class. `ThemeProvider` wraps `Navigation`.
+- `frontend/src/app/globals.css` — CSS variables in `:root { }` (light mode) and `.dark { }` (dark mode). Uses `@custom-variant dark (&:is(.dark *))` to enable Tailwind's `dark:` utility classes.
+- **No `@media (prefers-color-scheme: dark)` block** — dark mode is controlled exclusively via the `.dark` class. The system preference is only used by the ThemeProvider when `theme === 'system'`.
+
+**Why no `@media (prefers-color-scheme: dark)` block?**
+Previously, this media query overrode `:root` CSS variables when the OS/browser was set to dark. This prevented users from selecting "Light" mode while the system was in dark mode — the media query would always re-apply dark variables regardless of the `.dark` class. Removing it ensures the `.dark` class is the sole source of truth for dark mode styling.
+
 ## Navigation Structure
 
 ```
@@ -680,6 +830,13 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── companies/new/ - Add company form
 ├── companies/[id]/ - View company details
 ├── companies/[id]/edit/ - Edit company form
+├── suppliers/ - Supplier list with representatives and purchase orders
+├── suppliers/new/ - Add supplier form with representative management
+├── suppliers/[id]/ - View supplier details with representative directory
+├── suppliers/[id]/edit/ - Edit supplier form with representative management
+├── procurement/ - Procurement cart for ordering from suppliers (full-page cart review + PO creation)
+├── purchase-orders/ - Purchase order list with search and status filters
+├── purchase-orders/[id]/ - View purchase order details with items, supplier info, and actions (approve/receive/cancel)
 ├── customers/ - Customer list with search and TanStack Table
 ├── customers/new/ - Add customer form
 ├── customers/[id]/ - View customer details with order history
@@ -1041,6 +1198,94 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Dashboard updated with "Total Expenses" KPI card and "Record Expense" quick action
 - Sidebar: "Expenses" nav item added with `PiggyBank` icon, `bg-warning` dot
 
+### Supplier Management — COMPLETED ✅
+
+- `Supplier` model extended with `representatives` relation (one-to-many)
+- New `SupplierRepresentative` model tracks medical promotion officers / sales representatives with:
+  - `name`, `email` (unique), `phone`, `whatsappNumber`, `designation`, `address`, `notes`
+  - `supplierId` FK with `onDelete: Cascade`
+- Backend `suppliers` module (`backend/src/modules/suppliers/`):
+  - `supplier.dto.ts` — Zod schemas: `supplierSchema` (with nested `representatives` array) and `supplierRepresentativeSchema`
+  - `supplier.service.ts` — Full CRUD with pagination + search (across name/contactName/email/phone), nested representative upsert/delete within supplier transactions, dedicated representative CRUD functions
+  - `supplier.controller.ts` — `asyncHandler` pattern with `{ data, pagination }` / `{ data, message }` response shapes; representative controller methods
+  - `supplier.routes.ts` — Route ordering: `/representatives` sub-routes registered before `/:id` to prevent shadowing
+  - `serializers.ts` — `serializeSupplier`, `serializeSupplierRepresentative`, `serializePurchaseOrder`
+- API endpoints:
+  - `GET /api/suppliers` — List with pagination, search (name/contact/email/phone), includes representatives
+  - `GET /api/suppliers/:id` — Get supplier with representatives + recent purchase orders
+  - `POST /api/suppliers` — Create supplier (supports nested `representatives` array in payload)
+  - `PUT /api/suppliers/:id` — Update supplier (handles rep upsert/delete)
+  - `DELETE /api/suppliers/:id` — Delete supplier (guarded against suppliers with purchase orders)
+  - `GET /api/suppliers/:supplierId/representatives` — List representatives
+  - `POST /api/suppliers/:supplierId/representatives` — Create a representative
+  - `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
+  - `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
+- Shared types (`packages/types/src/index.ts`): `Supplier`, `SupplierRepresentative`, `PurchaseOrder`, `PurchaseOrderItem`, `CreateSupplierInput`, `UpdateSupplierInput`, `CreateSupplierRepresentativeInput`, `UpdateSupplierRepresentativeInput`, `CreatePurchaseOrderInput`, `PurchaseOrderWithItems`
+- Frontend:
+  - `frontend/src/hooks/useSuppliers.ts` — 7 React Query hooks (list, detail, representatives, create/update/delete supplier, create/update/delete representative) with proper invalidation
+  - `frontend/src/components/suppliers/SupplierTable.tsx` — TanStack Table with sorting, pagination, representative count column, email/phone quick-links
+  - `frontend/src/components/suppliers/SupplierForm.tsx` — Form with supplier fields + inline representative sub-table (add/edit/remove rows with name, email, phone, **WhatsApp**, designation, address, notes)
+  - `frontend/src/app/suppliers/page.tsx` — List page with search and delete confirmation
+  - `frontend/src/app/suppliers/new/page.tsx` — Create page
+  - `frontend/src/app/suppliers/[id]/page.tsx` — Detail page with representative directory (WhatsApp links), purchase order summary, performance rating badge
+  - `frontend/src/app/suppliers/[id]/edit/page.tsx` — Edit page with pre-filled form
+  - Sidebar: "Suppliers" nav item added with `Truck` icon, `bg-secondary` dot
+- Database: `prisma db push` applied; Prisma client regenerated
+
+**Phase 2: Procurement Cart & Supplier Ordering - COMPLETED ✅**
+- Extended Prisma schema:
+  - `PurchaseOrder` model: added `supplierRepresentativeId` (FK → SupplierRepresentative), `createdById` (FK → User), `expectedDeliveryDate`
+  - `PurchaseOrderItem` model: added `notes` field
+  - `User` model: added `purchaseOrders` relation
+  - `SupplierRepresentative` model: added `purchaseOrders` relation
+- Backend `purchase-orders` module enhanced (`backend/src/modules/purchase-orders/`):
+  - `purchase-order.dto.ts` — extended `poSchema` (poNumber auto-generated, optional representative/deliveryDate/createdBy, items with notes); added `POItemInput` type
+  - `purchase-order.service.ts` — enhanced `createPO` (auto-generates poNumber in `PO-{YYYYMM}-{NNN}` format, validates supplier/representative existence, validates all products exist and are not soft-deleted, defaults unitPrice to product price, calculates totalAmount, links representative and creator); enhanced `listPOs` with pagination/filters; enhanced `getPO` with full relations; enhanced `receivePO` to track receivedQty; added `cancelPO`
+  - `purchase-order.controller.ts` — uses `asyncHandler` pattern with `{ data, pagination }` / `{ data, message }` response shapes; added `cancel` handler
+  - `purchase-order.routes.ts` — action routes (approve/receive/cancel) registered before `/:id` to prevent shadowing; added cancel route
+  - `serializers.ts` — added `serializePurchaseOrderItem`; extended `serializePurchaseOrder` to include items, supplier, representative, expectedDeliveryDate, createdById
+- Shared types extended (`packages/types/src/index.ts`):
+  - Added `PurchaseOrderStatus`, `PurchaseOrderItem`, `CreatePurchaseOrderItemInput`, `CreatePurchaseOrderInput`, `PurchaseOrderWithItems`
+  - Extended `PurchaseOrder` interface with `supplier`, `supplierRepresentativeId`, `supplierRepresentative`, `expectedDeliveryDate`, `createdById`, `items`
+- Frontend procurement cart infrastructure:
+  - `frontend/src/context/ProcurementCartContext.tsx` — `useReducer`-based context (mirrors `PosContext` pattern) with cart items, supplier/representative selection, expected delivery date, notes; computed subtotal, itemCount, totalQuantity, isEmpty; actions: `addItem`, `removeItem`, `updateQuantity`, `clearItems`, `setSupplier`, `setRepresentative`, `setExpectedDeliveryDate`, `setNotes`, `resetCart`
+  - `frontend/src/components/navigation/index.tsx` — wrapped `AuthShell` in `ProcurementCartProvider`; added floating `ProcurementCartButton` visible on all authenticated pages
+  - `frontend/src/components/procurement/ProcurementCartSheet.tsx` — Sheet drawer with cart items table (qty adjusters, line totals, remove), supplier/representative Select dropdowns, delivery date picker, notes textarea, submit button (creates PO via API)
+  - `frontend/src/components/procurement/ProcurementCartButton.tsx` — floating action button (bottom-right) with item count badge
+  - `frontend/src/components/inventory/inventory-columns.tsx` — added "Add to Cart" (ShoppingCart) button in Actions column (disabled for expired/out-of-stock); `getInventoryColumns` now accepts `onAddToCart` callback prop (Rules of Hooks compliant — no hooks called inside cell render)
+  - `frontend/src/app/procurement/page.tsx` — full-page procurement interface with two-column layout (cart items table | order details form), Clinical Precision themed; redirects to `/purchase-orders` after PO creation
+  - `frontend/src/app/purchase-orders/page.tsx` — purchase order listing page with TanStack Table (search, sorting, pagination, status badges)
+  - `frontend/src/app/purchase-orders/[id]/page.tsx` — purchase order detail page with items table, supplier/representative info, status actions (approve/receive/cancel)
+  - `frontend/src/hooks/usePurchaseOrders.ts` — React Query hooks: `usePurchaseOrders`, `usePurchaseOrder`, `useCreatePurchaseOrder`, `useApprovePurchaseOrder`, `useReceivePurchaseOrder`, `useCancelPurchaseOrder`
+  - `frontend/src/lib/api.ts` — added `api.purchaseOrders` section (list, get, create, approve, receive, cancel)
+  - `frontend/src/app-sidebar.tsx` — added "Procurement" and "Purchase Orders" nav entries
+
+**Phase 2: Procurement WhatsApp Messaging — WhatsApp Business Cloud API Integration COMPLETED ✅**
+- New backend utility `backend/src/utils/whatsapp.ts`:
+  - `sanitizeWhatsAppNumber(raw)` — strips non-digit characters from phone numbers
+  - `normalizeWhatsAppNumber(raw)` — normalizes to E.164 format for the WhatsApp Cloud API
+  - `formatPOWhatsAppMessage(params)` — formats PO line items into a human-readable WhatsApp message with product names, SKUs, quantities, prices, subtotal, PO number, delivery date, and notes
+- Existing frontend utility `frontend/src/lib/whatsapp.ts` retained for `wa.me` link fallback generation
+- Backend notification module (`backend/src/modules/notifications/`):
+  - `notification.service.ts` — added `sendWhatsAppMessage()` (calls Meta Graph API `POST /{version}/{phoneNumberId}/messages`), `sendPurchaseOrderWhatsApp()` (fetches PO by ID with full relations, formats message, sends to rep's `whatsappNumber`; falls back to `wa.me` link if API not configured)
+  - `notification.dto.ts` — added `whatsappMessageSchema` and `whatsappPORequestSchema` Zod schemas
+  - `notification.controller.ts` — added `sendWhatsApp`, `sendWhatsAppPurchaseOrder`, `getWhatsAppStatus` handlers
+  - `notification.routes.ts` — added routes: `GET /api/notifications/whatsapp/status`, `POST /api/notifications/whatsapp`, `POST /api/notifications/whatsapp/purchase-order`
+- `ProcurementPage` (`frontend/src/app/procurement/page.tsx`) and `ProcurementCartSheet` (`frontend/src/components/procurement/ProcurementCartSheet.tsx`):
+  - After successful PO creation, a **success view** is shown with the PO number and total amount
+  - If the selected representative has a `whatsappNumber`, a **"Send via WhatsApp"** button appears
+  - Clicking the button calls `POST /api/notifications/whatsapp/purchase-order` with the PO ID — the backend formats and sends the message via the WhatsApp Business Cloud API
+  - If the API is not configured (`WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` not set), a fallback `wa.me` link is returned and opened in a new tab
+  - Shows loading state (`Sending via WhatsApp API...`) and success/error feedback
+  - If no WhatsApp number is on file, a helpful message prompts updating the rep's profile
+  - A "Done" / "View Purchase Orders" button navigates to the PO list
+- Environment variables (`backend/.env`, `backend/.env.example`):
+  - `WHATSAPP_TOKEN` — Bearer access token from Meta
+  - `WHATSAPP_PHONE_NUMBER_ID` — WhatsApp Business phone number ID
+  - `WHATSAPP_BUSINESS_ACCOUNT_ID` — Meta Business account ID
+  - `WHATSAPP_API_VERSION` — Graph API version (default `v21.0`)
+- Shared types (`packages/types/src/index.ts`): added `WhatsAppMessageResponse` and `WhatsAppPOResponse`
+
 ## Troubleshooting
 
 ### Stats API returns all zeros on dashboard
@@ -1052,3 +1297,40 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 **Fix**:
 - Added `Stats` type import and `stats` section to the `api` axios client in `frontend/src/lib/api.ts`: `stats: { get: () => request<Stats>('/api/stats') }`
 - Rewrote `useStats.ts` to use `api.stats.get()` instead of raw `fetch('/api/stats')`, consistent with all other hooks (`useInventory`, `useOrders`, `useCustomers`).
+
+### Expired batches not automatically excluded from FIFO allocation
+
+**Symptom**: After a batch's expiry date has passed, it still appears in the product detail page's Batch / Lot Tracking table and may still be allocated during FIFO stock-out.
+
+**Root cause**: The `adjustStock` function's "no batchNo" path previously only updated the product's aggregate `quantity` field without touching individual `ProductBatch.quantity` values, causing batch quantities to become stale and out of sync with the product aggregate. Additionally, the `serializeProduct` and `serializeInventoryItem` serializers returned ALL batches (including `quantity: 0` ones) in the `batches` array, cluttering the UI with exhausted batches.
+
+**Fixes applied**:
+1. **Backend** (`backend/src/modules/inventory/inventory.service.ts`, `adjustStock` function): When no `batchNo` is provided but the product has active batches (quantity > 0), the adjustment is now **distributed proportionally** across all active batches, keeping batch quantities in sync with the product aggregate. Falls back to legacy product-level adjustment when no active batches exist.
+2. **Backend** (`backend/src/utils/serializers.ts`): `serializeProduct` and `serializeInventoryItem` now filter out batches with `quantity === 0` from the `batches` array. The standalone `GET /api/inventory/:productId/batches` audit endpoint is unaffected (maps batches manually in the controller, not via `serializeProduct`).
+3. **Frontend** (`frontend/src/hooks/useOrders.ts`): `useCreateOrder` `onSuccess` now invalidates `productKeys.detail(productId)` for each order item, so product detail pages reflect stock decrements immediately after a sale. `useReturnOrder` now invalidates `productKeys.lists()`.
+
+**Note**: Expired batches CAN still be sold — there is no backend FIFO filter that excludes expired batches. The POS UI blocks expired products at the product level (based on `product.expiryDate`), but this only works when the primary batch's expiry is reflected on the product. Direct API sales bypass this guard. Adding expiry validation in `allocateStockFromBatches` and `recordStockOut` is recommended for future work.
+
+### Dispose button sets quantity to 0, not delete
+
+**Symptom**: Clicking "Dispose" on the expiration report page sets batch quantity to 0 but the batch record still exists.
+
+**Root cause**: This is **intentional behavior**. The `ProductBatch` model is referenced by `OrderItem.batchId` and `InventoryTransaction.batchId` foreign keys with `RESTRICT` (no cascade). Deleting a batch that has been used in past sales would cause a foreign key constraint violation. Setting quantity to 0:
+- Preserves the audit trail (batch record + ADJUSTMENT transaction remain)
+- Allows `updateProductPrimaryBatch` to skip it automatically (it filters by `quantity > 0`)
+- Makes the batch invisible in product detail, inventory table, and POS grid (via the serializer filter)
+- Enables the "Dispose" action to be safely reversible (adjust back to a positive quantity)
+
+To fully remove a batch record, you would need to add `onDelete: SetNull` to both FK relations in `schema.prisma`, run a migration, and then implement batch deletion logic.
+
+### Dark mode toggle not switching / light mode not working when browser is dark
+
+**Symptom**: Clicking Light/Dark/System in the theme toggle dropdown has no visible effect, or switching to Light mode doesn't work when the browser/OS is set to dark mode.
+
+**Root cause**: Two issues:
+1. The `ThemeProvider` imported from `next-themes`, but the package was never actually installed in `node_modules` (npm workspace hoisting failure — listed in `package.json` but not present in `node_modules`). This caused `useTheme()` to throw silently, so the toggle's `setTheme` calls did nothing.
+2. The `globals.css` had an `@media (prefers-color-scheme: dark) { :root { ... } }` block that overrode light-mode CSS variables when the system preferred dark. Even when the user selected Light mode (removing `.dark`), the media query still applied dark variables.
+
+**Fix**:
+1. Replaced `next-themes` with a custom React Context (`src/components/theme-provider.tsx`) that manages theme state, localStorage, and `.dark` class directly — no external dependency.
+2. Removed the `@media (prefers-color-scheme: dark) { :root { ... } }` block from `globals.css` — dark mode is now controlled exclusively by the `.dark` class, which is the standard shadcn/ui + Tailwind v4 approach.

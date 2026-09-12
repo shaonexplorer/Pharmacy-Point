@@ -23,6 +23,9 @@ export async function getStats(): Promise<StatsResult> {
   // Get total inventory transactions count
   const totalTransactions = await prisma.inventoryTransaction.count();
 
+  // Get total batch count
+  const totalBatches = await prisma.productBatch.count();
+
   // Get low stock items — fetch and filter in JavaScript since Prisma
   // cannot compare two columns (quantity <= lowStock) in where clause
   const allProducts = await prisma.product.findMany({
@@ -81,6 +84,7 @@ export async function getStats(): Promise<StatsResult> {
     totalProducts,
     totalCompanies,
     totalTransactions,
+    totalBatches,
     lowStockItems,
     totalSales: Math.round(totalSales * 100) / 100,
     totalInventoryValue: Math.round(totalInventoryValue * 100) / 100,

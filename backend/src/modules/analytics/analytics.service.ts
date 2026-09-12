@@ -116,6 +116,7 @@ export async function getSalesByCategory(
  */
 export async function getInventoryStatus(): Promise<{
   totalProducts: number;
+  totalBatches: number;
   inStock: number;
   lowStock: number;
   outOfStock: number;
@@ -124,6 +125,10 @@ export async function getInventoryStatus(): Promise<{
   const allProducts = await prisma.product.findMany({
     where: { deletedAt: null },
     select: { quantity: true, lowStock: true, price: true },
+  });
+
+  const totalBatches = await prisma.productBatch.count({
+    where: { quantity: { gt: 0 } },
   });
 
   let inStock = 0;
@@ -144,6 +149,7 @@ export async function getInventoryStatus(): Promise<{
 
   return {
     totalProducts: allProducts.length,
+    totalBatches,
     inStock,
     lowStock,
     outOfStock,

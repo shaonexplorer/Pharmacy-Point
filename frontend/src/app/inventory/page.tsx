@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client';
 import { useInventory } from '@/hooks/useInventory';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useCategories } from '@/hooks/useCategories';
+import { useProcurementCart } from '@/context/ProcurementCartContext';
 import { getStockStatus } from '@/components/inventory/StockChip';
 import { getInventoryColumns } from '@/components/inventory/inventory-columns';
 import { InventoryTable } from '@/components/inventory/InventoryTable';
@@ -55,6 +56,9 @@ export default function InventoryPage() {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Procurement cart context
+  const procurementCart = useProcurementCart();
 
   /* ── Data fetching ────────────────────────────────────────────────── */
   // Server-side search has been replaced by TanStack Table's native globalFilter.
@@ -107,7 +111,12 @@ export default function InventoryPage() {
   }, [displayedProducts]);
 
   // Column definitions (memoized to avoid unnecessary table re-renders)
-  const columns = useMemo(() => getInventoryColumns(), []);
+  // Pass onAddToCart callback so the inventory table can add products to the
+  // procurement cart without calling hooks inside cell render functions.
+  const columns = useMemo(
+    () => getInventoryColumns({ onAddToCart: procurementCart.addItem }),
+    [procurementCart.addItem]
+  );
 
   const hasActiveFilters = globalFilter || selectedCategory || selectedCompany || showLowStockOnly;
 

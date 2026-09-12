@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { PrismaClient } from '@prisma/client';
+// Load environment variables from .env.local
 
 // Prevent multiple Prisma instances in development (HMR)
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

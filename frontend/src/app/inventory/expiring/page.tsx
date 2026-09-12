@@ -537,11 +537,27 @@ function ExpiredTable({ data, loading }: { data: InventoryItem[]; loading: boole
   const { mutateAsync: adjustStock, isPending: disposing } = useStockAdjust();
 
   const handleDispose = async (product: InventoryItem) => {
-    const notes = `Expired product disposal — batch #${product.batchNo ?? 'N/A'}`;
-    await adjustStock({
+    // Dispose expired batches — set their quantity to 0
+    // If product has batches, dispose each expired batch; otherwise use product-level adjustment
+    if (product.batches && product.batches.length > 0) {
+      for (const batch of product.batches) {
+        const batchExpiry = batch.expiryDate ? new Date(batch.expiryDate) : null;
+        const isExpired = batchExpiry && batchExpiry < new Date();
+        if (isExpired && batch.quantity > 0) {
+          const notes = `Expired batch disposal — batch #${batch.batchNo ?? 'N/A'}`;
+          await adjustStock({
+            productId: product.id,
+            data: { quantity: 0, batchNo: batch.batchNo ?? undefined, notes },
+          });
+        }
+      }
+    } else {
+      const notes = `Expired product disposal — batch #${product.batchNo ?? 'N/A'}`;
+      await adjustStock({
       productId: product.id,
       data: { quantity: 0, notes },
-    });
+      });
+    }
   };
 
   const expiredCols: ColumnDef<InventoryItem>[] = [
