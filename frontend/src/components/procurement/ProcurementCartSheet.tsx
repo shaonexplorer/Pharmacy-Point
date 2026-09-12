@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   ShoppingCart,
   Trash2,
@@ -26,8 +26,17 @@ import {
   Loader2,
   AlertCircle,
   Calendar,
+  MessageCircle,
+  CheckCircle,
 } from 'lucide-react';
+
 import { formatCurrency } from '@/lib/formatters';
+import {
+  buildWhatsAppLink,
+  formatPOWhatsAppMessage,
+  sanitizeWhatsAppNumber,
+} from '@/lib/whatsapp';
+import type { PurchaseOrderWithItems } from '@pharmacy-point/types';
 import type { ProcurementCartItem } from '@/context/ProcurementCartContext';
 import { useProcurementCart } from '@/context/ProcurementCartContext';
 import {
@@ -64,6 +73,9 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
   const [expectedDate, setExpectedDate] = useState<string>('');
   const [notes, setNotes] = useState('');
 
+  // The PO returned by the last successful creation (used to offer WhatsApp sharing)
+  const [createdPO, setCreatedPO] = useState<PurchaseOrderWithItems | null>(null);
+
   const { items, subtotal, isEmpty, removeItem, updateQuantity, resetCart } = useProcurementCart();
 
   const { data: suppliersResponse } = useSuppliers({ page: 1, limit: 100 });
@@ -84,7 +96,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
     if (!selectedSupplierId || items.length === 0) return;
 
     try {
-      await createPOMutation.mutateAsync({
+      const poResponse = await createPOMutation.mutateAsync({
         supplierId: selectedSupplierId,
         supplierRepresentativeId: selectedRepId ?? undefined,
         expectedDeliveryDate: expectedDate || undefined,
@@ -97,13 +109,17 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
         })),
       });
 
-      // Reset cart and form on success
+      // Capture the created PO so we can offer WhatsApp sharing
+      const po = poResponse?.data ?? null;
+      setCreatedPO(po);
+
+      // Reset cart and form so a new order can be started
       resetCart();
       setSelectedSupplierId(null);
       setSelectedRepId(null);
       setExpectedDate('');
       setNotes('');
-      onOpenChange(false);
+      // Keep the sheet open to show the success / WhatsApp view
     } catch {
       // Error handled by mutation state
     }
@@ -115,6 +131,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
     setSelectedRepId(null);
     setExpectedDate('');
     setNotes('');
+    setCreatedPO(null);
   };
 
   return (
@@ -128,8 +145,37 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
-          {/* Cart Items */}
-          {items.length === 0 ? (
+          {/* Success View — shown after PO creation */}
+          {createdPO && (
+            <Card className="border-success/30 bg-success/5 card-elevated">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-headline-sm">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                  Purchase Order Created
+                </CardTitle>
+                <CardDescription>
+                  PO #{createdPO.poNumber} · {formatCurrency(createdPO.totalAmount)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {createdPO.supplierRepresentative?.whatsappNumber ? (
+                  <p className="text-body-sm text-on-surface-variant">
+                    Click "Send via WhatsApp" below to message{' '}
+                    <strong>{createdPO.supplierRepresentative.name}</strong> with
+                    the product list.
+                  </p>
+                ) : (
+                  <p className="text-body-sm text-on-surface-variant">
+                    The selected representative does not have a WhatsApp number on
+                    file. Update their profile to enable WhatsApp messaging.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cart Items — hidden when a PO has been created */}
+          {createdPO ? null : items.length === 0 ? (
             <Card className="border-dashed border-border card-elevated">
               <CardContent className="flex min-h-[120px] flex-col items-center justify-center text-center">
                 <ShoppingCart className="h-10 w-10 text-muted-foreground/50" />
@@ -330,34 +376,75 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
         </div>
 
         <SheetFooter className="flex gap-2 pt-4 border-t border-border">
-          {!isEmpty && items.length > 0 && (
-            <Button
-              variant="outline"
-              size="default"
-              onClick={handleClearCart}
-              disabled={createPOMutation.isPending}
-            >
-              <Trash2 className="mr-2 h-3 w-3" />
-              Clear Cart
-            </Button>
+          {createdPO ? (
+            <>
+              {createdPO.supplierRepresentative?.whatsappNumber && (
+                <Button
+                  variant="default"
+                  className="flex-1"
+                  onClick={() => {
+                    const rep = createdPO.supplierRepresentative!;
+                    const message = formatPOWhatsAppMessage({
+                      representativeName: rep.name,
+                      poNumber: createdPO.poNumber,
+                      items: createdPO.items ?? [],
+                      totalAmount: createdPO.totalAmount,
+                      expectedDeliveryDate: createdPO.expectedDeliveryDate,
+                      notes: createdPO.notes,
+                    });
+                    const link = buildWhatsAppLink(rep.whatsappNumber!, message);
+                    if (link) {
+                      window.open(link, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Send via WhatsApp
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => {
+                  setCreatedPO(null);
+                  onOpenChange(false);
+                }}
+              >
+                Done
+              </Button>
+            </>
+          ) : (
+            <>
+              {!isEmpty && items.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={handleClearCart}
+                  disabled={createPOMutation.isPending}
+                >
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  Clear Cart
+                </Button>
+              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={isEmpty || !selectedSupplierId || createPOMutation.isPending}
+                className="flex-1"
+              >
+                {createPOMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating PO...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Create Purchase Order
+                  </>
+                )}
+              </Button>
+            </>
           )}
-          <Button
-            onClick={handleSubmit}
-            disabled={isEmpty || !selectedSupplierId || createPOMutation.isPending}
-            className="flex-1"
-          >
-            {createPOMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating PO...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Create Purchase Order
-              </>
-            )}
-          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

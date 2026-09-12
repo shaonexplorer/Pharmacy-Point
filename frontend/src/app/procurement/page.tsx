@@ -39,6 +39,8 @@ import {
   Trash2,
   ArrowLeft,
   Package,
+  MessageCircle,
+  CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -51,6 +53,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/formatters';
+import {
+  buildWhatsAppLink,
+  formatPOWhatsAppMessage,
+} from '@/lib/whatsapp';
+import type { PurchaseOrderWithItems } from '@pharmacy-point/types';
 
 export default function ProcurementPage() {
   const router = useRouter();
@@ -59,6 +66,9 @@ export default function ProcurementPage() {
   const [selectedRepId, setSelectedRepId] = useState<string | null>(null);
   const [expectedDate, setExpectedDate] = useState<string>('');
   const [notes, setNotes] = useState('');
+
+  // The PO returned by the last successful creation (used for WhatsApp sharing)
+  const [createdPO, setCreatedPO] = useState<PurchaseOrderWithItems | null>(null);
 
   const {
     items,
@@ -93,7 +103,7 @@ export default function ProcurementPage() {
     if (!selectedSupplierId || items.length === 0) return;
 
     try {
-      await createPOMutation.mutateAsync({
+      const poResponse = await createPOMutation.mutateAsync({
         supplierId: selectedSupplierId,
         supplierRepresentativeId: selectedRepId ?? undefined,
         expectedDeliveryDate: expectedDate || undefined,
@@ -106,15 +116,16 @@ export default function ProcurementPage() {
         })),
       });
 
+      // Capture the created PO so we can offer WhatsApp sharing
+      setCreatedPO(poResponse?.data ?? null);
+
       // Reset cart and form on success
       resetCart();
       setSelectedSupplierId(null);
       setSelectedRepId(null);
       setExpectedDate('');
       setNotes('');
-
-      // Navigate to the purchase orders list
-      router.push('/purchase-orders');
+      // Show success view instead of immediately navigating
     } catch {
       // Error handled by mutation state
     }
@@ -126,6 +137,7 @@ export default function ProcurementPage() {
 
   const handleClearCart = () => {
     clearItems();
+    setCreatedPO(null);
   };
 
   if (authPending) {
@@ -165,7 +177,7 @@ export default function ProcurementPage() {
           </div>
 
           {/* ── Empty State ── */}
-          {isEmpty && (
+          {isEmpty && !createdPO && (
             <Card className="border-border bg-card card-elevated border-dashed">
               <CardContent className="flex min-h-75 flex-col items-center justify-center text-center px-8">
                 <Package className="h-12 w-12 text-muted-foreground/50" />
@@ -183,8 +195,8 @@ export default function ProcurementPage() {
             </Card>
           )}
 
-          {/* ── Cart Items + Order Details ── */}
-          {!isEmpty && (
+          {/* ── Cart Items + Order Details / Success View ── */}
+          {(!isEmpty || createdPO) && (
             <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
               {/* Left Column: Cart Items */}
               <Card className="border-border bg-card card-elevated">
@@ -364,9 +376,74 @@ export default function ProcurementPage() {
                   </CardContent>
                 </Card>
 
-                {/* Actions */}
-                <Card className="border-border bg-card card-elevated">
-                  <CardContent className="pt-6">
+                {/* Actions / Success View */}
+                {createdPO ? (
+                  <Card className="border-success/30 bg-success/5 card-elevated">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-headline-sm">
+                        <CheckCircle className="h-5 w-5 text-success" />
+                        Purchase Order Created
+                      </CardTitle>
+                      <CardDescription>
+                        PO #{createdPO.poNumber} · {formatCurrency(createdPO.totalAmount)}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {createdPO.supplierRepresentative?.whatsappNumber ? (
+                        <p className="text-body-sm text-on-surface-variant mb-4">
+                          Send this order to{' '}
+                          <strong>{createdPO.supplierRepresentative.name}</strong> via
+                          WhatsApp.
+                        </p>
+                      ) : (
+                        <p className="text-body-sm text-on-surface-variant mb-4">
+                          The selected representative does not have a WhatsApp number on
+                          file.
+                        </p>
+                      )}
+
+                      <div className="flex flex-col gap-3">
+                        {createdPO.supplierRepresentative?.whatsappNumber && (
+                          <Button
+                            className="w-full"
+                            size="lg"
+                            onClick={() => {
+                              const rep = createdPO.supplierRepresentative!;
+                              const message = formatPOWhatsAppMessage({
+                                representativeName: rep.name,
+                                poNumber: createdPO.poNumber,
+                                items: createdPO.items ?? [],
+                                totalAmount: createdPO.totalAmount,
+                                expectedDeliveryDate: createdPO.expectedDeliveryDate,
+                                notes: createdPO.notes,
+                              });
+                              const link = buildWhatsAppLink(rep.whatsappNumber!, message);
+                              if (link) {
+                                window.open(link, '_blank', 'noopener,noreferrer');
+                              }
+                            }}
+                          >
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            Send via WhatsApp
+                          </Button>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="default"
+                          className="w-full"
+                          onClick={() => {
+                            setCreatedPO(null);
+                            router.push('/purchase-orders');
+                          }}
+                        >
+                          View Purchase Orders
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
                     {/* Error */}
                     {createPOMutation.isError && (
                       <div className="mb-4 rounded-lg border border-error/30 bg-error/10 p-3">
@@ -409,8 +486,8 @@ export default function ProcurementPage() {
                         )}
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </>
+                )}
               </div>
             </div>
           )}

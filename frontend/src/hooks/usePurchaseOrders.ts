@@ -48,6 +48,8 @@ export function usePurchaseOrder(id: string) {
 /**
  * Create a purchase order (from the procurement cart).
  * On success, invalidates PO lists and clears the cart.
+ * The mutation result contains the created PO (with supplier representative
+ * info) so callers can e.g. generate a WhatsApp link after creation.
  */
 export function useCreatePurchaseOrder() {
   const queryClient = useQueryClient();
