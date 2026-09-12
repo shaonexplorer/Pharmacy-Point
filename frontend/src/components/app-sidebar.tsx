@@ -41,6 +41,7 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ModeToggle } from '@/components/mode-toggle';
 import { useStats } from '@/hooks/useStats';
 import { useOrders } from '@/hooks/useOrders';
 import { useInventory } from '@/hooks/useInventory';
@@ -309,11 +310,14 @@ function UserCard() {
         </div>
       </div>
 
+      <div className="mt-2 flex items-center justify-end">
+        <ModeToggle />
+      </div>
       <Button
         variant="ghost"
         size="sm"
         onClick={() => signOut()}
-        className="mt-4 w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground"
+        className="mt-3 w-full justify-start gap-3 text-sidebar-foreground/60 hover:text-sidebar-foreground"
       >
         <LogOut className="h-4 w-4" />
         Sign Out

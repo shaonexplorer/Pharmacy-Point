@@ -775,6 +775,8 @@ model PurchaseOrderItem {
 - `frontend/src/context/ProcurementCartContext.tsx` - Procurement cart state (mirrors PosContext pattern)
 - `frontend/src/components/procurement/` - Procurement cart components (Sheet, Button, CartItem)
 - `frontend/src/hooks/usePurchaseOrders.ts` - React Query hooks for purchase orders
+- `frontend/src/components/theme-provider.tsx` - Custom dark mode ThemeProvider (React Context, not next-themes)
+- `frontend/src/components/mode-toggle.tsx` - Dark mode toggle dropdown (Light/Dark/System)
 
 ## Path Aliases
 The following path aliases are configured for monorepo imports:
@@ -796,6 +798,20 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 - **Shapes**: Rounded corners (0.5rem/8px base, 1rem/16px for containers, 999px for status chips)
 - **Grid**: 12-column desktop, 4-column mobile
 - **Container Max**: 1440px
+
+### Dark Mode System
+
+The application uses a **class-based dark mode** system with CSS custom properties.
+
+**Architecture:**
+- `frontend/src/components/theme-provider.tsx` — Custom React Context provider (does NOT use `next-themes`; the npm package failed to install via npm workspaces). Manages theme state (`'light' | 'dark' | 'system'`), reads/writes `localStorage.theme`, and toggles the `.dark` class on `document.documentElement`.
+- `frontend/src/components/mode-toggle.tsx` — Shadcn/ui `DropdownMenu` button with animated sun↔moon icon. Located in: login page (top-right), signup page (top-right), sidebar footer (above Sign Out), mobile header, and `NavigationLoading` (during session check).
+- `frontend/src/app/layout.tsx` — Anti-flicker `<ThemeScript>` inline script reads `localStorage.theme` before hydration and applies `.dark` class. `ThemeProvider` wraps `Navigation`.
+- `frontend/src/app/globals.css` — CSS variables in `:root { }` (light mode) and `.dark { }` (dark mode). Uses `@custom-variant dark (&:is(.dark *))` to enable Tailwind's `dark:` utility classes.
+- **No `@media (prefers-color-scheme: dark)` block** — dark mode is controlled exclusively via the `.dark` class. The system preference is only used by the ThemeProvider when `theme === 'system'`.
+
+**Why no `@media (prefers-color-scheme: dark)` block?**
+Previously, this media query overrode `:root` CSS variables when the OS/browser was set to dark. This prevented users from selecting "Light" mode while the system was in dark mode — the media query would always re-apply dark variables regardless of the `.dark` class. Removing it ensures the `.dark` class is the sole source of truth for dark mode styling.
 
 ## Navigation Structure
 
@@ -1306,3 +1322,15 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
 - Enables the "Dispose" action to be safely reversible (adjust back to a positive quantity)
 
 To fully remove a batch record, you would need to add `onDelete: SetNull` to both FK relations in `schema.prisma`, run a migration, and then implement batch deletion logic.
+
+### Dark mode toggle not switching / light mode not working when browser is dark
+
+**Symptom**: Clicking Light/Dark/System in the theme toggle dropdown has no visible effect, or switching to Light mode doesn't work when the browser/OS is set to dark mode.
+
+**Root cause**: Two issues:
+1. The `ThemeProvider` imported from `next-themes`, but the package was never actually installed in `node_modules` (npm workspace hoisting failure — listed in `package.json` but not present in `node_modules`). This caused `useTheme()` to throw silently, so the toggle's `setTheme` calls did nothing.
+2. The `globals.css` had an `@media (prefers-color-scheme: dark) { :root { ... } }` block that overrode light-mode CSS variables when the system preferred dark. Even when the user selected Light mode (removing `.dark`), the media query still applied dark variables.
+
+**Fix**:
+1. Replaced `next-themes` with a custom React Context (`src/components/theme-provider.tsx`) that manages theme state, localStorage, and `.dark` class directly — no external dependency.
+2. Removed the `@media (prefers-color-scheme: dark) { :root { ... } }` block from `globals.css` — dark mode is now controlled exclusively by the `.dark` class, which is the standard shadcn/ui + Tailwind v4 approach.
