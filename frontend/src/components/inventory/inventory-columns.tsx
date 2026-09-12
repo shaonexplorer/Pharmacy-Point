@@ -1,8 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
-import { Plus, Edit, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, AlertTriangle, ShoppingCart } from 'lucide-react';
 
-import type { InventoryItem } from '@pharmacy-point/types';
+import type { InventoryItem, Product } from '@pharmacy-point/types';
 import { StockAdjustmentModal } from '@/components/inventory/StockAdjustmentModal';
 import {
   StockChip,
@@ -26,8 +26,19 @@ import { formatCurrency } from '@/lib/formatters';
  *
  * Columns are split into their own file to keep the table component focused purely
  * on layout and rendering logic (per project convention of separating concerns).
+ *
+ * NOTE: React hooks (e.g. useProcurementCart) must NOT be called inside TanStack
+ * cell render functions — they violate the Rules of Hooks. Instead, callbacks like
+ * onAddToCart are passed from the parent page component, following the same pattern
+ * as ProductTable's onDelete prop.
  */
-export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
+interface GetInventoryColumnsProps {
+  onAddToCart?: (product: Product, quantity?: number, unitPrice?: number) => void;
+}
+
+export function getInventoryColumns({
+  onAddToCart,
+}: GetInventoryColumnsProps = {}): ColumnDef<InventoryItem>[] {
   return [
     {
       accessorKey: 'name',
@@ -52,7 +63,7 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
     },
     // temporarily hiding barcode column until we have a proper barcode system in place
     // {
-
+    //
     //   accessorKey: 'barcode',
     //   header: 'Barcode',
     //   cell: ({ row }) => (
@@ -124,10 +135,27 @@ export function getInventoryColumns(): ColumnDef<InventoryItem>[] {
       cell: ({ row }) => {
         const product = row.original;
         const stockStatus = getStockStatus(product);
+        const isExpired =
+          product.expiryDate !== null &&
+          product.expiryDate !== undefined &&
+          getExpiryStatus(product.expiryDate) === 'expired';
+        const outOfStock = product.quantity <= 0;
+        const canAddToCart = !isExpired && !outOfStock && !!onAddToCart;
 
         return (
           <div className="flex items-center justify-end gap-1">
             {stockStatus === 'low' && <AlertTriangle className="h-4 w-4 text-warning" />}
+            <Button
+              type="button"
+              variant="ghostIcon"
+              size="sm"
+              title="Add to Cart"
+              onClick={() => onAddToCart?.(product, 1, product.price)}
+              disabled={!canAddToCart}
+              className={canAddToCart ? 'text-secondary hover:bg-secondary/10' : 'opacity-30'}
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
             <StockAdjustmentModal
               product={product}
               trigger={

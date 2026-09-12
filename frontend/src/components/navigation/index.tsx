@@ -4,6 +4,8 @@ import { useSession } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
+import { ProcurementCartProvider } from '@/context/ProcurementCartContext';
+import { ProcurementCartButton } from '@/components/procurement/ProcurementCartButton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 /* ============================================================================
@@ -45,16 +47,20 @@ function NavigationLoading() {
 
 function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          {/* Mobile-only header with nav toggle */}
-          <MobileHeader />
-          <div className="flex-1 overflow-auto">{children}</div>
-        </SidebarInset>
-      </SidebarProvider>
-    </TooltipProvider>
+    <ProcurementCartProvider>
+      <TooltipProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            {/* Mobile-only header with nav toggle */}
+            <MobileHeader />
+            <div className="flex-1 overflow-auto">{children}</div>
+          </SidebarInset>
+        </SidebarProvider>
+        {/* Floating procurement cart — visible on all authenticated pages */}
+        <ProcurementCartButton />
+      </TooltipProvider>
+    </ProcurementCartProvider>
   );
 }
 

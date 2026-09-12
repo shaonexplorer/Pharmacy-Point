@@ -414,19 +414,62 @@ export interface SupplierRepresentative {
   updatedAt: string;
 }
 
+/** Purchase order statuses */
+export type PurchaseOrderStatus = 'PENDING' | 'APPROVED' | 'RECEIVED' | 'CANCELLED';
+
+/** A single line item on a purchase order */
+export interface PurchaseOrderItem {
+  id: string;
+  poId: string;
+  productId?: string | null;
+  product?: Product | null;
+  quantity: number;
+  unitPrice: number;
+  receivedQty?: number;
+  notes?: string | null;
+}
+
 /** A purchase order associated with a supplier */
 export interface PurchaseOrder {
   id: string;
   supplierId: string;
+  supplier?: Supplier | null;
+  supplierRepresentativeId?: string | null;
+  supplierRepresentative?: SupplierRepresentative | null;
   poNumber: string;
-  status: string;
+  status: PurchaseOrderStatus;
   totalAmount: number;
   notes?: string | null;
   approvedBy?: string | null;
   approvedAt?: string | null;
+  expectedDeliveryDate?: string | null;
+  createdById?: string | null;
+  items?: PurchaseOrderItem[];
   createdAt: string;
   updatedAt: string;
 }
+
+/** Input for creating a purchase order (from procurement cart) */
+export interface CreatePurchaseOrderItemInput {
+  productId: string;
+  quantity: number;
+  unitPrice?: number;
+  notes?: string;
+}
+
+export type CreatePurchaseOrderInput = {
+  supplierId: string;
+  supplierRepresentativeId?: string | null;
+  expectedDeliveryDate?: string | null;
+  notes?: string | null;
+  createdById?: string | null;
+  items: CreatePurchaseOrderItemInput[];
+};
+
+/** A purchase order with full relations (for detail views) */
+export type PurchaseOrderWithItems = PurchaseOrder & {
+  items: PurchaseOrderItem[];
+};
 
 /** A supplier in the pharmacy management system */
 export interface Supplier {

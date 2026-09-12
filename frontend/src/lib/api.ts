@@ -36,6 +36,10 @@ import type {
   UpdateExpenseInput,
   ExpenseListParams,
   ExpenseStats,
+  PurchaseOrder,
+  PurchaseOrderItem,
+  PurchaseOrderWithItems,
+  CreatePurchaseOrderInput,
 } from '@pharmacy-point/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -394,6 +398,38 @@ export const api = {
           data,
         }
       ),
+  },
+
+  // Purchase Orders
+  purchaseOrders: {
+    list: (params?: { page?: number; limit?: number; status?: string; supplierId?: string }) =>
+      request<PaginatedResponse<PurchaseOrder>>('/api/purchase-orders', { params }),
+
+    get: (id: string) =>
+      request<ApiResponse<PurchaseOrderWithItems>>(`/api/purchase-orders/${id}`),
+
+    create: (data: CreatePurchaseOrderInput) =>
+      request<ApiResponse<PurchaseOrderWithItems>>('/api/purchase-orders', {
+        method: 'POST',
+        data,
+      }),
+
+    approve: (id: string, approvedBy?: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/approve`, {
+        method: 'PATCH',
+        data: { approvedBy },
+      }),
+
+    receive: (id: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/receive`, {
+        method: 'POST',
+      }),
+
+    cancel: (id: string, notes?: string) =>
+      request<ApiResponse<PurchaseOrder>>(`/api/purchase-orders/${id}/cancel`, {
+        method: 'PATCH',
+        data: { notes },
+      }),
   },
 
   // Expenses

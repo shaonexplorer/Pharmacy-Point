@@ -241,20 +241,52 @@ export function serializeSupplier(supplier: Record<string, unknown>): Record<str
 }
 
 /**
+ * Serialize a single PurchaseOrderItem row for API responses.
+ */
+export function serializePurchaseOrderItem(
+  item: Record<string, unknown>
+): Record<string, unknown> {
+  const product = item.product as Record<string, unknown> | null | undefined;
+  return {
+    id: item.id as string,
+    poId: item.poId as string,
+    productId: (item.productId as string | null | undefined) ?? null,
+    product: product ? serializeProductLite(product) : undefined,
+    quantity: item.quantity as number,
+    unitPrice: Number(item.unitPrice ?? 0),
+    receivedQty: (item.receivedQty as number) ?? 0,
+    notes: (item.notes as string | null | undefined) ?? null,
+  };
+}
+
+/**
  * Serialize a Prisma PurchaseOrder row for API responses.
+ * Includes nested items (with product lite) and supplier representative.
  */
 export function serializePurchaseOrder(
   po: Record<string, unknown>
 ): Record<string, unknown> {
+  const supplier = po.supplier as Record<string, unknown> | null | undefined;
+  const rep = po.supplierRepresentative as Record<string, unknown> | null | undefined;
+  const items = (po.items as Record<string, unknown>[] | undefined) ?? [];
+
   return {
     id: po.id as string,
     supplierId: po.supplierId as string,
+    supplier: supplier ? serializeSupplier(supplier) : null,
+    supplierRepresentativeId:
+      (po.supplierRepresentativeId as string | null | undefined) ?? null,
+    supplierRepresentative: rep ? serializeSupplierRepresentative(rep) : null,
     poNumber: po.poNumber as string,
     status: po.status as string,
     totalAmount: Number(po.totalAmount ?? 0),
     notes: (po.notes as string | null | undefined) ?? null,
     approvedBy: (po.approvedBy as string | null | undefined) ?? null,
     approvedAt: (po.approvedAt as Date | null | undefined) ?? null,
+    expectedDeliveryDate:
+      (po.expectedDeliveryDate as Date | null | undefined) ?? null,
+    createdById: (po.createdById as string | null | undefined) ?? null,
+    items: items.map((i) => serializePurchaseOrderItem(i)),
     createdAt: po.createdAt as Date,
     updatedAt: po.updatedAt as Date,
   };

@@ -32,6 +32,7 @@ import {
   Receipt,
   PiggyBank,
   Truck,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -371,6 +372,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     { name: 'Companies', href: '/companies', icon: Store, dotColor: 'bg-secondary' },
     { name: 'Suppliers', href: '/suppliers', icon: Truck, dotColor: 'bg-secondary' },
+    { name: 'Procurement', href: '/procurement', icon: ShoppingCart, dotColor: 'bg-tertiary' },
     { name: 'Customers', href: '/customers', icon: User, dotColor: 'bg-primary' },
     { name: 'Orders', href: '/orders', icon: Receipt, dotColor: 'bg-secondary' },
     { name: 'Expenses', href: '/expenses', icon: PiggyBank, dotColor: 'bg-warning' },
