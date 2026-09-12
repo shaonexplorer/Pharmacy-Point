@@ -4,13 +4,7 @@ import { useState } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useCreatePurchaseOrder } from '@/hooks/usePurchaseOrders';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,8 +64,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
   const [expectedDate, setExpectedDate] = useState<string>('');
   const [notes, setNotes] = useState('');
 
-  const { items, subtotal, isEmpty, removeItem, updateQuantity, resetCart } =
-    useProcurementCart();
+  const { items, subtotal, isEmpty, removeItem, updateQuantity, resetCart } = useProcurementCart();
 
   const { data: suppliersResponse } = useSuppliers({ page: 1, limit: 100 });
   const suppliers = suppliersResponse?.data ?? [];
@@ -171,9 +164,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
                       {items.map((item: ProcurementCartItem) => (
                         <TableRow key={item.productId}>
                           <TableCell>
-                            <div className="font-medium text-foreground">
-                              {item.product.name}
-                            </div>
+                            <div className="font-medium text-foreground">{item.product.name}</div>
                             <div className="text-xs text-on-surface-variant">
                               SKU: {item.product.sku}
                             </div>
@@ -249,18 +240,18 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
                   <CardTitle className="text-headline-sm">Order Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <Label htmlFor="supplier" className="text-label-md text-foreground">
                       Supplier *
                     </Label>
-                    <Select
-                      value={selectedSupplierId ?? ''}
-                      onValueChange={setSelectedSupplierId}
-                    >
-                      <SelectTrigger id="supplier">
-                        <SelectValue placeholder="Select a supplier" />
+                    <Select value={selectedSupplierId ?? ''} onValueChange={setSelectedSupplierId}>
+                      <SelectTrigger id="supplier" className="w-full!">
+                        <SelectValue
+                          placeholder="Select a supplier"
+                          className="text-muted-foreground w-full!"
+                        />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-full!">
                         {suppliers.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
                             {s.name}
@@ -272,20 +263,14 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
 
                   {selectedSupplierId && representatives.length > 0 && (
                     <div className="space-y-2">
-                      <Label
-                        htmlFor="representative"
-                        className="text-label-md text-foreground"
-                      >
+                      <Label htmlFor="representative" className="text-label-md text-foreground">
                         Representative
                       </Label>
-                      <Select
-                        value={selectedRepId ?? ''}
-                        onValueChange={setSelectedRepId}
-                      >
-                        <SelectTrigger id="representative">
+                      <Select value={selectedRepId ?? ''} onValueChange={setSelectedRepId}>
+                        <SelectTrigger id="representative" className="w-full!">
                           <SelectValue placeholder="Select a representative (optional)" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="w-full!">
                           {representatives.map((rep) => (
                             <SelectItem key={rep.id} value={rep.id}>
                               {rep.name}
@@ -298,10 +283,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
                   )}
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="expected-delivery"
-                      className="text-label-md text-foreground"
-                    >
+                    <Label htmlFor="expected-delivery" className="text-label-md text-foreground">
                       Expected Delivery Date
                     </Label>
                     <div className="relative">
@@ -351,7 +333,7 @@ export function ProcurementCartSheet({ open, onOpenChange }: ProcurementCartShee
           {!isEmpty && items.length > 0 && (
             <Button
               variant="outline"
-              size="sm"
+              size="default"
               onClick={handleClearCart}
               disabled={createPOMutation.isPending}
             >

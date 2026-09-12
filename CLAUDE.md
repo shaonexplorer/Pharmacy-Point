@@ -371,7 +371,7 @@ This project follows a **monorepo architecture** using Turborepo with npm worksp
     DTO + Service + Controller + Routes (under `src/modules/`). Cross-cutting
     concerns (validation, error handling, serialization) are shared middleware/utils.
 - **Database**: PostgreSQL 15+ with Prisma migrations
-- **State Management**: React Query (TanStack Query) for server state
+- **State Management**: React Query (TanStack Query) for server state; React Context (`PosContext`, `ProcurementCartContext`) for client-side cart state
 - **Validation**: Zod for both frontend forms and backend API input validation
 
 ## Data Models
@@ -569,6 +569,49 @@ enum OrderStatus {
   PENDING
   COMPLETED
   CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  RETURNED
+}
+```
+
+```prisma
+model PurchaseOrder {
+  id                       String                  @id @default(cuid())
+  supplierId               String
+  supplierRepresentativeId String?
+  poNumber                 String                  @unique
+  status                   POStatus                @default(PENDING)
+  totalAmount              Decimal                 @default(0) @db.Decimal(10, 2)
+  notes                    String?
+  approvedBy               String?
+  approvedAt               DateTime?
+  expectedDeliveryDate     DateTime?
+  createdById              String?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  items                    PurchaseOrderItem[]
+  supplier                 Supplier                @relation(fields: [supplierId], references: [id])
+  supplierRepresentative   SupplierRepresentative? @relation(fields: [supplierRepresentativeId], references: [id])
+  createdBy                User?                   @relation(fields: [createdById], references: [id])
+
+  @@map("purchase_orders")
+}
+```
+
+```prisma
+model PurchaseOrderItem {
+  id          String        @id @default(cuid())
+  poId        String
+  productId   String?
+  quantity    Int
+  unitPrice   Decimal       @db.Decimal(10, 2)
+  receivedQty Int           @default(0)
+  notes       String?
+  po          PurchaseOrder @relation(fields: [poId], references: [id])
+  product     Product?      @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
 }
 ```
 
@@ -652,6 +695,14 @@ enum OrderStatus {
 - `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
 - `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
 
+### Purchase Orders API (`/api/purchase-orders`) [NEW]
+- `GET /api/purchase-orders` — List with pagination, filter by `status` or `supplierId`
+- `GET /api/purchase-orders/:id` — Get PO with items (including product lite) and supplier/representative relations
+- `POST /api/purchase-orders` — Create PO (auto-generates poNumber, validates supplier + representative, validates products, calculates totalAmount, links rep + creator)
+- `PATCH /api/purchase-orders/:id/approve` — Approve a PO (updates status to APPROVED, sets approvedBy + approvedAt)
+- `POST /api/purchase-orders/:id/receive` — Receive PO (increments product stock by ordered quantity, updates receivedQty, sets status to RECEIVED)
+- `PATCH /api/purchase-orders/:id/cancel` — Cancel a PO (only allowed in PENDING status)
+
 ## Development Workflow
 
 ### Initial Setup
@@ -702,6 +753,9 @@ enum OrderStatus {
 - `specs/mission.md` - Project vision and objectives
 - `specs/techstack.md` - Technology choices and rationale
 - `specs/roadmap.md` - Development phases and feature priorities
+- `frontend/src/context/ProcurementCartContext.tsx` - Procurement cart state (mirrors PosContext pattern)
+- `frontend/src/components/procurement/` - Procurement cart components (Sheet, Button, CartItem)
+- `frontend/src/hooks/usePurchaseOrders.ts` - React Query hooks for purchase orders
 
 ## Path Aliases
 The following path aliases are configured for monorepo imports:
@@ -745,6 +799,9 @@ The **"Clinical Precision"** design system was created in Google Stitch (`projec
 ├── suppliers/new/ - Add supplier form with representative management
 ├── suppliers/[id]/ - View supplier details with representative directory
 ├── suppliers/[id]/edit/ - Edit supplier form with representative management
+├── procurement/ - Procurement cart for ordering from suppliers (full-page cart review + PO creation)
+├── purchase-orders/ - Purchase order list with search and status filters
+├── purchase-orders/[id]/ - View purchase order details with items, supplier info, and actions (approve/receive/cancel)
 ├── customers/ - Customer list with search and TanStack Table
 ├── customers/new/ - Add customer form
 ├── customers/[id]/ - View customer details with order history
@@ -1128,7 +1185,7 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `POST /api/suppliers/:supplierId/representatives` — Create a representative
   - `PUT /api/suppliers/:supplierId/representatives/:repId` — Update a representative
   - `DELETE /api/suppliers/:supplierId/representatives/:repId` — Delete a representative
-- Shared types (`packages/types/src/index.ts`): `Supplier`, `SupplierRepresentative`, `PurchaseOrder`, `CreateSupplierInput`, `UpdateSupplierInput`, `CreateSupplierRepresentativeInput`, `UpdateSupplierRepresentativeInput`
+- Shared types (`packages/types/src/index.ts`): `Supplier`, `SupplierRepresentative`, `PurchaseOrder`, `PurchaseOrderItem`, `CreateSupplierInput`, `UpdateSupplierInput`, `CreateSupplierRepresentativeInput`, `UpdateSupplierRepresentativeInput`, `CreatePurchaseOrderInput`, `PurchaseOrderWithItems`
 - Frontend:
   - `frontend/src/hooks/useSuppliers.ts` — 7 React Query hooks (list, detail, representatives, create/update/delete supplier, create/update/delete representative) with proper invalidation
   - `frontend/src/components/suppliers/SupplierTable.tsx` — TanStack Table with sorting, pagination, representative count column, email/phone quick-links
@@ -1139,6 +1196,34 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `frontend/src/app/suppliers/[id]/edit/page.tsx` — Edit page with pre-filled form
   - Sidebar: "Suppliers" nav item added with `Truck` icon, `bg-secondary` dot
 - Database: `prisma db push` applied; Prisma client regenerated
+
+**Phase 2: Procurement Cart & Supplier Ordering - COMPLETED ✅**
+- Extended Prisma schema:
+  - `PurchaseOrder` model: added `supplierRepresentativeId` (FK → SupplierRepresentative), `createdById` (FK → User), `expectedDeliveryDate`
+  - `PurchaseOrderItem` model: added `notes` field
+  - `User` model: added `purchaseOrders` relation
+  - `SupplierRepresentative` model: added `purchaseOrders` relation
+- Backend `purchase-orders` module enhanced (`backend/src/modules/purchase-orders/`):
+  - `purchase-order.dto.ts` — extended `poSchema` (poNumber auto-generated, optional representative/deliveryDate/createdBy, items with notes); added `POItemInput` type
+  - `purchase-order.service.ts` — enhanced `createPO` (auto-generates poNumber in `PO-{YYYYMM}-{NNN}` format, validates supplier/representative existence, validates all products exist and are not soft-deleted, defaults unitPrice to product price, calculates totalAmount, links representative and creator); enhanced `listPOs` with pagination/filters; enhanced `getPO` with full relations; enhanced `receivePO` to track receivedQty; added `cancelPO`
+  - `purchase-order.controller.ts` — uses `asyncHandler` pattern with `{ data, pagination }` / `{ data, message }` response shapes; added `cancel` handler
+  - `purchase-order.routes.ts` — action routes (approve/receive/cancel) registered before `/:id` to prevent shadowing; added cancel route
+  - `serializers.ts` — added `serializePurchaseOrderItem`; extended `serializePurchaseOrder` to include items, supplier, representative, expectedDeliveryDate, createdById
+- Shared types extended (`packages/types/src/index.ts`):
+  - Added `PurchaseOrderStatus`, `PurchaseOrderItem`, `CreatePurchaseOrderItemInput`, `CreatePurchaseOrderInput`, `PurchaseOrderWithItems`
+  - Extended `PurchaseOrder` interface with `supplier`, `supplierRepresentativeId`, `supplierRepresentative`, `expectedDeliveryDate`, `createdById`, `items`
+- Frontend procurement cart infrastructure:
+  - `frontend/src/context/ProcurementCartContext.tsx` — `useReducer`-based context (mirrors `PosContext` pattern) with cart items, supplier/representative selection, expected delivery date, notes; computed subtotal, itemCount, totalQuantity, isEmpty; actions: `addItem`, `removeItem`, `updateQuantity`, `clearItems`, `setSupplier`, `setRepresentative`, `setExpectedDeliveryDate`, `setNotes`, `resetCart`
+  - `frontend/src/components/navigation/index.tsx` — wrapped `AuthShell` in `ProcurementCartProvider`; added floating `ProcurementCartButton` visible on all authenticated pages
+  - `frontend/src/components/procurement/ProcurementCartSheet.tsx` — Sheet drawer with cart items table (qty adjusters, line totals, remove), supplier/representative Select dropdowns, delivery date picker, notes textarea, submit button (creates PO via API)
+  - `frontend/src/components/procurement/ProcurementCartButton.tsx` — floating action button (bottom-right) with item count badge
+  - `frontend/src/components/inventory/inventory-columns.tsx` — added "Add to Cart" (ShoppingCart) button in Actions column (disabled for expired/out-of-stock); `getInventoryColumns` now accepts `onAddToCart` callback prop (Rules of Hooks compliant — no hooks called inside cell render)
+  - `frontend/src/app/procurement/page.tsx` — full-page procurement interface with two-column layout (cart items table | order details form), Clinical Precision themed; redirects to `/purchase-orders` after PO creation
+  - `frontend/src/app/purchase-orders/page.tsx` — purchase order listing page with TanStack Table (search, sorting, pagination, status badges)
+  - `frontend/src/app/purchase-orders/[id]/page.tsx` — purchase order detail page with items table, supplier/representative info, status actions (approve/receive/cancel)
+  - `frontend/src/hooks/usePurchaseOrders.ts` — React Query hooks: `usePurchaseOrders`, `usePurchaseOrder`, `useCreatePurchaseOrder`, `useApprovePurchaseOrder`, `useReceivePurchaseOrder`, `useCancelPurchaseOrder`
+  - `frontend/src/lib/api.ts` — added `api.purchaseOrders` section (list, get, create, approve, receive, cancel)
+  - `frontend/src/app-sidebar.tsx` — added "Procurement" and "Purchase Orders" nav entries
 
 ## Troubleshooting
 

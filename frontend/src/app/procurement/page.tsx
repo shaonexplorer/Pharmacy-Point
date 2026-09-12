@@ -171,8 +171,7 @@ export default function ProcurementPage() {
                 <Package className="h-12 w-12 text-muted-foreground/50" />
                 <h3 className="mt-4 text-headline-md text-foreground">Cart is empty</h3>
                 <p className="mt-2 text-body-md text-on-surface-variant">
-                  Go to the Inventory page and click "Add to Cart" on products
-                  that need restocking.
+                  Go to the Inventory page and click "Add to Cart" on products that need restocking.
                 </p>
                 <Button asChild variant="default" className="mt-4">
                   <Link href="/inventory">
@@ -212,9 +211,7 @@ export default function ProcurementPage() {
                       {items.map((item) => (
                         <TableRow key={item.productId}>
                           <TableCell>
-                            <div className="font-medium text-foreground">
-                              {item.product.name}
-                            </div>
+                            <div className="font-medium text-foreground">{item.product.name}</div>
                             <div className="text-xs text-on-surface-variant">
                               SKU: {item.product.sku}
                             </div>
@@ -290,9 +287,7 @@ export default function ProcurementPage() {
                 <Card className="border-border bg-card card-elevated">
                   <CardHeader>
                     <CardTitle className="text-headline-md">Supplier Details</CardTitle>
-                    <CardDescription>
-                      Select who you're ordering from
-                    </CardDescription>
+                    <CardDescription>Select who you're ordering from</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -303,7 +298,7 @@ export default function ProcurementPage() {
                         value={selectedSupplierId ?? ''}
                         onValueChange={setSelectedSupplierId}
                       >
-                        <SelectTrigger id="supplier">
+                        <SelectTrigger id="supplier" className="w-full!">
                           <SelectValue placeholder="Select a supplier" />
                         </SelectTrigger>
                         <SelectContent>
@@ -318,20 +313,14 @@ export default function ProcurementPage() {
 
                     {selectedSupplierId && representatives.length > 0 && (
                       <div className="space-y-2">
-                        <Label
-                          htmlFor="representative"
-                          className="text-label-md text-foreground"
-                        >
+                        <Label htmlFor="representative" className="text-label-md text-foreground">
                           Representative
                         </Label>
-                        <Select
-                          value={selectedRepId ?? ''}
-                          onValueChange={setSelectedRepId}
-                        >
-                          <SelectTrigger id="representative">
+                        <Select value={selectedRepId ?? ''} onValueChange={setSelectedRepId}>
+                          <SelectTrigger id="representative" className="w-full!">
                             <SelectValue placeholder="Select a representative (optional)" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="w-full!">
                             {representatives.map((rep) => (
                               <SelectItem key={rep.id} value={rep.id}>
                                 {rep.name}
@@ -344,10 +333,7 @@ export default function ProcurementPage() {
                     )}
 
                     <div className="space-y-2">
-                      <Label
-                        htmlFor="expected-delivery"
-                        className="text-label-md text-foreground"
-                      >
+                      <Label htmlFor="expected-delivery" className="text-label-md text-foreground">
                         Expected Delivery Date
                       </Label>
                       <div className="relative">
@@ -396,7 +382,7 @@ export default function ProcurementPage() {
                     <div className="flex flex-col gap-3">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="default"
                         onClick={handleClearCart}
                         className="w-full text-destructive"
                       >
