@@ -16,6 +16,7 @@ import { useSession } from '@/lib/auth-client';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useCreatePurchaseOrder } from '@/hooks/usePurchaseOrders';
 import { useProcurementCart } from '@/context/ProcurementCartContext';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
@@ -53,11 +54,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/formatters';
-import {
-  buildWhatsAppLink,
-  formatPOWhatsAppMessage,
-} from '@/lib/whatsapp';
-import type { PurchaseOrderWithItems } from '@pharmacy-point/types';
+import { buildWhatsAppLink, formatPOWhatsAppMessage } from '@/lib/whatsapp';
+import type { PurchaseOrderWithItems, WhatsAppPOResponse } from '@pharmacy-point/types';
 
 export default function ProcurementPage() {
   const router = useRouter();
@@ -69,6 +67,21 @@ export default function ProcurementPage() {
 
   // The PO returned by the last successful creation (used for WhatsApp sharing)
   const [createdPO, setCreatedPO] = useState<PurchaseOrderWithItems | null>(null);
+
+  // WhatsApp API status and sending state
+  const [whatsAppConfigured, setWhatsAppConfigured] = useState(false);
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
+  const [whatsAppError, setWhatsAppError] = useState<string | null>(null);
+  const [whatsAppResponse, setWhatsAppResponse] = useState<WhatsAppPOResponse | null>(null);
+
+  // Check if WhatsApp Business API is configured on mount
+  useEffect(() => {
+    api.notifications.whatsAppStatus().then((res) => {
+      setWhatsAppConfigured(res.data?.configured ?? false);
+    }).catch(() => {
+      setWhatsAppConfigured(false);
+    });
+  }, []);
 
   const {
     items,
@@ -118,6 +131,10 @@ export default function ProcurementPage() {
 
       // Capture the created PO so we can offer WhatsApp sharing
       setCreatedPO(poResponse?.data ?? null);
+
+      // Reset WhatsApp state for the new PO
+      setWhatsAppError(null);
+      setWhatsAppResponse(null);
 
       // Reset cart and form on success
       resetCart();
@@ -394,6 +411,12 @@ export default function ProcurementPage() {
                           Send this order to{' '}
                           <strong>{createdPO.supplierRepresentative.name}</strong> via
                           WhatsApp.
+                          {!whatsAppConfigured && (
+                            <span className="block mt-1 text-xs italic">
+                              (WhatsApp Business API not configured — will open
+                              web version as fallback)
+                            </span>
+                          )}
                         </p>
                       ) : (
                         <p className="text-body-sm text-on-surface-variant mb-4">
@@ -404,28 +427,82 @@ export default function ProcurementPage() {
 
                       <div className="flex flex-col gap-3">
                         {createdPO.supplierRepresentative?.whatsappNumber && (
-                          <Button
-                            className="w-full"
-                            size="lg"
-                            onClick={() => {
-                              const rep = createdPO.supplierRepresentative!;
-                              const message = formatPOWhatsAppMessage({
-                                representativeName: rep.name,
-                                poNumber: createdPO.poNumber,
-                                items: createdPO.items ?? [],
-                                totalAmount: createdPO.totalAmount,
-                                expectedDeliveryDate: createdPO.expectedDeliveryDate,
-                                notes: createdPO.notes,
-                              });
-                              const link = buildWhatsAppLink(rep.whatsappNumber!, message);
-                              if (link) {
-                                window.open(link, '_blank', 'noopener,noreferrer');
-                              }
-                            }}
-                          >
-                            <MessageCircle className="mr-2 h-4 w-4" />
-                            Send via WhatsApp
-                          </Button>
+                          <div>
+                            {whatsAppError && (
+                              <div className="mb-3 rounded-lg border border-error/30 bg-error/10 p-3">
+                                <p className="text-sm text-error">{whatsAppError}</p>
+                              </div>
+                            )}
+                            {whatsAppResponse?.success && (
+                              <div className="mb-3 rounded-lg border border-success/30 bg-success/10 p-3">
+                                <p className="text-sm text-success">{whatsAppResponse.message}</p>
+                              </div>
+                            )}
+                            <Button
+                              className="w-full"
+                              size="lg"
+                              disabled={isSendingWhatsApp || whatsAppResponse?.success}
+                              onClick={async () => {
+                                setIsSendingWhatsApp(true);
+                                setWhatsAppError(null);
+                                setWhatsAppResponse(null);
+
+                                try {
+                                  const response = await api.notifications.sendWhatsAppPO({
+                                    purchaseOrderId: createdPO.id,
+                                  });
+                                  const data = response.data;
+
+                                  if (data?.success) {
+                                    setWhatsAppResponse(data);
+                                  } else {
+                                    // Fallback: open wa.me link in new tab
+                                    if (data?.fallbackLink) {
+                                      window.open(
+                                        data.fallbackLink,
+                                        '_blank',
+                                        'noopener,noreferrer'
+                                      );
+                                    }
+                                    setWhatsAppResponse(data ?? null);
+                                  }
+                                } catch (err) {
+                                  const msg =
+                                    err instanceof Error ? err.message : 'Failed to send WhatsApp message';
+                                  setWhatsAppError(msg);
+
+                                  // Fallback: construct wa.me link directly
+                                  const rep = createdPO.supplierRepresentative!;
+                                  const textMsg = formatPOWhatsAppMessage({
+                                    representativeName: rep.name,
+                                    poNumber: createdPO.poNumber,
+                                    items: createdPO.items ?? [],
+                                    totalAmount: createdPO.totalAmount,
+                                    expectedDeliveryDate: createdPO.expectedDeliveryDate,
+                                    notes: createdPO.notes,
+                                  });
+                                  const fallback = buildWhatsAppLink(rep.whatsappNumber!, textMsg);
+                                  if (fallback) {
+                                    window.open(fallback, '_blank', 'noopener,noreferrer');
+                                  }
+                                } finally {
+                                  setIsSendingWhatsApp(false);
+                                }
+                              }}
+                            >
+                              {isSendingWhatsApp ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Sending via WhatsApp API...
+                                </>
+                              ) : (
+                                <>
+                                  <MessageCircle className="mr-2 h-4 w-4" />
+                                  Send via WhatsApp
+                                </>
+                              )}
+                            </Button>
+                          </div>
                         )}
 
                         <Button
@@ -434,6 +511,8 @@ export default function ProcurementPage() {
                           className="w-full"
                           onClick={() => {
                             setCreatedPO(null);
+                            setWhatsAppResponse(null);
+                            setWhatsAppError(null);
                             router.push('/purchase-orders');
                           }}
                         >

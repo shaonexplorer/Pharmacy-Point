@@ -398,6 +398,32 @@ export const api = {
           data,
         }
       ),
+    // WhatsApp Business Cloud API
+    whatsAppStatus: () =>
+      request<ApiResponse<{ configured: boolean; phoneNumberId: string | null }>>(
+        '/api/notifications/whatsapp/status'
+      ),
+    sendWhatsApp: (data: { to: string; message: string; purchaseOrderId?: string }) =>
+      request<ApiResponse<{ success: boolean; message: string; messageId?: string; waId?: string }>>(
+        '/api/notifications/whatsapp',
+        {
+          method: 'POST',
+          data,
+        }
+      ),
+    sendWhatsAppPO: (data: { purchaseOrderId: string; phoneOverride?: string }) =>
+      request<
+        ApiResponse<{
+          success: boolean;
+          message: string;
+          messageId?: string;
+          waId?: string;
+          fallbackLink?: string;
+        }>
+      >('/api/notifications/whatsapp/purchase-order', {
+        method: 'POST',
+        data,
+      }),
   },
 
   // Purchase Orders

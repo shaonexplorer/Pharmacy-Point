@@ -703,6 +703,14 @@ model PurchaseOrderItem {
 - `POST /api/purchase-orders/:id/receive` — Receive PO (increments product stock by ordered quantity, updates receivedQty, sets status to RECEIVED)
 - `PATCH /api/purchase-orders/:id/cancel` — Cancel a PO (only allowed in PENDING status)
 
+### Notifications API (`/api/notifications`) [NEW]
+- `POST /api/notifications/send` — Send batch alerts (low_stock, expiry, due_account) via email
+- `POST /api/notifications/send/due-accounts` — Send due account alert emails to configured recipients
+- `POST /api/notifications/reminders` — Send payment reminder emails to customers with due amounts
+- `GET /api/notifications/whatsapp/status` — Check if WhatsApp Business Cloud API is configured
+- `POST /api/notifications/whatsapp` — Send a text message via WhatsApp Business Cloud API (body: `{ to, message }`)
+- `POST /api/notifications/whatsapp/purchase-order` — Send PO details to a supplier representative's WhatsApp number (body: `{ purchaseOrderId, phoneOverride? }`); returns a `wa.me` fallback link if the API is not configured
+
 ## Development Workflow
 
 ### Initial Setup
@@ -726,6 +734,17 @@ model PurchaseOrderItem {
    npm run dev --workspace=frontend  # http://localhost:3000
    npm run dev --workspace=backend   # http://localhost:5000
    ```
+
+   To enable the WhatsApp Business Cloud API for supplier messaging, add these
+   variables to `backend/.env` (see Meta for Developers for token management):
+   ```env
+   WHATSAPP_TOKEN=your-meta-cloud-api-access-token
+   WHATSAPP_PHONE_NUMBER_ID=your-whatsapp-business-phone-number-id
+   WHATSAPP_BUSINESS_ACCOUNT_ID=your-meta-business-account-id
+   WHATSAPP_API_VERSION=v21.0
+   ```
+   Without these, the procurement WhatsApp button falls back to opening `wa.me`
+   links in a new browser tab.
 
 ## Available Scripts (Root)
 - `npm run dev` - Start both frontend and backend development servers
@@ -1225,17 +1244,31 @@ When using `keepPreviousData`, `isLoading` remains `false` during page transitio
   - `frontend/src/lib/api.ts` — added `api.purchaseOrders` section (list, get, create, approve, receive, cancel)
   - `frontend/src/app-sidebar.tsx` — added "Procurement" and "Purchase Orders" nav entries
 
-**Phase 2: Procurement WhatsApp Messaging - COMPLETED ✅**
-- New utility file `frontend/src/lib/whatsapp.ts`:
-  - `sanitizeWhatsAppNumber(raw)` — strips non-digit characters from phone numbers for `wa.me` URL compatibility
-  - `buildWhatsAppLink(phoneNumber, message)` — constructs `https://wa.me/<number>?text=<encoded_message>` links
+**Phase 2: Procurement WhatsApp Messaging — WhatsApp Business Cloud API Integration COMPLETED ✅**
+- New backend utility `backend/src/utils/whatsapp.ts`:
+  - `sanitizeWhatsAppNumber(raw)` — strips non-digit characters from phone numbers
+  - `normalizeWhatsAppNumber(raw)` — normalizes to E.164 format for the WhatsApp Cloud API
   - `formatPOWhatsAppMessage(params)` — formats PO line items into a human-readable WhatsApp message with product names, SKUs, quantities, prices, subtotal, PO number, delivery date, and notes
+- Existing frontend utility `frontend/src/lib/whatsapp.ts` retained for `wa.me` link fallback generation
+- Backend notification module (`backend/src/modules/notifications/`):
+  - `notification.service.ts` — added `sendWhatsAppMessage()` (calls Meta Graph API `POST /{version}/{phoneNumberId}/messages`), `sendPurchaseOrderWhatsApp()` (fetches PO by ID with full relations, formats message, sends to rep's `whatsappNumber`; falls back to `wa.me` link if API not configured)
+  - `notification.dto.ts` — added `whatsappMessageSchema` and `whatsappPORequestSchema` Zod schemas
+  - `notification.controller.ts` — added `sendWhatsApp`, `sendWhatsAppPurchaseOrder`, `getWhatsAppStatus` handlers
+  - `notification.routes.ts` — added routes: `GET /api/notifications/whatsapp/status`, `POST /api/notifications/whatsapp`, `POST /api/notifications/whatsapp/purchase-order`
 - `ProcurementPage` (`frontend/src/app/procurement/page.tsx`) and `ProcurementCartSheet` (`frontend/src/components/procurement/ProcurementCartSheet.tsx`):
-  - After successful PO creation, instead of immediately navigating/closing, a **success view** is shown
-  - The success card displays the PO number and total amount
-  - If the selected supplier representative has a `whatsappNumber`, a **"Send via WhatsApp"** button appears — clicking opens the WhatsApp message in a new tab with the full product list pre-filled
+  - After successful PO creation, a **success view** is shown with the PO number and total amount
+  - If the selected representative has a `whatsappNumber`, a **"Send via WhatsApp"** button appears
+  - Clicking the button calls `POST /api/notifications/whatsapp/purchase-order` with the PO ID — the backend formats and sends the message via the WhatsApp Business Cloud API
+  - If the API is not configured (`WHATSAPP_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` not set), a fallback `wa.me` link is returned and opened in a new tab
+  - Shows loading state (`Sending via WhatsApp API...`) and success/error feedback
   - If no WhatsApp number is on file, a helpful message prompts updating the rep's profile
   - A "Done" / "View Purchase Orders" button navigates to the PO list
+- Environment variables (`backend/.env`, `backend/.env.example`):
+  - `WHATSAPP_TOKEN` — Bearer access token from Meta
+  - `WHATSAPP_PHONE_NUMBER_ID` — WhatsApp Business phone number ID
+  - `WHATSAPP_BUSINESS_ACCOUNT_ID` — Meta Business account ID
+  - `WHATSAPP_API_VERSION` — Graph API version (default `v21.0`)
+- Shared types (`packages/types/src/index.ts`): added `WhatsAppMessageResponse` and `WhatsAppPOResponse`
 
 ## Troubleshooting
 

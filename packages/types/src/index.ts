@@ -700,3 +700,24 @@ export interface FinancialReportResponse {
     hasPrev: boolean;
   };
 }
+
+// ─── WhatsApp Message Types ─────────────────────────────────
+
+/** Response from the WhatsApp Business Cloud API */
+export interface WhatsAppMessageResponse {
+  /** Meta message ID, or undefined if sending failed */
+  id?: string;
+  /** The wa_id of the contact that received the message */
+  waId?: string;
+  /** Error message if the message could not be sent */
+  error?: string;
+}
+
+/** Response for a PO WhatsApp sending request */
+export interface WhatsAppPOResponse {
+  success: boolean;
+  message: string;
+  messageId?: string;
+  waId?: string;
+  fallbackLink?: string;
+}

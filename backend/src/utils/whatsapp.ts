@@ -1,17 +1,17 @@
 /**
- * WhatsApp utility helpers for formatting messages and generating wa.me links.
+ * WhatsApp utility helpers for the backend.
  *
- * The primary sending path is through the backend WhatsApp Business Cloud API
- * (`POST /api/notifications/whatsapp/purchase-order`). These frontend helpers
- * are used as a **fallback** when the API is not configured or fails:
- *
- * WhatsApp Web URL format: https://wa.me/<phoneNumber>?text=<urlEncodedMessage>
- * Phone numbers must be in international format without +, spaces, dashes, etc.
+ * Provides phone-number sanitization and purchase-order message formatting
+ * for the WhatsApp Business Cloud API. The formatting logic mirrors the
+ * frontend version (`frontend/src/lib/whatsapp.ts`) so both layers produce
+ * identical messages.
  */
 
 /**
  * Strip all non-digit characters from a phone number to produce a WhatsApp
  * "chat" URL compatible phone number (e.g. "+1 (555) 123-4567" → "15551234567").
+ * For the WhatsApp Business Cloud API, send the number in full international
+ * format (e.g. "+15551234567").
  */
 export function sanitizeWhatsAppNumber(raw: string | null | undefined): string {
   if (!raw) return '';
@@ -19,13 +19,14 @@ export function sanitizeWhatsAppNumber(raw: string | null | undefined): string {
 }
 
 /**
- * Build a `wa.me` link that opens a pre-filled WhatsApp message.
+ * Normalize a phone number to international E.164 format for the WhatsApp
+ * Cloud API. Strips all non-digit characters and prepends "+" if not present.
+ * Returns empty string if the input is empty.
  */
-export function buildWhatsAppLink(phoneNumber: string, message: string): string {
-  const cleanNumber = sanitizeWhatsAppNumber(phoneNumber);
-  if (!cleanNumber) return '';
-  const encodedMessage = encodeURIComponent(message);
-  return `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
+export function normalizeWhatsAppNumber(raw: string | null | undefined): string {
+  const digits = sanitizeWhatsAppNumber(raw);
+  if (!digits) return '';
+  return digits.startsWith('+') ? digits : `+${digits}`;
 }
 
 /**
@@ -59,13 +60,10 @@ export function formatPOWhatsAppMessage(params: {
 }): string {
   const { representativeName, poNumber, items, totalAmount, expectedDeliveryDate, notes } = params;
 
-  const greeting = representativeName
-    ? `Hi ${representativeName},`
-    : 'Hello,';
+  const greeting = representativeName ? `Hi ${representativeName},` : 'Hello,';
 
   const lines: string[] = [greeting, '', "We'd like to place the following order:", ''];
 
-  // Line items
   items.forEach((item, index) => {
     const productName = item.product?.name ?? 'Unnamed Product';
     const sku = item.product?.sku;

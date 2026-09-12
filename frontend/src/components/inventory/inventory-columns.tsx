@@ -140,7 +140,9 @@ export function getInventoryColumns({
           product.expiryDate !== undefined &&
           getExpiryStatus(product.expiryDate) === 'expired';
         const outOfStock = product.quantity <= 0;
-        const canAddToCart = !isExpired && !outOfStock && !!onAddToCart;
+        // const canAddToCart = !isExpired && !outOfStock && !!onAddToCart;
+        const canAddToCart = !isExpired && !!onAddToCart;
+
 
         return (
           <div className="flex items-center justify-end gap-1">
